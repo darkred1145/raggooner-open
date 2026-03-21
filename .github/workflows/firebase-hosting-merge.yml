@@ -75,4 +75,4 @@ jobs:
           args: deploy --only functions
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RAGGOONEROPEN }}
-          PROJECT_PATH: ./frontend
+          PROJECT_PATH: .
