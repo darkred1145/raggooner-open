@@ -1,6 +1,6 @@
 import { setGlobalOptions } from "firebase-functions";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
-import { auth } from "firebase-functions/v1";
+import { beforeUserCreated } from "firebase-functions/v2/identity";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
@@ -17,7 +17,9 @@ setGlobalOptions({ maxInstances: 10 });
 // If the user signed in via Discord (OIDC), writes a userRoles document
 // with role = "player" so they appear in the admin user management page.
 // ---------------------------------------------------------------------------
-export const assignDefaultRole = auth.user().onCreate(async (user) => {
+export const assignDefaultRole = beforeUserCreated(async (event) => {
+  const user = event.data;
+  if (!user) return;
   const isDiscord = user.providerData?.some((p) => p.providerId.includes("discord"));
   if (!isDiscord) return;
 
@@ -27,14 +29,18 @@ export const assignDefaultRole = auth.user().onCreate(async (user) => {
     .collection("public").doc("data")
     .collection("userRoles").doc(user.uid);
 
-  await roleRef.set({
-    uid: user.uid,
-    role: "player",
-    displayName: user.displayName ?? "",
-    updatedAt: new Date().toISOString(),
-  });
-
-  logger.info("Assigned default player role.", { uid: user.uid });
+  try {
+    await roleRef.set({
+      uid: user.uid,
+      role: "player",
+      displayName: user.displayName ?? "",
+      updatedAt: new Date().toISOString(),
+    });
+    logger.info("Assigned default player role.", { uid: user.uid });
+  } catch (e) {
+    // Non-fatal: log but don't block user creation
+    logger.error("Failed to assign default role.", { uid: user.uid, error: e });
+  }
 });
 
 // ---------------------------------------------------------------------------
