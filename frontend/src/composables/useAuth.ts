@@ -9,14 +9,15 @@ import {
     updateProfile,
     type User
 } from 'firebase/auth';
-import { 
-    collection, 
-    query, 
-    where, 
-    getDocs, 
-    doc, 
-    updateDoc, 
-    setDoc 
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteField,
+    setDoc
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import type { GlobalPlayer } from '../types';
@@ -171,6 +172,17 @@ export function useAuth() {
         }
     };
 
+    const unlinkOwnAccount = async () => {
+        if (!linkedPlayer.value) throw new Error('No linked player');
+        const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
+        await updateDoc(playerRef, {
+            firebaseUid: deleteField(),
+            discordId: deleteField(),
+            avatarUrl: deleteField(),
+        });
+        linkedPlayer.value = null;
+    };
+
     const updatePlayerProfile = async (fields: Partial<Pick<GlobalPlayer, 'roster' | 'supportCards'>>) => {
         if (!linkedPlayer.value) throw new Error('No linked player');
         const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
@@ -188,6 +200,7 @@ export function useAuth() {
         logout,
         linkToPlayer,
         createAndLinkPlayer,
+        unlinkOwnAccount,
         updatePlayerProfile,
     };
 }

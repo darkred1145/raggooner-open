@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, deleteField, collection, getDocs, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { SUPERADMIN_UIDS } from '../utils/constants';
 import type { UserRole, GlobalPlayer } from '../types';
@@ -75,6 +75,16 @@ export function useUserRoles() {
         }));
     };
 
+    const unlinkPlayer = async (playerId: string) => {
+        if (!isSuperAdmin.value) throw new Error('Only superadmins can unlink players');
+        const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId);
+        await updateDoc(playerRef, {
+            firebaseUid: deleteField(),
+            discordId: deleteField(),
+            avatarUrl: deleteField(),
+        });
+    };
+
     const fetchAllPlayers = async (): Promise<GlobalPlayer[]> => {
         const playersRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
         const snap = await getDocs(playersRef);
@@ -87,6 +97,7 @@ export function useUserRoles() {
         isSuperAdmin,
         isOfficialCreator,
         setUserRole,
+        unlinkPlayer,
         fetchAllRoles,
         fetchAllPlayers,
     };

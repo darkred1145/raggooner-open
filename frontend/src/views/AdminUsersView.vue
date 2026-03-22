@@ -6,7 +6,7 @@ import PlayerProfileModal from '../components/PlayerProfileModal.vue';
 import { useUserRoles } from '../composables/useUserRoles';
 import type { GlobalPlayer, UserRole } from '../types';
 
-const { isSuperAdmin, setUserRole, fetchAllRoles, fetchAllPlayers } = useUserRoles();
+const { isSuperAdmin, setUserRole, unlinkPlayer, fetchAllRoles, fetchAllPlayers } = useUserRoles();
 
 const players = ref<GlobalPlayer[]>([]);
 const roleMap = ref<Record<string, UserRole>>({});
@@ -62,6 +62,23 @@ const profilePlayer = ref<GlobalPlayer | null>(null);
 const openProfile = (player: GlobalPlayer) => {
     profilePlayer.value = player;
     profileModalOpen.value = true;
+};
+
+const unlinking = ref<string | null>(null);
+
+const handleUnlink = async (player: GlobalPlayer) => {
+    if (!confirm(`Unlink Discord account from "${player.name}"?\n\nTheir stats and tournament history will be kept. They will need to re-link on their next visit.`)) return;
+    unlinking.value = player.id;
+    try {
+        await unlinkPlayer(player.id);
+        players.value = players.value.filter(p => p.id !== player.id);
+        statusMessage.value = `Unlinked Discord account from ${player.name}`;
+        setTimeout(() => { statusMessage.value = ''; }, 3000);
+    } catch (e) {
+        statusMessage.value = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
+    } finally {
+        unlinking.value = null;
+    }
 };
 
 const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
@@ -128,7 +145,7 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
 
                     <div v-else class="space-y-2">
                         <div v-for="player in filteredPlayers" :key="player.id"
-                             class="flex items-center gap-4 bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3">
+                             class="flex items-center gap-3 bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3">
 
                             <img v-if="player.avatarUrl"
                                  :src="player.avatarUrl"
@@ -138,11 +155,14 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
                                 <i class="ph ph-user text-slate-400"></i>
                             </div>
 
-                            <div class="flex-1 min-w-0">
-                                <div class="font-semibold text-white text-sm truncate">{{ player.name }}</div>
-                                <div class="text-xs text-slate-500 font-mono truncate">
-                                    <span v-if="player.discordId">Discord: {{ player.discordId }}</span>
-                                    <span v-else>UID: {{ player.firebaseUid }}</span>
+                            <div class="flex-1 min-w-0 space-y-0.5">
+                                <div class="flex items-center gap-1.5 text-xs text-slate-400 truncate">
+                                    <i class="ph-fill ph-discord-logo text-[#5865F2] shrink-0"></i>
+                                    <span class="font-mono truncate">{{ player.discordId ?? player.firebaseUid }}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-sm truncate">
+                                    <i class="ph-bold ph-user text-slate-500 shrink-0"></i>
+                                    <span class="font-semibold text-white truncate">{{ player.name }}</span>
                                 </div>
                             </div>
 
@@ -166,7 +186,14 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
                                 </option>
                             </select>
 
-                            <i v-if="saving === player.firebaseUid"
+                            <button @click="handleUnlink(player)"
+                                    :disabled="unlinking === player.id"
+                                    title="Unlink Discord account from player"
+                                    class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50">
+                                <i class="ph-bold ph-link-break text-lg"></i>
+                            </button>
+
+                            <i v-if="saving === player.firebaseUid || unlinking === player.id"
                                class="ph ph-spinner animate-spin text-indigo-400 flex-shrink-0"></i>
                         </div>
                     </div>

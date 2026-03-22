@@ -14,7 +14,20 @@ import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 import PlayerAvatar from '../components/shared/PlayerAvatar.vue';
 
-const { user, linkedPlayer, updatePlayerProfile } = useAuth();
+const { user, linkedPlayer, updatePlayerProfile, unlinkOwnAccount } = useAuth();
+
+const showUnlinkConfirm = ref(false);
+const unlinking = ref(false);
+
+const confirmUnlink = async () => {
+    unlinking.value = true;
+    try {
+        await unlinkOwnAccount();
+        showUnlinkConfirm.value = false;
+    } finally {
+        unlinking.value = false;
+    }
+};
 
 // ── Uma Roster ────────────────────────────────────────────────────────────────
 
@@ -155,7 +168,7 @@ const sortedOwnedCards = computed(() =>
                     size="xl"
                     class="border-2 border-slate-600"
                 />
-                <div>
+                <div class="flex-1 min-w-0">
                     <div class="text-xl font-bold text-white">{{ linkedPlayer.name }}</div>
                     <div class="text-sm text-slate-400 flex items-center gap-1.5 mt-0.5">
                         <i class="ph-fill ph-discord-logo text-[#5865F2]"></i>
@@ -168,6 +181,12 @@ const sortedOwnedCards = computed(() =>
                         <span><span class="text-white font-bold">{{ linkedPlayer.supportCards?.length ?? 0 }}</span> support cards</span>
                     </div>
                 </div>
+                <button @click="showUnlinkConfirm = true"
+                        title="Unlink Discord account from player"
+                        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-500 border border-slate-700 rounded-lg hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/5 transition-colors shrink-0">
+                    <i class="ph-bold ph-link-break"></i>
+                    Unlink
+                </button>
             </div>
 
             <!-- ── Uma Roster ─────────────────────────────────────────── -->
@@ -323,4 +342,47 @@ const sortedOwnedCards = computed(() =>
         </template>
     </div>
     </div>
+
+    <!-- Unlink confirmation modal -->
+    <Teleport to="body">
+        <Transition name="modal">
+            <div v-if="showUnlinkConfirm"
+                 class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="showUnlinkConfirm = false"></div>
+                <div class="relative z-10 w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6">
+                    <div class="flex items-start gap-4 mb-5">
+                        <div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center shrink-0">
+                            <i class="ph-bold ph-link-break text-red-400 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base">Unlink account?</h3>
+                            <p class="text-sm text-slate-400 mt-1">
+                                Your Discord account will be disconnected from <span class="text-white font-semibold">{{ linkedPlayer?.name }}</span>.
+                                Your tournament history and stats are preserved — you'll just need to link to a player again.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 justify-end">
+                        <button @click="showUnlinkConfirm = false"
+                                :disabled="unlinking"
+                                class="px-4 py-2 text-sm font-bold text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50">
+                            Cancel
+                        </button>
+                        <button @click="confirmUnlink"
+                                :disabled="unlinking"
+                                class="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2">
+                            <i v-if="unlinking" class="ph ph-spinner animate-spin"></i>
+                            <i v-else class="ph-bold ph-link-break"></i>
+                            Unlink
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 </template>
+
+<style scoped>
+.modal-enter-active, .modal-leave-active { transition: opacity 0.15s, transform 0.15s; }
+.modal-enter-from, .modal-leave-to { opacity: 0; transform: scale(0.97); }
+</style>
