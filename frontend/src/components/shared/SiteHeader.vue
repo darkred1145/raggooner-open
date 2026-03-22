@@ -34,7 +34,7 @@ const { user, linkedPlayer, loading, loginError, loginWithDiscord, logout, isDis
                     <div v-else-if="user" class="relative group flex items-center gap-3 cursor-pointer">
                         <div class="hidden md:flex flex-col items-end">
                             <span class="text-xs font-bold text-white leading-none">{{ user.displayName }}</span>
-                            <span v-if="linkedPlayer" class="text-[10px] text-indigo-400 font-bold uppercase tracking-tighter">{{ linkedPlayer.name }}</span>
+                            <span v-if="linkedPlayer" class="text-[10px] text-indigo-400 font-bold tracking-tighter">{{ linkedPlayer.name }}</span>
                             <span v-else class="text-[10px] text-amber-500 font-bold uppercase tracking-tighter italic">Not Linked</span>
                         </div>
 
