@@ -14,6 +14,12 @@ After any change, verify with:
 npm run lint && npm run build
 ```
 
+## Runtime
+
+- **Node.js version:** 24
+- **Generation:** Gen 2 (2nd Gen) only — configured in `package.json` (`"engines": { "node": "24" }`)
+- Gen 1 functions max out at Node.js 20 and will fail to deploy with Node.js 24. Always use v2 trigger imports.
+
 ## Functions
 
 ### `assignDefaultRole` (`beforeUserCreated` identity trigger — v2)
