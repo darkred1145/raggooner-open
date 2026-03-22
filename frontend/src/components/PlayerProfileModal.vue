@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { GlobalPlayer, SupportCardType } from '../types';
-import { getUmaImagePath } from '../utils/umaData';
+import { getUmaImagePath, UMA_LIST } from '../utils/umaData';
 import { SUPPORT_CARD_DICT, SUPPORT_CARD_TYPE_META } from '../utils/supportCardData';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
 
@@ -18,12 +18,23 @@ const activeTab = ref<'umas' | 'cards'>('umas');
 
 // ── Uma filters ───────────────────────────────────────────────────────────────
 const umaFilter = ref('');
+const showUnowned = ref(false);
 
 const ownedUmas = computed(() => {
     const roster = props.globalPlayer?.roster ?? [];
     const q = umaFilter.value.toLowerCase();
     return roster
         .filter(name => name.toLowerCase().includes(q))
+        .sort((a, b) => a.localeCompare(b));
+});
+
+const unownedUmas = computed(() => {
+    if (!showUnowned.value) return [];
+    const owned = new Set(props.globalPlayer?.roster ?? []);
+    const q = umaFilter.value.toLowerCase();
+    return UMA_LIST
+        .map(u => u.name)
+        .filter(name => !owned.has(name) && name.toLowerCase().includes(q))
         .sort((a, b) => a.localeCompare(b));
 });
 
@@ -57,6 +68,7 @@ const toggleTypeFilter = (type: SupportCardType) => {
 const onOpen = () => {
     activeTab.value = 'umas';
     umaFilter.value = '';
+    showUnowned.value = false;
     cardTypeFilter.value = null;
     cardMinLb.value = 0;
 };
@@ -131,13 +143,17 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
 
                         <!-- ── Uma Tab ── -->
                         <div v-if="activeTab === 'umas'" class="flex-1 flex flex-col overflow-hidden">
-                            <div class="px-4 py-3 border-b border-slate-800 shrink-0">
+                            <div class="px-4 py-3 border-b border-slate-800 shrink-0 space-y-2">
                                 <input v-model="umaFilter"
                                        placeholder="Search umas…"
                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+                                <label class="flex items-center gap-2 cursor-pointer w-fit">
+                                    <input type="checkbox" v-model="showUnowned" class="accent-indigo-500 w-3.5 h-3.5 cursor-pointer" />
+                                    <span class="text-xs text-slate-400">Show unowned</span>
+                                </label>
                             </div>
 
-                            <div v-if="ownedUmas.length === 0" class="flex-1 flex items-center justify-center text-slate-600 text-sm py-12">
+                            <div v-if="ownedUmas.length === 0 && unownedUmas.length === 0" class="flex-1 flex items-center justify-center text-slate-600 text-sm py-12">
                                 {{ umaFilter ? 'No umas match your search.' : 'No umas in roster.' }}
                             </div>
 
@@ -148,6 +164,16 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                         <img :src="getUmaImagePath(umaName)"
                                              :alt="umaName"
                                              class="w-full aspect-square object-cover object-top bg-slate-700" />
+                                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
+                                        <p class="absolute bottom-0 left-0 right-0 text-[9px] text-white font-bold text-center pb-0.5 px-0.5 truncate drop-shadow">
+                                            {{ umaName }}
+                                        </p>
+                                    </div>
+                                    <div v-for="umaName in unownedUmas" :key="'u-' + umaName"
+                                         class="relative rounded-lg overflow-hidden border border-slate-700/50 opacity-35">
+                                        <img :src="getUmaImagePath(umaName)"
+                                             :alt="umaName"
+                                             class="w-full aspect-square object-cover object-top bg-slate-700 grayscale" />
                                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
                                         <p class="absolute bottom-0 left-0 right-0 text-[9px] text-white font-bold text-center pb-0.5 px-0.5 truncate drop-shadow">
                                             {{ umaName }}

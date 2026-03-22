@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+
+defineOptions({ inheritAttrs: false });
 import LineChart from './analytics/LineChart.vue';
 import { getUmaImagePath } from "../utils/umaData.ts";
 import { TOURNAMENT_FORMATS } from "../utils/constants.ts";
@@ -13,9 +15,18 @@ import { TIER_CRITERIA, TOP5_CRITERIA, getWinningTeam } from '../utils/analytics
 import SiteHeader from './shared/SiteHeader.vue';
 import SiteNav from './shared/SiteNav.vue';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
+import PlayerProfileModal from './PlayerProfileModal.vue';
+import type { GlobalPlayer } from '../types';
 
 
 const activeTab = ref<'overview' | 'players' | 'umas' | 'tierlist' | 'tournaments' | 'diagrams'>('overview');
+
+const profileModalOpen = ref(false);
+const profilePlayer = ref<GlobalPlayer | null>(null);
+const openProfile = (player: GlobalPlayer) => {
+    profilePlayer.value = player;
+    profileModalOpen.value = true;
+};
 const playerSearchQuery = ref('');
 const umaSearchQuery = ref('');
 
@@ -185,7 +196,7 @@ function perfIndicator(
 }
 </script>
 <template>
-  <div class="w-full flex flex-col min-h-full">
+  <div v-bind="$attrs" class="w-full flex flex-col min-h-full">
 
     <SiteHeader />
 
@@ -1333,7 +1344,8 @@ function perfIndicator(
                     <div
                         v-for="p in tier.entries"
                         :key="p.player.id"
-                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-slate-500 transition-colors"
+                        @click="openProfile(p.player)"
+                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-indigo-500 hover:bg-slate-700/50 transition-colors cursor-pointer"
                     >
                       <PlayerAvatar :name="p.player.name" :avatar-url="p.player.avatarUrl" size="sm" />
                       <span class="font-bold text-white text-sm">{{ p.player.name }}</span>
@@ -1642,6 +1654,13 @@ function perfIndicator(
     </main>
 
   </div>
+
+  <PlayerProfileModal
+      :open="profileModalOpen"
+      :player-name="profilePlayer?.name ?? ''"
+      :global-player="profilePlayer"
+      @close="profileModalOpen = false"
+  />
 </template>
 
 <style scoped>

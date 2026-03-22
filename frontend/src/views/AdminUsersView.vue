@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
+import PlayerProfileModal from '../components/PlayerProfileModal.vue';
 import { useUserRoles } from '../composables/useUserRoles';
 import type { GlobalPlayer, UserRole } from '../types';
 
@@ -54,6 +55,14 @@ const filteredPlayers = computed(() => {
 });
 
 const getRole = (uid: string): UserRole => roleMap.value[uid] ?? 'player';
+
+const profileModalOpen = ref(false);
+const profilePlayer = ref<GlobalPlayer | null>(null);
+
+const openProfile = (player: GlobalPlayer) => {
+    profilePlayer.value = player;
+    profileModalOpen.value = true;
+};
 
 const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
     if (!player.firebaseUid) return;
@@ -142,6 +151,12 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
                                 {{ getRole(player.firebaseUid!).replace('_', ' ') }}
                             </span>
 
+                            <button @click="openProfile(player)"
+                                    title="View Profile"
+                                    class="w-8 h-8 flex items-center justify-center rounded text-slate-500 hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors flex-shrink-0">
+                                <i class="ph-bold ph-user-circle text-lg"></i>
+                            </button>
+
                             <select :value="getRole(player.firebaseUid!)"
                                     :disabled="saving === player.firebaseUid"
                                     @change="changeRole(player, ($event.target as HTMLSelectElement).value as UserRole)"
@@ -159,4 +174,11 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
             </div>
         </main>
     </div>
+
+    <PlayerProfileModal
+        :open="profileModalOpen"
+        :player-name="profilePlayer?.name ?? ''"
+        :global-player="profilePlayer"
+        @close="profileModalOpen = false"
+    />
 </template>
