@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+
+defineOptions({ inheritAttrs: false });
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 import PlayerProfileModal from '../components/PlayerProfileModal.vue';
 import { useUserRoles } from '../composables/useUserRoles';
+import { SUPERADMIN_UIDS } from '../utils/constants';
 import type { GlobalPlayer, UserRole } from '../types';
 
 const { isSuperAdmin, setUserRole, unlinkPlayer, fetchAllRoles, fetchAllPlayers } = useUserRoles();
@@ -15,17 +18,7 @@ const saving = ref<string | null>(null);
 const searchQuery = ref('');
 const statusMessage = ref('');
 
-const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
-    { value: 'player', label: 'Player' },
-    { value: 'tournament_creator', label: 'Tournament Creator' },
-    { value: 'superadmin', label: 'Superadmin' },
-];
-
-const ROLE_BADGE: Record<UserRole, string> = {
-    player: 'bg-slate-700 text-slate-300 border-slate-600',
-    tournament_creator: 'bg-indigo-900/40 text-indigo-300 border-indigo-500/50',
-    superadmin: 'bg-amber-900/40 text-amber-300 border-amber-500/50',
-};
+const isHardcodedSuperAdmin = (uid: string) => SUPERADMIN_UIDS.includes(uid);
 
 onMounted(async () => {
     if (!isSuperAdmin.value) return;
@@ -81,14 +74,17 @@ const handleUnlink = async (player: GlobalPlayer) => {
     }
 };
 
-const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
+const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
     if (!player.firebaseUid) return;
+    const newRole: UserRole = isCreator ? 'tournament_creator' : 'player';
     saving.value = player.firebaseUid;
     statusMessage.value = '';
     try {
         await setUserRole(player.firebaseUid, newRole, player.name);
         roleMap.value = { ...roleMap.value, [player.firebaseUid]: newRole };
-        statusMessage.value = `Updated ${player.name} to ${newRole}`;
+        statusMessage.value = isCreator
+            ? `${player.name} can now create official tournaments`
+            : `${player.name} can no longer create official tournaments`;
         setTimeout(() => { statusMessage.value = ''; }, 3000);
     } catch (e) {
         statusMessage.value = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
@@ -99,7 +95,7 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
 </script>
 
 <template>
-    <div class="w-full flex flex-col min-h-full">
+    <div v-bind="$attrs" class="w-full flex flex-col min-h-full">
         <SiteHeader />
 
         <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
@@ -118,7 +114,7 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
                                 <i class="ph-bold ph-shield-check text-amber-400"></i>
                                 User Management
                             </h1>
-                            <p class="text-sm text-slate-400 mt-1">Assign roles to linked Discord users.</p>
+                            <p class="text-sm text-slate-400 mt-1">Manage permissions for linked Discord users.</p>
                         </div>
                         <div class="text-xs text-slate-500 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
                             {{ players.length }} linked users
@@ -166,25 +162,32 @@ const changeRole = async (player: GlobalPlayer, newRole: UserRole) => {
                                 </div>
                             </div>
 
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider flex-shrink-0"
-                                  :class="ROLE_BADGE[getRole(player.firebaseUid!)]">
-                                {{ getRole(player.firebaseUid!).replace('_', ' ') }}
+                            <!-- Superadmin badge (hardcoded) — no toggle -->
+                            <span v-if="isHardcodedSuperAdmin(player.firebaseUid!)"
+                                  class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider flex-shrink-0 bg-amber-900/40 text-amber-300 border-amber-500/50">
+                                Superadmin
                             </span>
+
+                            <!-- Official creator toggle -->
+                            <label v-else
+                                   class="flex items-center gap-2 cursor-pointer flex-shrink-0"
+                                   :class="saving === player.firebaseUid ? 'opacity-50 pointer-events-none' : ''">
+                                <div class="relative">
+                                    <input type="checkbox"
+                                           class="sr-only peer"
+                                           :checked="getRole(player.firebaseUid!) === 'tournament_creator'"
+                                           @change="toggleCreator(player, ($event.target as HTMLInputElement).checked)" />
+                                    <div class="w-9 h-5 bg-slate-700 rounded-full peer-checked:bg-indigo-600 transition-colors"></div>
+                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+                                </div>
+                                <span class="text-xs text-slate-400 w-20">{{ getRole(player.firebaseUid!) === 'tournament_creator' ? 'Official creator' : 'Player' }}</span>
+                            </label>
 
                             <button @click="openProfile(player)"
                                     title="View Profile"
                                     class="w-8 h-8 flex items-center justify-center rounded text-slate-500 hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors flex-shrink-0">
                                 <i class="ph-bold ph-user-circle text-lg"></i>
                             </button>
-
-                            <select :value="getRole(player.firebaseUid!)"
-                                    :disabled="saving === player.firebaseUid"
-                                    @change="changeRole(player, ($event.target as HTMLSelectElement).value as UserRole)"
-                                    class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-50 cursor-pointer">
-                                <option v-for="opt in ROLE_OPTIONS" :key="opt.value" :value="opt.value">
-                                    {{ opt.label }}
-                                </option>
-                            </select>
 
                             <button @click="handleUnlink(player)"
                                     :disabled="unlinking === player.id"

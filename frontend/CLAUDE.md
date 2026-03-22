@@ -82,3 +82,23 @@ Core types are in `src/types.ts`. Key interfaces: `Tournament`, `Team`, `Player`
 - Use Composition API with `<script setup lang="ts">` — no Options API
 - Tailwind utility classes for styling (no separate CSS files except for animations)
 - Firestore dot-notation paths (e.g., `'draft.currentIdx'`) for partial updates
+
+### Multiple root nodes / Teleport in views
+
+Vue cannot auto-inherit attrs (e.g. `class` from `<RouterView>`) when a component has multiple root nodes. This happens whenever a view renders a `<Teleport>` or a component that uses `<Teleport>` (like `PlayerProfileModal`) **at the template root level** — i.e. as a sibling of the main `<div>`, not nested inside it.
+
+**Fix pattern** — required for any view that has a `<Teleport>` or modal component at the root:
+```vue
+<script setup>
+defineOptions({ inheritAttrs: false });
+</script>
+
+<template>
+  <div v-bind="$attrs" class="...">  <!-- $attrs carries the class from RouterView -->
+    ...
+  </div>
+  <SomeModalWithTeleport ... />       <!-- second root — fine now -->
+</template>
+```
+
+Views currently using this pattern: `AnalyticsDashboard`, `AdminUsersView`, `ProfileView`.
