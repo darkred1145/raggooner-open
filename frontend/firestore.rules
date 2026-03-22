@@ -3,11 +3,17 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isSuperAdmin() {
-      // Note: "|| true" makes EVERYONE a super admin for testing. Remove it for production!
       return request.auth != null && (request.auth.uid in [
       'mehTFP5BuqdrT6mw4xqnaNrHSMk1', 'j7kIBg1mIXO5m824GeBQmXYfb6q2', 'LCwXSR9TZUPqdpv8qM7qD3y7m0uh', 'JXs2aov8XqTfnB9XLOVHVNzw3psv',
       'JrBubSUpmlNqYV4Gi7TsYY7yRqzO', '0u3zMN1xD3SrcVKIzw10UMvnmFJ2'
       ]);
+    }
+
+    function isOfficialCreator() {
+      return isSuperAdmin() ||
+        (request.auth != null &&
+         exists(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)).data.role == 'tournament_creator');
     }
 
     match /artifacts/{appId}/public/data {
@@ -28,10 +34,18 @@ service cloud.firestore {
 
       // 3. TOURNAMENTS
       match /tournaments/{tournamentId} {
-        allow read, create: if request.auth != null;
+        allow read: if request.auth != null;
+        allow create: if request.auth != null &&
+          (!('isOfficial' in request.resource.data) || !request.resource.data.isOfficial || isOfficialCreator());
         // FIX: Added request.auth != null to prevent evaluation crashes
         allow update, delete: if isSuperAdmin() || request.auth != null &&
           exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(tournamentId + '_' + request.auth.uid));
+      }
+
+      // 7. USER ROLES
+      match /userRoles/{uid} {
+        allow read: if request.auth != null && (request.auth.uid == uid || isSuperAdmin());
+        allow write: if isSuperAdmin();
       }
 
       // 4. SECRETS

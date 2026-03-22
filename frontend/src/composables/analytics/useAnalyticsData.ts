@@ -79,8 +79,8 @@ export function useAnalyticsData() {
           const snap = await getDocs(col('players'));
           return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as GlobalPlayer));
         }),
-        fetchOrCache('tournaments', async () => {
-          const snap = await getDocs(query(col('tournaments'), where('status', '==', 'completed')));
+        fetchOrCache('tournaments-official', async () => {
+          const snap = await getDocs(query(col('tournaments'), where('status', '==', 'completed'), where('isOfficial', '==', true)));
           return snap.docs.map(doc => {
             const data = { id: doc.id, ...doc.data() } as Tournament;
             data.races = migrateRaces(data.races);
@@ -106,7 +106,7 @@ export function useAnalyticsData() {
   const forceRefreshAnalytics = async () => {
     localStorage.removeItem(`cache:${CACHE_KEY}:seasons`);
     localStorage.removeItem(`cache:${CACHE_KEY}:players`);
-    localStorage.removeItem(`cache:${CACHE_KEY}:tournaments`);
+    localStorage.removeItem(`cache:${CACHE_KEY}:tournaments-official`);
     await loadData();
   };
 

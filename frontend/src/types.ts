@@ -1,5 +1,7 @@
 import {FieldValue} from "firebase/firestore";
 
+export type UserRole = 'superadmin' | 'tournament_creator' | 'player';
+
 export interface Player {
     id: string;
     name: string;
@@ -119,6 +121,7 @@ export interface GlobalPlayer {
     firebaseUid?: string;           // Linked Firebase Auth UID
     discordId?: string;             // Discord User ID (e.g. "123456789012345678")
     avatarUrl?: string;             // Discord CDN avatar URL
+    role?: UserRole;                 // User role for access control
     roster?: string[];              // Uma names owned by this player (keys of UMA_DICT)
     supportCards?: ProfileSupportCard[];
     metadata: {
@@ -163,6 +166,7 @@ export interface Tournament {
     completedAt?: string;
     playedAt?: string; // ISO UTC string, set when tournament enters active status
     scheduledTime?: string; // ISO UTC string
+    isOfficial?: boolean;
     metadataSynced?: boolean;
     draft?: {
         order: string[];

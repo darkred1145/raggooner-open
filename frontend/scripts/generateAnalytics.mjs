@@ -132,11 +132,16 @@ async function main() {
     listAll('tournaments'),
   ]);
 
+  // Only official tournaments count toward analytics
+  const allTournamentCount = tournaments.length;
+  const officialTournaments = tournaments.filter(t => t.isOfficial === true);
+  tournaments.splice(0, tournaments.length, ...officialTournaments);
+
   console.log(`  seasons: ${seasons.length}`);
   console.log(`  players: ${players.length}`);
   console.log(`  participations: ${participations.length}`);
   console.log(`  races: ${racesDocs.length}`);
-  console.log(`  tournaments: ${tournaments.length}`);
+  console.log(`  tournaments: ${tournaments.length} official (${allTournamentCount} total)`);
 
   // Recalculate team scores from race data so compareTeams works correctly
   for (const t of tournaments) {

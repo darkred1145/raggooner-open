@@ -2,9 +2,11 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuth } from '../../composables/useAuth';
+import { useUserRoles } from '../../composables/useUserRoles';
 
 const route = useRoute();
 const { linkedPlayer } = useAuth();
+const { isSuperAdmin } = useUserRoles();
 
 const baseNav = [
     { to: '/',          icon: 'ph-fill ph-flag-checkered', label: 'Play',      sub: 'Tournaments' },
@@ -13,8 +15,14 @@ const baseNav = [
 ];
 
 const profileNav = { to: '/profile', icon: 'ph-fill ph-user-circle', label: 'Profile', sub: 'My Account' };
+const adminNav = { to: '/admin/users', icon: 'ph-fill ph-shield-check', label: 'Admin', sub: 'User Roles' };
 
-const nav = computed(() => linkedPlayer.value ? [...baseNav, profileNav] : baseNav);
+const nav = computed(() => {
+    const items = [...baseNav];
+    if (linkedPlayer.value) items.push(profileNav);
+    if (isSuperAdmin.value) items.push(adminNav);
+    return items;
+});
 
 function isActive(to: string) {
     if (to === '/') return route.path === '/';
@@ -24,7 +32,7 @@ function isActive(to: string) {
 
 <template>
     <div class="max-w-3xl mx-auto grid gap-4 mt-4 mb-12 border-b border-slate-800 pb-12 animate-fade-in"
-         :class="nav.length === 4 ? 'grid-cols-4' : 'grid-cols-3'">
+         :class="`grid-cols-${nav.length}`">
 
         <router-link
             v-for="item in nav"

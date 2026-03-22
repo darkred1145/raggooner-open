@@ -5,7 +5,7 @@ import { useAuth } from '../../composables/useAuth';
 const openChangelog = inject<() => void>('openChangelog')!;
 const hasNewUpdates = inject<Ref<boolean>>('hasNewUpdates')!;
 
-const { user, linkedPlayer, loading, loginWithDiscord, logout, isDiscordUser } = useAuth();
+const { user, linkedPlayer, loading, loginError, loginWithDiscord, logout, isDiscordUser } = useAuth();
 </script>
 
 <template>
@@ -21,12 +21,14 @@ const { user, linkedPlayer, loading, loginWithDiscord, logout, isDiscordUser } =
                 <!-- Discord Auth -->
                 <div v-if="!loading" class="flex items-center">
                     <!-- Show Login button if NOT a Discord user (includes anonymous users) -->
-                    <button v-if="!isDiscordUser" 
-                            @click="loginWithDiscord"
-                            class="flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all shadow-lg shadow-indigo-900/20">
-                        <i class="ph-fill ph-discord-logo text-lg"></i>
-                        <span>Login with Discord</span>
-                    </button>
+                    <div v-if="!isDiscordUser" class="flex flex-col items-end gap-1">
+                        <button @click="loginWithDiscord"
+                                class="flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all shadow-lg shadow-indigo-900/20">
+                            <i class="ph-fill ph-discord-logo text-lg"></i>
+                            <span>Login with Discord</span>
+                        </button>
+                        <span v-if="loginError" class="text-[11px] text-red-400">{{ loginError }}</span>
+                    </div>
 
                     <!-- Show Profile only for Discord users -->
                     <div v-else-if="user" class="flex items-center gap-3">

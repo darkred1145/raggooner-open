@@ -26,6 +26,7 @@ const appId = 'default-app';
 const user = ref<User | null>(null);
 const linkedPlayer = ref<GlobalPlayer | null>(null);
 const loading = ref(true);
+const loginError = ref<string | null>(null);
 
 const fetchLinkedPlayerInternal = async (uid: string) => {
     try {
@@ -63,17 +64,14 @@ export function useAuth() {
     });
 
     const loginWithDiscord = async () => {
+        loginError.value = null;
         const provider = new OAuthProvider('oidc.discord.com');
-
         provider.addScope('identify');
-        try {
-            const result = await signInWithPopup(auth, provider);
 
-            // Firebase calls Discord's userinfo endpoint internally during OIDC;
-            // the result is exposed via getAdditionalUserInfo.
+        const attemptSignIn = async () => {
+            const result = await signInWithPopup(auth, provider);
             const profile = getAdditionalUserInfo(result)?.profile as Record<string, any> | null;
             const avatarUrl: string | null = profile?.picture ?? null;
-
             if (avatarUrl) {
                 await updateProfile(result.user, { photoURL: avatarUrl });
                 user.value = auth.currentUser;
@@ -83,9 +81,27 @@ export function useAuth() {
                     linkedPlayer.value = { ...linkedPlayer.value, avatarUrl };
                 }
             }
-        } catch (e) {
+        };
+
+        try {
+            await attemptSignIn();
+        } catch (e: any) {
+            // 503 / service-unavailable: retry once after a short delay
+            if (e?.code === 'auth/the-service-is-currently-unavailable' || e?.code === 'auth/network-request-failed') {
+                try {
+                    await new Promise(r => setTimeout(r, 1500));
+                    await attemptSignIn();
+                    return;
+                } catch (retryErr) {
+                    console.error('Discord login retry failed:', retryErr);
+                    loginError.value = 'Login failed. Please try again.';
+                    return;
+                }
+            }
+            // User closed the popup — not an error worth surfacing
+            if (e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') return;
             console.error('Discord login failed:', e);
-            throw e;
+            loginError.value = 'Login failed. Please try again.';
         }
     };
 
@@ -166,6 +182,7 @@ export function useAuth() {
         user,
         linkedPlayer,
         loading,
+        loginError,
         isDiscordUser,
         loginWithDiscord,
         logout,

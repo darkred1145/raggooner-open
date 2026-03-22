@@ -89,10 +89,12 @@ describe('useAuth', () => {
             expect(signInWithPopup).toHaveBeenCalled();
         });
 
-        it('rethrows on failure', async () => {
-            (signInWithPopup as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('popup_closed'));
-            const { loginWithDiscord } = useAuth();
-            await expect(loginWithDiscord()).rejects.toThrow('popup_closed');
+        it('sets loginError on failure', async () => {
+            const err = Object.assign(new Error('some error'), { code: 'auth/unknown' });
+            (signInWithPopup as ReturnType<typeof vi.fn>).mockRejectedValueOnce(err);
+            const { loginWithDiscord, loginError } = useAuth();
+            await loginWithDiscord();
+            expect(loginError.value).toBe('Login failed. Please try again.');
         });
     });
 

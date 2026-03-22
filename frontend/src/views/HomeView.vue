@@ -6,6 +6,7 @@ import { auth, db } from '../firebase';
 import type { Tournament, Season } from '../types';
 import { POINTS_SYSTEM, TOURNAMENT_FORMATS } from "../utils/constants.ts";
 import { getStatusColor } from "../utils/utils.ts";
+import { useUserRoles } from '../composables/useUserRoles';
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 
@@ -13,8 +14,15 @@ import SiteNav from '../components/shared/SiteNav.vue';
 const router = useRouter();
 const appId = 'default-app';
 
+const { isOfficialCreator } = useUserRoles();
+
 // State
 const newTournamentName = ref('');
+const isOfficial = computed({
+  get: () => isOfficialCreator.value ? _isOfficial.value : false,
+  set: (v) => { _isOfficial.value = v; },
+});
+const _isOfficial = ref(true);
 const joinId = ref('');
 const isCreating = ref(false);
 const availableSeasons = ref<Season[]>([]);
@@ -143,6 +151,7 @@ const createTournament = async () => {
       races: {},
       playerIds: [],
       format: TOURNAMENT_FORMATS[selectedFormat.value]!.id,
+      isOfficial: isOfficialCreator.value ? isOfficial.value : false,
       isSecured: true,
       usePlacementTiebreaker: true,
       pointsSystem: { ...POINTS_SYSTEM },
@@ -254,6 +263,29 @@ onMounted(() => {
                   </button>
                 </div>
 
+                <div class="flex flex-col gap-1.5">
+                  <div class="flex gap-2" :class="!isOfficialCreator ? 'opacity-50 pointer-events-none' : ''">
+                    <button @click="isOfficial = false"
+                            :disabled="isCreating"
+                            class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
+                            :class="!isOfficial ? 'border-slate-500 bg-slate-800/60' : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
+                      <div class="text-sm font-bold" :class="!isOfficial ? 'text-slate-200' : 'text-slate-400'">Unofficial</div>
+                      <div class="text-[10px] mt-0.5 text-slate-500">Does not count in stats</div>
+                    </button>
+                    <button @click="isOfficial = true"
+                            :disabled="isCreating"
+                            class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
+                            :class="isOfficial ? 'border-amber-500 bg-amber-900/20' : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
+                      <div class="text-sm font-bold" :class="isOfficial ? 'text-amber-300' : 'text-slate-400'">Official</div>
+                      <div class="text-[10px] mt-0.5" :class="isOfficial ? 'text-amber-400/70' : 'text-slate-500'">Counts toward player stats</div>
+                    </button>
+                  </div>
+                  <p v-if="!isOfficialCreator" class="text-[11px] text-slate-500 flex items-center gap-1">
+                    <i class="ph ph-lock-simple"></i>
+                    Only tournament creators can create official tournaments.
+                  </p>
+                </div>
+
                 <button @click="createTournament"
                         :disabled="!newTournamentName || isCreating"
                         class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2">
@@ -315,6 +347,10 @@ onMounted(() => {
                 <div class="flex flex-col gap-1 text-sm text-slate-400 mt-6 pt-4 border-t border-slate-700/50">
                   <div class="flex items-center gap-2"><i class="ph-fill ph-users"></i> {{ Object.keys(t.players || {}).length }} Players</div>
                   <div class="flex items-center gap-2"><i class="ph-fill ph-tree-structure"></i> {{ t.format ? TOURNAMENT_FORMATS[t.format]?.name || 'Blind Pick' : 'Blind Pick' }}</div>
+                  <div class="flex items-center gap-2" :class="t.isOfficial ? 'text-amber-400' : 'text-slate-500'">
+                    <i :class="t.isOfficial ? 'ph-fill ph-seal-check' : 'ph ph-seal'"></i>
+                    {{ t.isOfficial ? 'Official' : 'Unofficial' }}
+                  </div>
                   <div class="flex items-center gap-2 mt-1 text-xs text-slate-600">ID: <span class="font-mono text-slate-500">{{ t.id }}</span></div>
                 </div>
               </div>
@@ -364,6 +400,10 @@ onMounted(() => {
                   </div>
                   <div class="flex items-center gap-2">
                     <i class="ph-fill ph-trophy"></i> {{ formatTournamentStatus(t) }}
+                  </div>
+                  <div class="flex items-center gap-2" :class="t.isOfficial ? 'text-amber-400' : 'text-slate-500'">
+                    <i :class="t.isOfficial ? 'ph-fill ph-seal-check' : 'ph ph-seal'"></i>
+                    {{ t.isOfficial ? 'Official' : 'Unofficial' }}
                   </div>
                   <div class="flex items-center gap-2 mt-1 text-xs text-slate-600">
                     ID: <span class="font-mono text-slate-500">{{ t.id }}</span>
@@ -419,9 +459,14 @@ onMounted(() => {
                         <span class="font-mono text-[10px] text-slate-600 tracking-wider">{{ t.id }}</span>
                       </p>
                     </div>
-                    <span class="text-[10px] uppercase font-bold bg-slate-800 text-slate-500 px-2 py-1 rounded border border-slate-700">
-                      Completed
-                    </span>
+                    <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span class="text-[10px] uppercase font-bold bg-slate-800 text-slate-500 px-2 py-1 rounded border border-slate-700">Completed</span>
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded border flex items-center gap-1"
+                            :class="t.isOfficial ? 'text-amber-400 border-amber-500/30 bg-amber-900/20' : 'text-slate-500 border-slate-700 bg-slate-800'">
+                        <i :class="t.isOfficial ? 'ph-fill ph-seal-check' : 'ph ph-seal'"></i>
+                        {{ t.isOfficial ? 'Official' : 'Unofficial' }}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

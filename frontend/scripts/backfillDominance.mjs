@@ -23,7 +23,7 @@ async function main() {
   // 1. Fetch completed tournaments and all players
   console.log('Fetching data...');
   const [tournamentSnap, playerSnap] = await Promise.all([
-    col('tournaments').where('status', '==', 'completed').get(),
+    col('tournaments').where('status', '==', 'completed').where('isOfficial', '==', true).get(),
     col('players').get(),
   ]);
 

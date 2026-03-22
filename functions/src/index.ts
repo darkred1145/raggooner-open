@@ -1,5 +1,6 @@
 import { setGlobalOptions } from "firebase-functions";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { auth } from "firebase-functions/v1";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
@@ -8,6 +9,33 @@ initializeApp();
 const db = getFirestore();
 
 setGlobalOptions({ maxInstances: 10 });
+
+// ---------------------------------------------------------------------------
+// assignDefaultRole
+//
+// Triggered when a new Firebase Auth user is created.
+// If the user signed in via Discord (OIDC), writes a userRoles document
+// with role = "player" so they appear in the admin user management page.
+// ---------------------------------------------------------------------------
+export const assignDefaultRole = auth.user().onCreate(async (user) => {
+  const isDiscord = user.providerData?.some(p => p.providerId.includes("discord"));
+  if (!isDiscord) return;
+
+  const appId = "default-app";
+  const roleRef = db
+    .collection("artifacts").doc(appId)
+    .collection("public").doc("data")
+    .collection("userRoles").doc(user.uid);
+
+  await roleRef.set({
+    uid: user.uid,
+    role: "player",
+    displayName: user.displayName ?? "",
+    updatedAt: new Date().toISOString(),
+  });
+
+  logger.info("Assigned default player role.", { uid: user.uid });
+});
 
 // ---------------------------------------------------------------------------
 // syncTournamentMetadata
@@ -39,6 +67,9 @@ export const syncTournamentMetadata = onDocumentUpdated(
     const tournamentRef = event.data!.after.ref;
 
     if (before.status === after.status) return;
+
+    // Skip unofficial tournaments — only official tournaments count toward metadata
+    if (!after.isOfficial) return;
 
     // ---- SYNC on completion ------------------------------------------------
     if (after.status === "completed" && before.status !== "completed") {
