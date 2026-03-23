@@ -1,5 +1,39 @@
 // Constants
-import type {TournamentFormat} from "../types.ts";
+import type { TournamentFormat, UserRole } from '../types.ts';
+
+export type Permission =
+    | 'create_official_tournament'   // can mark a tournament as official
+    | 'bypass_tournament_password'   // auto-login to any tournament without a password
+    | 'manage_users'                 // can view and edit roles in /admin/users
+    | 'promote_to_admin'             // can promote users up to admin
+    | 'promote_to_superadmin'        // can promote users to superadmin (superadmin only)
+    | 'unlink_player'                // can unlink a player's Discord account
+    | 'view_superadmin_panel';       // can see the superadmin side panel
+
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+    superadmin: [
+        'create_official_tournament',
+        'bypass_tournament_password',
+        'manage_users',
+        'promote_to_admin',
+        'promote_to_superadmin',
+        'unlink_player',
+        'view_superadmin_panel',
+    ],
+    admin: [
+        'create_official_tournament',
+        'bypass_tournament_password',
+        'manage_users',
+        'promote_to_admin',
+    ],
+    tournament_creator: [
+        'create_official_tournament',
+    ],
+    player: [],
+};
+
+export const hasPermission = (role: UserRole | null | undefined, permission: Permission): boolean =>
+    role ? (ROLE_PERMISSIONS[role] ?? []).includes(permission) : false;
 
 export const POINTS_SYSTEM: Record<number, number> = {
     1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2,

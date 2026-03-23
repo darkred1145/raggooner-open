@@ -2,17 +2,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSuperAdmin() {
+    // Reads the current user's role from userRoles once per request evaluation.
+    // Firestore caches get() calls on the same path, so all helpers below share one read.
+    function getUserRole() {
       return request.auth != null &&
-        exists(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)).data.role == 'superadmin';
+        exists(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    function isSuperAdmin() {
+      return getUserRole() == 'superadmin';
+    }
+
+    // True for both 'admin' and 'superadmin'
+    function isAdmin() {
+      return getUserRole() in ['admin', 'superadmin'];
     }
 
     function isOfficialCreator() {
-      return isSuperAdmin() ||
-        (request.auth != null &&
-         exists(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)).data.role == 'tournament_creator');
+      return getUserRole() in ['superadmin', 'admin', 'tournament_creator'];
     }
 
     match /artifacts/{appId}/public/data {
@@ -20,8 +29,9 @@ service cloud.firestore {
       // 1. PLAYERS
       match /players/{playerId} {
         allow read, create: if request.auth != null;
-        // Own doc update (linked player) or linking an unlinked player to yourself
-        allow update: if isSuperAdmin() ||
+        // Admins can update any player (needed for role sync in setUserRole).
+        // Own doc update or linking an unlinked player to yourself also allowed.
+        allow update: if isAdmin() ||
           (request.auth != null && resource.data.firebaseUid == request.auth.uid) ||
           (request.auth != null && !('firebaseUid' in resource.data) && request.resource.data.firebaseUid == request.auth.uid);
         allow delete: if isSuperAdmin();
@@ -38,47 +48,49 @@ service cloud.firestore {
         allow read: if request.auth != null;
         allow create: if request.auth != null &&
           (!('isOfficial' in request.resource.data) || !request.resource.data.isOfficial || isOfficialCreator());
-        // FIX: Added request.auth != null to prevent evaluation crashes
         allow update, delete: if isSuperAdmin() || request.auth != null &&
           exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(tournamentId + '_' + request.auth.uid));
       }
 
-      // 7. USER ROLES
-      match /userRoles/{uid} {
-        allow read: if request.auth != null && (request.auth.uid == uid || isSuperAdmin());
-        allow write: if isSuperAdmin();
-      }
-
       // 4. SECRETS
       match /secrets/{tournamentId} {
-        // Anyone can create a secret (used during batch tournament creation)
         allow create: if request.auth != null;
-        // Only verified admins of this tournament can read or change the password
         allow read, update, delete: if request.auth != null &&
           exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(tournamentId + '_' + request.auth.uid));
       }
 
       // 5. ADMINS
       match /admins/{adminDoc} {
-        allow read, create, update, delete: if isSuperAdmin();
+        // Admins and superadmins can manage all admin slips (needed for tournament password bypass).
+        allow read, create, update, delete: if isAdmin();
 
-        // Users can read their own admin slip
+        // Users can read and delete their own admin slip
         allow get: if request.auth != null && resource.data.userId == request.auth.uid;
-
-        // Users can delete their own admin slip (tournament cleanup)
         allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
 
-        // FIX: Check the password against the SECRETS collection using getAfter()
-        // getAfter() allows Firestore to look at the data being written in the current batch
+        // Regular users can create a slip by providing the correct tournament password
         allow create: if request.auth != null &&
           request.resource.data.password == getAfter(/databases/$(database)/documents/artifacts/$(appId)/public/data/secrets/$(request.resource.data.tournamentId)).data.password;
       }
 
       // 6. USAGE (analytics tracking)
       match /usage/{userId} {
-        // analyticsMetadata: any auth user can read, only superadmin writes (via script)
         allow read: if isSuperAdmin() || (request.auth != null && userId == 'analyticsMetadata');
         allow create, update: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // 7. USER ROLES
+      match /userRoles/{uid} {
+        // get: own doc, or any admin
+        allow get: if request.auth != null && (request.auth.uid == uid || isAdmin());
+        // list (getDocs on the collection): admins only
+        allow list: if isAdmin();
+        // create/update: superadmins can set any role; admins can set any role except superadmin
+        allow create, update: if isSuperAdmin() ||
+          (isAdmin() && request.resource.data.role != 'superadmin');
+        // delete (demoting to player removes the doc): admins can delete non-superadmin role docs
+        allow delete: if isSuperAdmin() ||
+          (isAdmin() && resource.data.role != 'superadmin');
       }
     }
   }

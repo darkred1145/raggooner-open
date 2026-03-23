@@ -46,7 +46,18 @@ const secureUpdate = async (data: FirestoreUpdate<Tournament>) => {
   try {
     await updateDoc(getTournamentRef(tournament.value.id), data);
   } catch (e: any) {
-    if(e.code === 'permission-denied') {
+    if (e.code === 'permission-denied') {
+      // UID may have changed (e.g. anonymous → Discord login). If a stored password exists,
+      // try to re-register the admin slip under the current UID before giving up.
+      if (localAdminPassword.value) {
+        const revalidated = await revalidateAdminSlip();
+        if (revalidated) {
+          try {
+            await updateDoc(getTournamentRef(tournament.value.id), data);
+            return;
+          } catch { /* fall through to clear password */ }
+        }
+      }
       localAdminPassword.value = '';
       localStorage.removeItem(`admin_pwd_${tournament.value.id}`);
       alert("Permission Denied: Invalid admin password.");
@@ -56,7 +67,7 @@ const secureUpdate = async (data: FirestoreUpdate<Tournament>) => {
 
 const {
   adminPasswordInput, localAdminPassword, showAdminModal, isDangerZoneOpen, isDeleting, editedName, editedTiebreaker,
-  isAdmin, loginAsAdmin, copyPassword, updateTournamentName, togglePlacementTiebreaker, deleteTournament, autoLoginIfSuperAdmin
+  isAdmin, loginAsAdmin, revalidateAdminSlip, copyPassword, updateTournamentName, togglePlacementTiebreaker, deleteTournament, autoLoginIfSuperAdmin
 } = useAdmin(tournament, secureUpdate, async () => { await router.push('/'); }, appId);
 
 const { currentView } = useGameLogic(tournament, secureUpdate);

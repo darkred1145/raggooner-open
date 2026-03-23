@@ -92,8 +92,8 @@ export function useAdmin(
         if (!auth.currentUser) return;
 
         const uid = auth.currentUser.uid;
-        const { isSuperAdmin } = useUserRoles();
-        if (!isSuperAdmin.value) return;
+        const { can } = useUserRoles();
+        if (!can('bypass_tournament_password')) return;
 
         const tId = tournament.value.id;
 
@@ -108,7 +108,24 @@ export function useAdmin(
             localAdminPassword.value = 'SUPERADMIN';
             localStorage.setItem(`admin_pwd_${tId}`, 'SUPERADMIN');
         } catch (e) {
-            console.error('Superadmin auto-login failed', e);
+            console.error('Privileged auto-login failed', e);
+        }
+    };
+
+    // Attempt to re-register the admin slip under the current UID using the stored password.
+    // Returns true if the slip was successfully created. Used when the UID has changed
+    // (e.g. anonymous → Discord login) but the correct password is still in localStorage.
+    const revalidateAdminSlip = async (): Promise<boolean> => {
+        if (!tournament.value || !auth.currentUser || !localAdminPassword.value) return false;
+        const uid = auth.currentUser.uid;
+        const tId = tournament.value.id;
+        try {
+            const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${uid}`);
+            await setDoc(adminRef, { tournamentId: tId, userId: uid, password: localAdminPassword.value });
+            localStorage.setItem(`admin_pwd_${tId}`, localAdminPassword.value);
+            return true;
+        } catch {
+            return false;
         }
     };
 
@@ -202,6 +219,7 @@ export function useAdmin(
         isAdmin,
         // Actions
         loginAsAdmin,
+        revalidateAdminSlip,
         copyPassword,
         updateTournamentName,
         togglePlacementTiebreaker,

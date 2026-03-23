@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, deleteDoc, deleteField, collection, getDocs, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import type { UserRole, GlobalPlayer } from '../types';
+import { hasPermission, type Permission } from '../utils/constants';
 
 const appId = 'default-app';
 
@@ -36,12 +37,19 @@ export interface UserRoleEntry {
 export function useUserRoles() {
     const isSuperAdmin = computed(() => currentUserRole.value === 'superadmin');
 
-    const isOfficialCreator = computed(() => {
-        return isSuperAdmin.value || currentUserRole.value === 'tournament_creator';
-    });
+    // True for both admin and superadmin
+    const isAdmin = computed(() => currentUserRole.value === 'admin' || isSuperAdmin.value);
+
+    // Check a permission for the current user
+    const can = (permission: Permission): boolean => hasPermission(currentUserRole.value, permission);
+
+    const isOfficialCreator = computed(() => can('create_official_tournament'));
 
     const setUserRole = async (targetUid: string, role: UserRole, displayName?: string) => {
-        if (!isSuperAdmin.value) throw new Error('Only superadmins can set roles');
+        if (!can('manage_users')) throw new Error('Only admins can set roles');
+        if (role === 'superadmin' && !can('promote_to_superadmin')) {
+            throw new Error('Only superadmins can promote to superadmin');
+        }
         const roleRef = doc(db, 'artifacts', appId, 'public', 'data', 'userRoles', targetUid);
         if (role === 'player') {
             await deleteDoc(roleRef);
@@ -62,7 +70,7 @@ export function useUserRoles() {
     };
 
     const fetchAllRoles = async (): Promise<UserRoleEntry[]> => {
-        if (!isSuperAdmin.value) return [];
+        if (!can('manage_users')) return [];
         const rolesRef = collection(db, 'artifacts', appId, 'public', 'data', 'userRoles');
         const snap = await getDocs(rolesRef);
         return snap.docs.map(d => ({
@@ -73,7 +81,7 @@ export function useUserRoles() {
     };
 
     const unlinkPlayer = async (playerId: string) => {
-        if (!isSuperAdmin.value) throw new Error('Only superadmins can unlink players');
+        if (!can('unlink_player')) throw new Error('Only superadmins can unlink players');
         const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId);
         await updateDoc(playerRef, {
             firebaseUid: deleteField(),
@@ -92,6 +100,8 @@ export function useUserRoles() {
         currentUserRole,
         roleLoading,
         isSuperAdmin,
+        isAdmin,
+        can,
         isOfficialCreator,
         setUserRole,
         unlinkPlayer,

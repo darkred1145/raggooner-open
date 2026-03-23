@@ -1,6 +1,6 @@
 import {FieldValue} from "firebase/firestore";
 
-export type UserRole = 'superadmin' | 'tournament_creator' | 'player';
+export type UserRole = 'superadmin' | 'admin' | 'tournament_creator' | 'player';
 
 export interface Player {
     id: string;
@@ -196,7 +196,7 @@ export interface Tournament {
         order: string[];
         currentIdx: number;
     };
-    isSecured?: boolean;
+    isSecured?: boolean; // this field should always be true, since every new tournament is password secured. there are a handful of old legacy tournaments, that were public.
     usePlacementTiebreaker?: boolean;
     pointsSystem?: Record<number, number>;
     banTimerStart?: string;

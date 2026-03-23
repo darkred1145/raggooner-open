@@ -36,7 +36,7 @@ const router = createRouter({
             name: 'admin-users',
             component: () => import('../views/AdminUsersView.vue'),
             beforeEnter: async (_to, _from, next) => {
-                const { isSuperAdmin, roleLoading } = useUserRoles();
+                const { can, roleLoading } = useUserRoles();
                 if (roleLoading.value) {
                     await new Promise<void>(resolve => {
                         const stop = watch(roleLoading, loading => {
@@ -44,7 +44,7 @@ const router = createRouter({
                         });
                     });
                 }
-                isSuperAdmin.value ? next() : next('/');
+                can('manage_users') ? next() : next('/');
             }
         }
     ]

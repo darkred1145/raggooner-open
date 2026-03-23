@@ -16,7 +16,13 @@ import { ref, nextTick } from 'vue';
 
 const mockIsSuperAdmin = ref(false);
 vi.mock('./useUserRoles', () => ({
-  useUserRoles: () => ({ isSuperAdmin: mockIsSuperAdmin }),
+  useUserRoles: () => ({
+    isSuperAdmin: mockIsSuperAdmin,
+    can: (permission: string) => {
+      if (permission === 'bypass_tournament_password') return mockIsSuperAdmin.value;
+      return false;
+    },
+  }),
 }));
 
 import { useAdmin } from './useAdmin';

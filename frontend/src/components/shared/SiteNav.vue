@@ -6,7 +6,7 @@ import { useUserRoles } from '../../composables/useUserRoles';
 
 const route = useRoute();
 const { linkedPlayer } = useAuth();
-const { isSuperAdmin } = useUserRoles();
+const { can } = useUserRoles();
 
 const baseNav = [
     { to: '/',          icon: 'ph-fill ph-flag-checkered', label: 'Play',      sub: 'Tournaments' },
@@ -20,7 +20,7 @@ const adminNav = { to: '/admin/users', icon: 'ph-fill ph-shield-check', label: '
 const nav = computed(() => {
     const items = [...baseNav];
     if (linkedPlayer.value) items.push(profileNav);
-    if (isSuperAdmin.value) items.push(adminNav);
+    if (can('manage_users')) items.push(adminNav);
     return items;
 });
 

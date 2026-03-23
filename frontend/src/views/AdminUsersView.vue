@@ -8,7 +8,7 @@ import PlayerProfileModal from '../components/PlayerProfileModal.vue';
 import { useUserRoles } from '../composables/useUserRoles';
 import type { GlobalPlayer, UserRole } from '../types';
 
-const { isSuperAdmin, setUserRole, unlinkPlayer, fetchAllRoles, fetchAllPlayers } = useUserRoles();
+const { can, isSuperAdmin, setUserRole, unlinkPlayer, fetchAllRoles, fetchAllPlayers } = useUserRoles();
 
 const players = ref<GlobalPlayer[]>([]);
 const roleMap = ref<Record<string, UserRole>>({});
@@ -17,22 +17,16 @@ const saving = ref<string | null>(null);
 const searchQuery = ref('');
 const statusMessage = ref('');
 
-const toggleSuperAdmin = async (player: GlobalPlayer, promote: boolean) => {
+// ── Role toggle helpers ────────────────────────────────────────────────────────
+
+const setRole = async (player: GlobalPlayer, newRole: UserRole, confirmMsg?: string) => {
     if (!player.firebaseUid) return;
-    const msg = promote
-        ? `Promote ${player.name} to superadmin?\n\nThey will gain full admin access including the superadmin panel.`
-        : `Revoke superadmin from ${player.name}?\n\nThey will lose all superadmin privileges.`;
-    if (!confirm(msg)) return;
-    const newRole: UserRole = promote ? 'superadmin' : 'player';
+    if (confirmMsg && !confirm(confirmMsg)) return;
     saving.value = player.firebaseUid;
     statusMessage.value = '';
     try {
         await setUserRole(player.firebaseUid, newRole, player.name);
         roleMap.value = { ...roleMap.value, [player.firebaseUid]: newRole };
-        statusMessage.value = promote
-            ? `${player.name} is now a superadmin`
-            : `Revoked superadmin from ${player.name}`;
-        setTimeout(() => { statusMessage.value = ''; }, 3000);
     } catch (e) {
         statusMessage.value = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
     } finally {
@@ -40,8 +34,39 @@ const toggleSuperAdmin = async (player: GlobalPlayer, promote: boolean) => {
     }
 };
 
+const toggleSuperAdmin = async (player: GlobalPlayer, promote: boolean) => {
+    const msg = promote
+        ? `Promote ${player.name} to superadmin?\n\nThey will gain full admin access including the superadmin panel.`
+        : `Revoke superadmin from ${player.name}?\n\nThey will lose all superadmin privileges.`;
+    await setRole(player, promote ? 'superadmin' : 'player', msg);
+    if (!statusMessage.value) {
+        statusMessage.value = promote ? `${player.name} is now a superadmin` : `Revoked superadmin from ${player.name}`;
+        setTimeout(() => { statusMessage.value = ''; }, 3000);
+    }
+};
+
+const toggleAdmin = async (player: GlobalPlayer, promote: boolean) => {
+    await setRole(player, promote ? 'admin' : 'player');
+    if (!statusMessage.value) {
+        statusMessage.value = promote ? `${player.name} is now an admin` : `Revoked admin from ${player.name}`;
+        setTimeout(() => { statusMessage.value = ''; }, 3000);
+    }
+};
+
+const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
+    await setRole(player, isCreator ? 'tournament_creator' : 'player');
+    if (!statusMessage.value) {
+        statusMessage.value = isCreator
+            ? `${player.name} can now create official tournaments`
+            : `${player.name} can no longer create official tournaments`;
+        setTimeout(() => { statusMessage.value = ''; }, 3000);
+    }
+};
+
+// ── Data loading ───────────────────────────────────────────────────────────────
+
 onMounted(async () => {
-    if (!isSuperAdmin.value) return;
+    if (!can('manage_users')) return;
     try {
         const [allPlayers, allRoles] = await Promise.all([fetchAllPlayers(), fetchAllRoles()]);
         players.value = allPlayers.filter(p => p.firebaseUid);
@@ -69,6 +94,8 @@ const filteredPlayers = computed(() => {
 
 const getRole = (uid: string): UserRole => roleMap.value[uid] ?? 'player';
 
+// ── Profile modal ──────────────────────────────────────────────────────────────
+
 const profileModalOpen = ref(false);
 const profilePlayer = ref<GlobalPlayer | null>(null);
 
@@ -76,6 +103,8 @@ const openProfile = (player: GlobalPlayer) => {
     profilePlayer.value = player;
     profileModalOpen.value = true;
 };
+
+// ── Unlink ─────────────────────────────────────────────────────────────────────
 
 const unlinking = ref<string | null>(null);
 
@@ -93,25 +122,6 @@ const handleUnlink = async (player: GlobalPlayer) => {
         unlinking.value = null;
     }
 };
-
-const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
-    if (!player.firebaseUid) return;
-    const newRole: UserRole = isCreator ? 'tournament_creator' : 'player';
-    saving.value = player.firebaseUid;
-    statusMessage.value = '';
-    try {
-        await setUserRole(player.firebaseUid, newRole, player.name);
-        roleMap.value = { ...roleMap.value, [player.firebaseUid]: newRole };
-        statusMessage.value = isCreator
-            ? `${player.name} can now create official tournaments`
-            : `${player.name} can no longer create official tournaments`;
-        setTimeout(() => { statusMessage.value = ''; }, 3000);
-    } catch (e) {
-        statusMessage.value = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
-    } finally {
-        saving.value = null;
-    }
-};
 </script>
 
 <template>
@@ -122,9 +132,9 @@ const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
             <div class="max-w-4xl mx-auto">
                 <SiteNav />
 
-                <div v-if="!isSuperAdmin" class="mt-12 text-center text-slate-500">
+                <div v-if="!can('manage_users')" class="mt-12 text-center text-slate-500">
                     <i class="ph ph-lock text-5xl mb-4 block"></i>
-                    <p class="text-lg">Access denied. Superadmin only.</p>
+                    <p class="text-lg">Access denied.</p>
                 </div>
 
                 <template v-else>
@@ -182,12 +192,14 @@ const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
                                 </div>
                             </div>
 
-                            <!-- Superadmin row -->
+                            <!-- Superadmin player row -->
                             <template v-if="getRole(player.firebaseUid!) === 'superadmin'">
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider flex-shrink-0 bg-amber-900/40 text-amber-300 border-amber-500/50">
                                     Superadmin
                                 </span>
-                                <button @click="toggleSuperAdmin(player, false)"
+                                <!-- Only superadmins can revoke superadmin -->
+                                <button v-if="isSuperAdmin"
+                                        @click="toggleSuperAdmin(player, false)"
                                         :disabled="saving === player.firebaseUid"
                                         title="Revoke superadmin"
                                         class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50">
@@ -195,8 +207,31 @@ const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
                                 </button>
                             </template>
 
-                            <!-- Regular user row -->
+                            <!-- Admin player row -->
+                            <template v-else-if="getRole(player.firebaseUid!) === 'admin'">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider flex-shrink-0 bg-indigo-900/40 text-indigo-300 border-indigo-500/50">
+                                    Admin
+                                </span>
+                                <!-- Demote back to player -->
+                                <button @click="toggleAdmin(player, false)"
+                                        :disabled="saving === player.firebaseUid"
+                                        title="Revoke admin"
+                                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50">
+                                    <i class="ph-bold ph-shield-slash text-lg"></i>
+                                </button>
+                                <!-- Only superadmins can promote to superadmin -->
+                                <button v-if="isSuperAdmin"
+                                        @click="toggleSuperAdmin(player, true)"
+                                        :disabled="saving === player.firebaseUid"
+                                        title="Promote to superadmin"
+                                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-amber-500/10 hover:text-amber-400 transition-colors flex-shrink-0 disabled:opacity-50">
+                                    <i class="ph-bold ph-shield-plus text-lg"></i>
+                                </button>
+                            </template>
+
+                            <!-- Player / tournament_creator row -->
                             <template v-else>
+                                <!-- Tournament creator toggle -->
                                 <label class="flex items-center gap-2 cursor-pointer flex-shrink-0"
                                        :class="saving === player.firebaseUid ? 'opacity-50 pointer-events-none' : ''">
                                     <div class="relative">
@@ -209,7 +244,17 @@ const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
                                     </div>
                                     <span class="text-xs text-slate-400 w-20">{{ getRole(player.firebaseUid!) === 'tournament_creator' ? 'Official creator' : 'Player' }}</span>
                                 </label>
-                                <button @click="toggleSuperAdmin(player, true)"
+                                <!-- Promote to admin -->
+                                <button v-if="can('promote_to_admin')"
+                                        @click="toggleAdmin(player, true)"
+                                        :disabled="saving === player.firebaseUid"
+                                        title="Promote to admin"
+                                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors flex-shrink-0 disabled:opacity-50">
+                                    <i class="ph-bold ph-shield-check text-lg"></i>
+                                </button>
+                                <!-- Promote to superadmin (superadmin only) -->
+                                <button v-if="isSuperAdmin"
+                                        @click="toggleSuperAdmin(player, true)"
                                         :disabled="saving === player.firebaseUid"
                                         title="Promote to superadmin"
                                         class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-amber-500/10 hover:text-amber-400 transition-colors flex-shrink-0 disabled:opacity-50">
@@ -223,7 +268,9 @@ const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
                                 <i class="ph-bold ph-user-circle text-lg"></i>
                             </button>
 
-                            <button @click="handleUnlink(player)"
+                            <!-- Unlink: superadmin only -->
+                            <button v-if="can('unlink_player')"
+                                    @click="handleUnlink(player)"
                                     :disabled="unlinking === player.id"
                                     title="Unlink Discord account from player"
                                     class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50">
