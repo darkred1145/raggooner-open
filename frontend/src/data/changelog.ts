@@ -9,9 +9,18 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '3.0.0'; // Update this manually when you deploy
+export const APP_VERSION = '3.1.0'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '3.1.0',
+        date: '2026-03-23',
+        title: 'Recent History',
+        changes: [
+            { type: 'new', text: 'Look at the 5 most recent tournaments in the Player Profile Viewer.' },
+            { type: 'new', text: 'Start unofficial tournaments that don\'t count into stats for fun.' },
+        ]
+    },
     {
         version: '3.0.0',
         date: '2026-03-22',

@@ -81,11 +81,12 @@ const ordinal = (n: number): string => {
     }
 };
 
-const placementClass = (n: number): string => {
-    if (n === 1) return 'text-amber-400';
-    if (n === 2) return 'text-slate-300';
-    if (n === 3) return 'text-orange-400';
-    return 'text-slate-500';
+const placementClass = (rank: number, inFinals: boolean): string => {
+    if (!inFinals) return 'text-slate-500';
+    if (rank === 1) return 'text-amber-400';
+    if (rank === 2) return 'text-slate-300';
+    if (rank === 3) return 'text-orange-400';
+    return 'text-slate-400';
 };
 
 const formatDate = (iso: string): string =>
@@ -303,10 +304,10 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                         </div>
                                         <div class="shrink-0 text-right">
                                             <div class="text-xl font-black leading-none"
-                                                 :class="placementClass(result.teamPlacement)">
-                                                {{ ordinal(result.teamPlacement) }}
+                                                 :class="placementClass(result.teamRank, result.teamInFinals)">
+                                                {{ ordinal(result.teamRank) }}
                                             </div>
-                                            <div class="text-[10px] text-slate-600 mt-0.5">place</div>
+                                            <div class="text-[10px] text-slate-600 mt-0.5">{{ result.teamInFinals ? 'finals' : 'groups' }}</div>
                                         </div>
                                     </div>
 

@@ -123,7 +123,8 @@ export interface RecentResult {
     tournamentId: string;
     tournamentName: string;
     teamName: string;
-    teamPlacement: number;
+    teamRank: number;        // rank within the relevant stage (1 = best finalist, or 1 = best non-finalist)
+    teamInFinals: boolean;   // true → rank is among finalists; false → rank is among non-finalists (groups)
     isOfficial: boolean;
     seasonId?: string;
     playedAt: string;

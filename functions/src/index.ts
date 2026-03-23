@@ -14,7 +14,8 @@ interface RecentResult {
   tournamentId: string;
   tournamentName: string;
   teamName: string;
-  teamPlacement: number;
+  teamRank: number;
+  teamInFinals: boolean;
   isOfficial: boolean;
   seasonId?: string;
   playedAt: string;
@@ -160,19 +161,31 @@ export const unsyncOnTournamentDelete = onDocumentDeleted(
 // ---------------------------------------------------------------------------
 // Helpers for team ranking and player-team lookup
 // ---------------------------------------------------------------------------
+interface TeamRankResult {
+  rank: number;
+  inFinals: boolean;
+}
+
+// Mirrors the priority used by compareTeams() on the client:
+// finalists sorted by finalsPoints desc, non-finalists sorted by points desc.
+// Tiebreaker (countback) is omitted here — it's rare and would require
+// replicating the full getTeamPlacements logic in the Cloud Function.
 function computeTeamRanking(
   tournament: FirebaseFirestore.DocumentData
-): Map<string, number> {
+): Map<string, TeamRankResult> {
   const teams = [...((tournament.teams ?? []) as any[])];
+
   const finalists = teams
     .filter((t) => t.inFinals)
     .sort((a, b) => (b.finalsPoints ?? 0) - (a.finalsPoints ?? 0));
+
   const nonFinalists = teams
     .filter((t) => !t.inFinals)
     .sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
-  const ranked = [...finalists, ...nonFinalists];
-  const ranking = new Map<string, number>();
-  ranked.forEach((team, idx) => ranking.set(team.id, idx + 1));
+
+  const ranking = new Map<string, TeamRankResult>();
+  finalists.forEach((team, idx) => ranking.set(team.id, { rank: idx + 1, inFinals: true }));
+  nonFinalists.forEach((team, idx) => ranking.set(team.id, { rank: idx + 1, inFinals: false }));
   return ranking;
 }
 
@@ -260,14 +273,17 @@ async function updatePlayers(
 
     if (direction === 1) {
       const team = findPlayerTeam(tournament, player.id);
-      const teamPlacement = team ? (teamRanking.get(team.id) ?? 0) : 0;
+      const teamResult = team ?
+        (teamRanking.get(team.id) ?? { rank: 0, inFinals: false }) :
+        { rank: 0, inFinals: false };
       const dominancePct = totalFaced > 0 ? (totalBeaten / totalFaced) * 100 : 0;
 
       const newResult: RecentResult = {
         tournamentId,
         tournamentName: tournament.name ?? "",
         teamName: team?.name ?? "",
-        teamPlacement,
+        teamRank: teamResult.rank,
+        teamInFinals: teamResult.inFinals,
         isOfficial: tournament.isOfficial ?? false,
         playedAt: tournament.playedAt ?? new Date().toISOString(),
         racesPlayed: raceCount,
