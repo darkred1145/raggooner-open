@@ -10,6 +10,22 @@ const db = getFirestore();
 
 setGlobalOptions({ maxInstances: 10 });
 
+interface RecentResult {
+  tournamentId: string;
+  tournamentName: string;
+  teamName: string;
+  teamPlacement: number;
+  isOfficial: boolean;
+  seasonId?: string;
+  playedAt: string;
+  racesPlayed: number;
+  raceWins: number;
+  avgPoints: number;
+  avgPlacement: number;
+  dominancePct: number;
+  umaPlayed?: string;
+}
+
 // ---------------------------------------------------------------------------
 // assignDefaultRole
 //
@@ -51,8 +67,8 @@ export const assignDefaultRole = beforeUserCreated(async (event) => {
 // Completion  (status → "completed"):
 //   Atomically claims the sync right via a transaction that flips
 //   metadataSynced false → true. Only the winner of that transaction
-//   proceeds to batch-increment player stats. Any concurrent or retry
-//   invocation finds metadataSynced already true and exits cleanly.
+//   proceeds to update player stats. Any concurrent or retry invocation
+//   finds metadataSynced already true and exits cleanly.
 //
 // Reopen  (status "completed" → anything else):
 //   Atomically claims the unsync right via a transaction that flips
@@ -69,7 +85,7 @@ export const syncTournamentMetadata = onDocumentUpdated(
     const after  = event.data?.after.data();
     if (!before || !after) return;
 
-    const { appId } = event.params;
+    const { appId, tournamentId } = event.params;
     const tournamentRef = event.data!.after.ref;
 
     if (before.status === after.status) return;
@@ -87,12 +103,12 @@ export const syncTournamentMetadata = onDocumentUpdated(
       });
 
       if (!claimed) {
-        logger.info("Sync already claimed, skipping.", { tournamentId: tournamentRef.id });
+        logger.info("Sync already claimed, skipping.", { tournamentId });
         return;
       }
 
-      logger.info("Syncing player metadata.", { tournamentId: tournamentRef.id });
-      await batchUpdatePlayers(db, appId, after, 1);
+      logger.info("Syncing player metadata.", { tournamentId });
+      await updatePlayers(db, appId, tournamentId, after, 1);
       return;
     }
 
@@ -104,20 +120,18 @@ export const syncTournamentMetadata = onDocumentUpdated(
         // Guard 1: nothing was ever synced — nothing to undo.
         if (!data?.metadataSynced) return false;
         // Guard 2: tournament was re-completed between the reopen write and now.
-        // Let the sync invocation handle it; we should not unsync.
         if (data?.status === "completed") return false;
         tx.update(tournamentRef, { metadataSynced: false });
         return true;
       });
 
       if (!claimed) {
-        logger.info("Unsync already claimed or not needed, skipping.", { tournamentId: tournamentRef.id });
+        logger.info("Unsync already claimed or not needed, skipping.", { tournamentId });
         return;
       }
 
-      logger.info("Unsyncing player metadata.", { tournamentId: tournamentRef.id });
-      // Use `after` — races/players are unchanged between completion and reopen.
-      await batchUpdatePlayers(db, appId, after, -1);
+      logger.info("Unsyncing player metadata.", { tournamentId });
+      await updatePlayers(db, appId, tournamentId, after, -1);
     }
   }
 );
@@ -137,36 +151,70 @@ export const unsyncOnTournamentDelete = onDocumentDeleted(
     if (!tournament.isOfficial) return;
     if (!tournament.metadataSynced) return;
 
-    const { appId } = event.params;
-    logger.info("Synced tournament deleted, reversing player metadata.", { tournamentId: event.params.tournamentId });
-    await batchUpdatePlayers(db, appId, tournament, -1);
+    const { appId, tournamentId } = event.params;
+    logger.info("Synced tournament deleted, reversing player metadata.", { tournamentId });
+    await updatePlayers(db, appId, tournamentId, tournament, -1);
   }
 );
 
 // ---------------------------------------------------------------------------
-// Batch-increments (direction=1) or decrements (direction=-1) every
-// participant's aggregate stats in their GlobalPlayer document.
-// The metadataSynced flag is flipped inside the transaction above BEFORE
-// this runs, so any retry of the function will be rejected by the claim
-// check and never reach here a second time.
+// Helpers for team ranking and player-team lookup
 // ---------------------------------------------------------------------------
-async function batchUpdatePlayers(
+function computeTeamRanking(
+  tournament: FirebaseFirestore.DocumentData
+): Map<string, number> {
+  const teams = [...((tournament.teams ?? []) as any[])];
+  const finalists = teams
+    .filter((t) => t.inFinals)
+    .sort((a, b) => (b.finalsPoints ?? 0) - (a.finalsPoints ?? 0));
+  const nonFinalists = teams
+    .filter((t) => !t.inFinals)
+    .sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
+  const ranked = [...finalists, ...nonFinalists];
+  const ranking = new Map<string, number>();
+  ranked.forEach((team, idx) => ranking.set(team.id, idx + 1));
+  return ranking;
+}
+
+function findPlayerTeam(
+  tournament: FirebaseFirestore.DocumentData,
+  playerId: string
+): any {
+  const teams = (tournament.teams ?? []) as any[];
+  return (
+    teams.find(
+      (t) => t.captainId === playerId || (t.memberIds ?? []).includes(playerId)
+    ) ?? null
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Increments (direction=1) or decrements (direction=-1) every participant's
+// aggregate stats in their GlobalPlayer document, and maintains the 5-entry
+// recentResults array on each player.
+//
+// Uses individual get+update per player (rather than a batch) so that
+// recentResults can be read before writing.
+// ---------------------------------------------------------------------------
+async function updatePlayers(
   db: FirebaseFirestore.Firestore,
   appId: string,
+  tournamentId: string,
   tournament: FirebaseFirestore.DocumentData,
   direction: 1 | -1
 ): Promise<void> {
   const players = Object.values(tournament.players ?? {}) as any[];
-  const races   = Object.values(tournament.races   ?? {}) as any[];
+  const races = Object.values(tournament.races ?? {}) as any[];
+  const teamRanking = computeTeamRanking(tournament);
 
-  const batch = db.batch();
-
-  for (const player of players) {
+  const promises = players.map(async (player) => {
     const playerRef = db.doc(`artifacts/${appId}/public/data/players/${player.id}`);
 
-    let totalFaced  = 0;
+    let totalFaced = 0;
     let totalBeaten = 0;
-    let raceCount   = 0;
+    let raceCount = 0;
+    let raceWins = 0;
+    let totalPlacementSum = 0;
 
     for (const race of races) {
       const position = race.placements?.[player.id];
@@ -174,15 +222,17 @@ async function batchUpdatePlayers(
       const playersInRace = Object.keys(race.placements).length;
       if (playersInRace <= 1) continue;
       raceCount++;
-      totalFaced  += playersInRace - 1;
+      totalFaced += playersInRace - 1;
       totalBeaten += playersInRace - position;
+      totalPlacementSum += position;
+      if (position === 1) raceWins++;
     }
 
     const update: Record<string, any> = {
       "metadata.totalTournaments": FieldValue.increment(direction),
-      "metadata.totalRaces":       FieldValue.increment(direction * raceCount),
-      "metadata.opponentsFaced":   FieldValue.increment(direction * totalFaced),
-      "metadata.opponentsBeaten":  FieldValue.increment(direction * totalBeaten),
+      "metadata.totalRaces": FieldValue.increment(direction * raceCount),
+      "metadata.opponentsFaced": FieldValue.increment(direction * totalFaced),
+      "metadata.opponentsBeaten": FieldValue.increment(direction * totalBeaten),
     };
 
     if (direction === 1) {
@@ -191,12 +241,53 @@ async function batchUpdatePlayers(
 
     if (tournament.seasonId) {
       const s = tournament.seasonId;
-      update[`metadata.seasons.${s}.opponentsFaced`]  = FieldValue.increment(direction * totalFaced);
-      update[`metadata.seasons.${s}.opponentsBeaten`] = FieldValue.increment(direction * totalBeaten);
+      update[`metadata.seasons.${s}.opponentsFaced`] =
+        FieldValue.increment(direction * totalFaced);
+      update[`metadata.seasons.${s}.opponentsBeaten`] =
+        FieldValue.increment(direction * totalBeaten);
     }
 
-    batch.update(playerRef, update);
-  }
+    // Read current recentResults to prepend or filter
+    const snap = await playerRef.get();
+    const currentResults: RecentResult[] =
+      snap.data()?.metadata?.recentResults ?? [];
 
-  await batch.commit();
+    if (direction === 1) {
+      const team = findPlayerTeam(tournament, player.id);
+      const teamPlacement = team ? (teamRanking.get(team.id) ?? 0) : 0;
+      const dominancePct = totalFaced > 0 ? (totalBeaten / totalFaced) * 100 : 0;
+      const playerPoints: number = player.totalPoints ?? 0;
+
+      const newResult: RecentResult = {
+        tournamentId,
+        tournamentName: tournament.name ?? "",
+        teamName: team?.name ?? "",
+        teamPlacement,
+        isOfficial: tournament.isOfficial ?? false,
+        playedAt: tournament.playedAt ?? new Date().toISOString(),
+        racesPlayed: raceCount,
+        raceWins,
+        avgPoints: raceCount > 0 ? playerPoints / raceCount : 0,
+        avgPlacement: raceCount > 0 ? totalPlacementSum / raceCount : 0,
+        dominancePct,
+        ...(player.uma ? { umaPlayed: player.uma } : {}),
+        ...(tournament.seasonId ? { seasonId: tournament.seasonId } : {}),
+      };
+
+      // Filter out any existing entry for this tournament (safe re-sync), then
+      // sort by playedAt descending so the 5 most recently played are kept.
+      const withoutThis = currentResults.filter((r) => r.tournamentId !== tournamentId);
+      update["metadata.recentResults"] = [newResult, ...withoutThis]
+        .sort((a, b) => (b.playedAt ?? "").localeCompare(a.playedAt ?? ""))
+        .slice(0, 5);
+    } else {
+      update["metadata.recentResults"] = currentResults.filter(
+        (r) => r.tournamentId !== tournamentId
+      );
+    }
+
+    await playerRef.update(update);
+  });
+
+  await Promise.all(promises);
 }

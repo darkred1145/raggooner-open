@@ -3,10 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isSuperAdmin() {
-      return request.auth != null && (request.auth.uid in [
-      'mehTFP5BuqdrT6mw4xqnaNrHSMk1', 'j7kIBg1mIXO5m824GeBQmXYfb6q2', 'LCwXSR9TZUPqdpv8qM7qD3y7m0uh', 'JXs2aov8XqTfnB9XLOVHVNzw3psv',
-      'JrBubSUpmlNqYV4Gi7TsYY7yRqzO', '0u3zMN1xD3SrcVKIzw10UMvnmFJ2', '7IjG3AzSTybzW0AxfxZFwQ6ZKDB3'
-      ]);
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/artifacts/default-app/public/data/userRoles/$(request.auth.uid)).data.role == 'superadmin';
     }
 
     function isOfficialCreator() {

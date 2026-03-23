@@ -2,7 +2,6 @@ import { ref, computed } from 'vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, deleteDoc, deleteField, collection, getDocs, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { SUPERADMIN_UIDS } from '../utils/constants';
 import type { UserRole, GlobalPlayer } from '../types';
 
 const appId = 'default-app';
@@ -35,9 +34,7 @@ export interface UserRoleEntry {
 }
 
 export function useUserRoles() {
-    const isSuperAdmin = computed(() => {
-        return !!currentUid.value && SUPERADMIN_UIDS.includes(currentUid.value);
-    });
+    const isSuperAdmin = computed(() => currentUserRole.value === 'superadmin');
 
     const isOfficialCreator = computed(() => {
         return isSuperAdmin.value || currentUserRole.value === 'tournament_creator';

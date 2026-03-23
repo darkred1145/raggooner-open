@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { watch } from 'vue'
 import HomeView from '../views/HomeView.vue'
-import { SUPERADMIN_UIDS } from '../utils/constants'
-import { auth } from '../firebase'
+import { useUserRoles } from '../composables/useUserRoles'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,13 +35,16 @@ const router = createRouter({
             path: '/admin/users',
             name: 'admin-users',
             component: () => import('../views/AdminUsersView.vue'),
-            beforeEnter: (_to, _from, next) => {
-                const uid = auth.currentUser?.uid;
-                if (uid && SUPERADMIN_UIDS.includes(uid)) {
-                    next();
-                } else {
-                    next('/');
+            beforeEnter: async (_to, _from, next) => {
+                const { isSuperAdmin, roleLoading } = useUserRoles();
+                if (roleLoading.value) {
+                    await new Promise<void>(resolve => {
+                        const stop = watch(roleLoading, loading => {
+                            if (!loading) { stop(); resolve(); }
+                        });
+                    });
                 }
+                isSuperAdmin.value ? next() : next('/');
             }
         }
     ]

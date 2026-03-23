@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { GlobalPlayer, SupportCardType } from '../types';
+import type { GlobalPlayer, RecentResult, SupportCardType } from '../types';
 import { getUmaImagePath, UMA_LIST } from '../utils/umaData';
 import { SUPPORT_CARD_DICT, SUPPORT_CARD_TYPE_META } from '../utils/supportCardData';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
@@ -14,7 +14,7 @@ const props = defineProps<{
 const emit = defineEmits<{ close: [] }>();
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
-const activeTab = ref<'umas' | 'cards'>('umas');
+const activeTab = ref<'umas' | 'cards' | 'history'>('umas');
 
 // ── Uma filters ───────────────────────────────────────────────────────────────
 const umaFilter = ref('');
@@ -65,6 +65,28 @@ const toggleTypeFilter = (type: SupportCardType) => {
     cardTypeFilter.value = cardTypeFilter.value === type ? null : type;
 };
 
+// ── History helpers ───────────────────────────────────────────────────────────
+const recentResults = computed<RecentResult[]>(() =>
+    props.globalPlayer?.metadata?.recentResults ?? []
+);
+
+const ordinal = (n: number): string => {
+    if (n <= 0) return '?';
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+const placementClass = (n: number): string => {
+    if (n === 1) return 'text-amber-400';
+    if (n === 2) return 'text-slate-300';
+    if (n === 3) return 'text-orange-400';
+    return 'text-slate-500';
+};
+
+const formatDate = (iso: string): string =>
+    new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
 const onOpen = () => {
     activeTab.value = 'umas';
     umaFilter.value = '';
@@ -111,7 +133,7 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                     </div>
 
                     <!-- No profile state -->
-                    <div v-if="!globalPlayer || (!globalPlayer.roster?.length && !globalPlayer.supportCards?.length)"
+                    <div v-if="!globalPlayer || (!globalPlayer.roster?.length && !globalPlayer.supportCards?.length && !recentResults.length)"
                          class="flex-1 flex flex-col items-center justify-center py-16 text-slate-600">
                         <i class="ph-bold ph-user-circle text-5xl mb-3"></i>
                         <p class="text-sm">No profile data available.</p>
@@ -128,7 +150,7 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                         : 'text-slate-500 hover:text-slate-300'">
                                 <i class="ph-fill ph-horse"></i>
                                 Umas
-                                <span class="text-[10px] opacity-70">({{ globalPlayer.roster?.length ?? 0 }})</span>
+                                <span class="text-[10px] opacity-70">({{ globalPlayer?.roster?.length ?? 0 }})</span>
                             </button>
                             <button @click="activeTab = 'cards'"
                                     class="flex-1 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
@@ -137,7 +159,16 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                         : 'text-slate-500 hover:text-slate-300'">
                                 <i class="ph-fill ph-cards"></i>
                                 Support Cards
-                                <span class="text-[10px] opacity-70">({{ globalPlayer.supportCards?.length ?? 0 }})</span>
+                                <span class="text-[10px] opacity-70">({{ globalPlayer?.supportCards?.length ?? 0 }})</span>
+                            </button>
+                            <button @click="activeTab = 'history'"
+                                    class="flex-1 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                                    :class="activeTab === 'history'
+                                        ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/5'
+                                        : 'text-slate-500 hover:text-slate-300'">
+                                <i class="ph-fill ph-trophy"></i>
+                                History
+                                <span class="text-[10px] opacity-70">({{ recentResults.length }})</span>
                             </button>
                         </div>
 
@@ -234,6 +265,80 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                                  :class="i <= entry.limitBreak ? 'bg-indigo-400' : 'bg-slate-700'"></div>
                                         </div>
                                     </template>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ── History Tab ── -->
+                        <div v-if="activeTab === 'history'" class="flex-1 flex flex-col overflow-hidden">
+                            <div v-if="recentResults.length === 0"
+                                 class="flex-1 flex flex-col items-center justify-center py-12 text-slate-600">
+                                <i class="ph-bold ph-trophy text-4xl mb-3"></i>
+                                <p class="text-sm">No tournament history yet.</p>
+                            </div>
+
+                            <div v-else class="flex-1 overflow-y-auto p-4 space-y-3">
+                                <div v-for="result in recentResults" :key="result.tournamentId"
+                                     class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 space-y-3">
+
+                                    <!-- Header row -->
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span v-if="result.isOfficial"
+                                                      class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-900/50 text-indigo-400 border border-indigo-500/30 shrink-0">
+                                                    Official
+                                                </span>
+                                                <span class="font-bold text-white text-sm truncate">{{ result.tournamentName }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-500 flex-wrap">
+                                                <i class="ph-fill ph-users-three shrink-0"></i>
+                                                <span>{{ result.teamName }}</span>
+                                                <span>·</span>
+                                                <span>{{ formatDate(result.playedAt) }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="shrink-0 text-right">
+                                            <div class="text-xl font-black leading-none"
+                                                 :class="placementClass(result.teamPlacement)">
+                                                {{ ordinal(result.teamPlacement) }}
+                                            </div>
+                                            <div class="text-[10px] text-slate-600 mt-0.5">place</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stats grid -->
+                                    <div class="grid grid-cols-3 gap-1.5 text-center">
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Races</div>
+                                            <div class="text-sm font-bold text-white">{{ result.racesPlayed }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Wins</div>
+                                            <div class="text-sm font-bold text-emerald-400">{{ result.raceWins }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Dominance</div>
+                                            <div class="text-sm font-bold text-indigo-400">{{ result.dominancePct.toFixed(1) }}%</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Avg Pts</div>
+                                            <div class="text-sm font-bold text-white">{{ result.avgPoints.toFixed(1) }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Avg Pos</div>
+                                            <div class="text-sm font-bold text-white">{{ result.avgPlacement.toFixed(1) }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2 flex flex-col items-center overflow-hidden">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Uma</div>
+                                            <div v-if="result.umaPlayed" class="flex items-center gap-1 w-full justify-center">
+                                                <img :src="getUmaImagePath(result.umaPlayed)"
+                                                     :alt="result.umaPlayed"
+                                                     class="w-5 h-5 object-cover object-top rounded shrink-0" />
+                                                <span class="text-xs font-bold text-white truncate">{{ result.umaPlayed }}</span>
+                                            </div>
+                                            <span v-else class="text-sm font-bold text-slate-600">—</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -113,6 +113,22 @@ export interface ProfileSupportCard {
     limitBreak: number;   // 0–4
 }
 
+export interface RecentResult {
+    tournamentId: string;
+    tournamentName: string;
+    teamName: string;
+    teamPlacement: number;
+    isOfficial: boolean;
+    seasonId?: string;
+    playedAt: string;
+    racesPlayed: number;
+    raceWins: number;
+    avgPoints: number;
+    avgPlacement: number;
+    dominancePct: number;
+    umaPlayed?: string;
+}
+
 export interface GlobalPlayer {
     id: string;
     name: string;
@@ -130,6 +146,7 @@ export interface GlobalPlayer {
         lastPlayed?: string;
         opponentsFaced?: number;
         opponentsBeaten?: number;
+        recentResults?: RecentResult[];
         seasons?: {
             [seasonId: string]: {
                 opponentsFaced: number;

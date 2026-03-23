@@ -477,16 +477,16 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
             </div>
 
             <!-- Action Buttons -->
-            <div class="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+            <div class="flex items-center gap-1">
               <button @click.stop="openProfile(player.id)"
                       title="View Profile"
-                      class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors">
-                <i class="ph-bold ph-user-circle"></i>
+                      class="w-8 h-8 flex items-center justify-center rounded text-indigo-400/60 hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors">
+                <i class="ph-bold ph-user-circle text-lg"></i>
               </button>
               <button @click.stop="removePlayer(player.id)"
                       :disabled="!isAdmin"
                       title="Remove Player"
-                      class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors">
+                      class="opacity-0 group-hover:opacity-100 w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors transition-opacity">
                 <i class="ph-bold ph-trash"></i>
               </button>
             </div>

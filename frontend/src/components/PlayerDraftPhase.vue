@@ -257,8 +257,8 @@ const sortedAvailablePlayers = computed(() => {
                   </div>
                 </button>
                 <button @click.stop="openProfile(player.id)"
-                        class="absolute top-1.5 right-1.5 z-10 w-5 h-5 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
-                  <i class="ph-bold ph-info text-xs"></i>
+                        class="absolute top-1.5 right-1.5 z-10 w-6 h-6 flex items-center justify-center rounded text-indigo-400/60 hover:text-indigo-400 hover:bg-slate-700 transition-colors">
+                  <i class="ph-bold ph-user-circle text-sm"></i>
                 </button>
               </div>
             </div>
@@ -278,15 +278,15 @@ const sortedAvailablePlayers = computed(() => {
                   <PlayerAvatar :name="getPlayerName(tournament, team.captainId)" :avatar-url="getAvatarUrl(team.captainId)" size="sm" />
                   <i class="ph-fill ph-crown text-xs shrink-0"></i>
                   <span class="flex-1 truncate">{{ getPlayerName(tournament, team.captainId) }}</span>
-                  <button @click="openProfile(team.captainId)" class="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
-                    <i class="ph-bold ph-info text-xs"></i>
+                  <button @click="openProfile(team.captainId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                    <i class="ph-bold ph-user-circle text-sm"></i>
                   </button>
                 </div>
                 <div v-for="memberId in team.memberIds" :key="memberId" class="flex items-center gap-2 text-sm text-slate-300">
                   <PlayerAvatar :name="getPlayerName(tournament, memberId)" :avatar-url="getAvatarUrl(memberId)" size="sm" />
                   <span class="flex-1 truncate">{{ getPlayerName(tournament, memberId) }}</span>
-                  <button @click="openProfile(memberId)" class="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
-                    <i class="ph-bold ph-info text-xs"></i>
+                  <button @click="openProfile(memberId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                    <i class="ph-bold ph-user-circle text-sm"></i>
                   </button>
                 </div>
                 <div v-for="n in (2 - team.memberIds.length)" :key="n" class="flex items-center gap-2 text-sm text-slate-700 border-dashed border border-slate-800 p-1 rounded">
@@ -349,8 +349,8 @@ const sortedAvailablePlayers = computed(() => {
                 <PlayerAvatar :name="getPlayerName(tournament, team.captainId)" :avatar-url="getAvatarUrl(team.captainId)" size="md" />
                 <i class="ph-fill ph-crown text-amber-400 text-sm drop-shadow-[0_0_5px_rgba(251,191,36,0.5)] shrink-0"></i>
                 <span class="text-sm font-bold text-amber-100 flex-1 truncate">{{ getPlayerName(tournament, team.captainId) }}</span>
-                <button @click="openProfile(team.captainId)" class="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
-                  <i class="ph-bold ph-info text-xs"></i>
+                <button @click="openProfile(team.captainId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                  <i class="ph-bold ph-user-circle text-sm"></i>
                 </button>
               </div>
 
@@ -359,8 +359,8 @@ const sortedAvailablePlayers = computed(() => {
                      class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/30">
                   <PlayerAvatar :name="getPlayerName(tournament, memberId)" :avatar-url="getAvatarUrl(memberId)" size="sm" />
                   <span class="text-sm font-medium text-slate-300 truncate flex-1">{{ getPlayerName(tournament, memberId) }}</span>
-                  <button @click="openProfile(memberId)" class="text-slate-600 hover:text-slate-300 transition-colors shrink-0">
-                    <i class="ph-bold ph-info text-xs"></i>
+                  <button @click="openProfile(memberId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                    <i class="ph-bold ph-user-circle text-sm"></i>
                   </button>
                 </div>
               </div>

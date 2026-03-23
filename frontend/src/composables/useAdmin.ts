@@ -3,7 +3,7 @@ import { ref, computed, watch, type Ref } from 'vue';
 import { doc, setDoc, deleteDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../firebase'; // Adjust path if needed
 import type { Tournament, FirestoreUpdate } from '../types';
-import { SUPERADMIN_UIDS } from '../utils/constants.ts';
+import { useUserRoles } from './useUserRoles';
 
 // Define the interface for the update function to ensure type safety
 type SecureUpdateFn = (data: FirestoreUpdate<Tournament>) => Promise<void>;
@@ -92,7 +92,8 @@ export function useAdmin(
         if (!auth.currentUser) return;
 
         const uid = auth.currentUser.uid;
-        if (!SUPERADMIN_UIDS.includes(uid)) return;
+        const { isSuperAdmin } = useUserRoles();
+        if (!isSuperAdmin.value) return;
 
         const tId = tournament.value.id;
 

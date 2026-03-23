@@ -12,12 +12,13 @@ vi.mock('../firebase', () => ({
   auth: { currentUser: { uid: 'user-123' } },
 }));
 
-vi.mock('../utils/constants', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('../utils/constants')>();
-  return { ...mod, SUPERADMIN_UIDS: ['superadmin-uid'] };
-});
-
 import { ref, nextTick } from 'vue';
+
+const mockIsSuperAdmin = ref(false);
+vi.mock('./useUserRoles', () => ({
+  useUserRoles: () => ({ isSuperAdmin: mockIsSuperAdmin }),
+}));
+
 import { useAdmin } from './useAdmin';
 import { setDoc, deleteDoc } from 'firebase/firestore';
 import { auth } from '../firebase';
@@ -180,15 +181,15 @@ describe('useAdmin', () => {
       expect(setDoc).not.toHaveBeenCalled();
     });
 
-    it('does nothing for a non-superadmin UID', async () => {
-      (auth as any).currentUser = { uid: 'regular-user' };
+    it('does nothing for a non-superadmin', async () => {
+      mockIsSuperAdmin.value = false;
       const { autoLoginIfSuperAdmin } = useAdmin(ref(makeTournament()), secureUpdate, fetchPublicTournaments, appId);
       await autoLoginIfSuperAdmin();
       expect(setDoc).not.toHaveBeenCalled();
     });
 
     it('sets SUPERADMIN credentials and persists to localStorage', async () => {
-      (auth as any).currentUser = { uid: 'superadmin-uid' };
+      mockIsSuperAdmin.value = true;
       (setDoc as any).mockResolvedValue(undefined);
       const tournament = ref(makeTournament({ id: 't1' }));
       const { autoLoginIfSuperAdmin, localAdminPassword } = useAdmin(tournament, secureUpdate, fetchPublicTournaments, appId);

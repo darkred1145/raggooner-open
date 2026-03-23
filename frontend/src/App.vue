@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import {onMounted, ref, provide, computed} from 'vue';
+import { onMounted, ref, provide } from 'vue';
 import type { Tournament } from './types';
-import { onAuthStateChanged, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
+import { signInAnonymously, signInWithCustomToken } from 'firebase/auth';
 import { auth } from './firebase';
 import { APP_VERSION } from './data/changelog';
 import ChangelogModal from './components/ChangelogModal.vue';
 import SuperAdminPanel from "./components/admin/SuperAdminPanel.vue";
 import DiscordAuthModal from "./components/auth/DiscordAuthModal.vue";
-import {SUPERADMIN_UIDS} from "./utils/constants.ts";
 import { useAuth } from './composables/useAuth';
+import { useUserRoles } from './composables/useUserRoles';
 
 const { user, linkedPlayer, loading: authLoading, isDiscordUser } = useAuth();
+const { isSuperAdmin } = useUserRoles();
 // import SeasonSetup from "./components/SeasonSetup.vue";
 // import Migrate from "./components/Migrate.vue";
 
@@ -18,18 +19,9 @@ const showChangelog = ref(false);
 const hasNewUpdates = ref(false);
 const previousVersion = ref('0.0.0');
 
-const currentUserUid = ref<string | null>(null);
 const isPanelOpen = ref(false);
 
-const isSuperAdmin = computed(() => {
-  return currentUserUid.value && SUPERADMIN_UIDS.includes(currentUserUid.value);
-});
-
 const init = async () => {
-  onAuthStateChanged(auth, (user) => {
-    currentUserUid.value = user?.uid || null;
-  });
-
   // Wait for Firebase to restore the persisted auth session before deciding
   // whether to sign in anonymously. Without this, auth.currentUser is always
   // null on page load (session restore is async), causing a new anonymous user

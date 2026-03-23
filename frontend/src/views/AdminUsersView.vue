@@ -6,7 +6,6 @@ import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 import PlayerProfileModal from '../components/PlayerProfileModal.vue';
 import { useUserRoles } from '../composables/useUserRoles';
-import { SUPERADMIN_UIDS } from '../utils/constants';
 import type { GlobalPlayer, UserRole } from '../types';
 
 const { isSuperAdmin, setUserRole, unlinkPlayer, fetchAllRoles, fetchAllPlayers } = useUserRoles();
@@ -18,7 +17,28 @@ const saving = ref<string | null>(null);
 const searchQuery = ref('');
 const statusMessage = ref('');
 
-const isHardcodedSuperAdmin = (uid: string) => SUPERADMIN_UIDS.includes(uid);
+const toggleSuperAdmin = async (player: GlobalPlayer, promote: boolean) => {
+    if (!player.firebaseUid) return;
+    const msg = promote
+        ? `Promote ${player.name} to superadmin?\n\nThey will gain full admin access including the superadmin panel.`
+        : `Revoke superadmin from ${player.name}?\n\nThey will lose all superadmin privileges.`;
+    if (!confirm(msg)) return;
+    const newRole: UserRole = promote ? 'superadmin' : 'player';
+    saving.value = player.firebaseUid;
+    statusMessage.value = '';
+    try {
+        await setUserRole(player.firebaseUid, newRole, player.name);
+        roleMap.value = { ...roleMap.value, [player.firebaseUid]: newRole };
+        statusMessage.value = promote
+            ? `${player.name} is now a superadmin`
+            : `Revoked superadmin from ${player.name}`;
+        setTimeout(() => { statusMessage.value = ''; }, 3000);
+    } catch (e) {
+        statusMessage.value = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
+    } finally {
+        saving.value = null;
+    }
+};
 
 onMounted(async () => {
     if (!isSuperAdmin.value) return;
@@ -162,26 +182,40 @@ const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
                                 </div>
                             </div>
 
-                            <!-- Superadmin badge (hardcoded) — no toggle -->
-                            <span v-if="isHardcodedSuperAdmin(player.firebaseUid!)"
-                                  class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider flex-shrink-0 bg-amber-900/40 text-amber-300 border-amber-500/50">
-                                Superadmin
-                            </span>
+                            <!-- Superadmin row -->
+                            <template v-if="getRole(player.firebaseUid!) === 'superadmin'">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider flex-shrink-0 bg-amber-900/40 text-amber-300 border-amber-500/50">
+                                    Superadmin
+                                </span>
+                                <button @click="toggleSuperAdmin(player, false)"
+                                        :disabled="saving === player.firebaseUid"
+                                        title="Revoke superadmin"
+                                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors flex-shrink-0 disabled:opacity-50">
+                                    <i class="ph-bold ph-shield-slash text-lg"></i>
+                                </button>
+                            </template>
 
-                            <!-- Official creator toggle -->
-                            <label v-else
-                                   class="flex items-center gap-2 cursor-pointer flex-shrink-0"
-                                   :class="saving === player.firebaseUid ? 'opacity-50 pointer-events-none' : ''">
-                                <div class="relative">
-                                    <input type="checkbox"
-                                           class="sr-only peer"
-                                           :checked="getRole(player.firebaseUid!) === 'tournament_creator'"
-                                           @change="toggleCreator(player, ($event.target as HTMLInputElement).checked)" />
-                                    <div class="w-9 h-5 bg-slate-700 rounded-full peer-checked:bg-indigo-600 transition-colors"></div>
-                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
-                                </div>
-                                <span class="text-xs text-slate-400 w-20">{{ getRole(player.firebaseUid!) === 'tournament_creator' ? 'Official creator' : 'Player' }}</span>
-                            </label>
+                            <!-- Regular user row -->
+                            <template v-else>
+                                <label class="flex items-center gap-2 cursor-pointer flex-shrink-0"
+                                       :class="saving === player.firebaseUid ? 'opacity-50 pointer-events-none' : ''">
+                                    <div class="relative">
+                                        <input type="checkbox"
+                                               class="sr-only peer"
+                                               :checked="getRole(player.firebaseUid!) === 'tournament_creator'"
+                                               @change="toggleCreator(player, ($event.target as HTMLInputElement).checked)" />
+                                        <div class="w-9 h-5 bg-slate-700 rounded-full peer-checked:bg-indigo-600 transition-colors"></div>
+                                        <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+                                    </div>
+                                    <span class="text-xs text-slate-400 w-20">{{ getRole(player.firebaseUid!) === 'tournament_creator' ? 'Official creator' : 'Player' }}</span>
+                                </label>
+                                <button @click="toggleSuperAdmin(player, true)"
+                                        :disabled="saving === player.firebaseUid"
+                                        title="Promote to superadmin"
+                                        class="w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-amber-500/10 hover:text-amber-400 transition-colors flex-shrink-0 disabled:opacity-50">
+                                    <i class="ph-bold ph-shield-plus text-lg"></i>
+                                </button>
+                            </template>
 
                             <button @click="openProfile(player)"
                                     title="View Profile"
