@@ -24,6 +24,11 @@ const props = withDefaults(defineProps<{
   secureUpdate: (data: FirestoreUpdate<Tournament> | Record<string, any>) => Promise<void>;
   globalPlayers: GlobalPlayer[];
   addGlobalPlayer: (player: GlobalPlayer) => void;
+  captainTeam?: Team | null;
+  canCaptainEditGroup?: (group: string) => boolean;
+  onCaptainSubmitUma?: (playerId: string, umaId: string) => Promise<void>;
+  onCaptainSaveTap?: (group: string, raceNumber: number, placements: Record<string, number>) => Promise<void>;
+  onCaptainUpdatePlacement?: (group: string, raceNumber: number, position: number, playerId: string) => Promise<void>;
 }>(), {
   appId: 'default-app'
 });
@@ -80,13 +85,18 @@ const {
 const {
   showUmaModal,
   submitUmaForPlayer,
-  closeUmaModal,
+  closeUmaModal: _closeUmaModal,
   getUmaList,
   showWildcardModal,
   openWildcardModal,
   wildcardTargetGroup,
   addWildcard,
 } = useRoster(tournament, props.secureUpdate, isAdminRef);
+
+const closeUmaModal = () => {
+  _closeUmaModal();
+  isCaptainUmaSession.value = false;
+};
 
 // Handle wildcard player selection from PlayerSelector
 const handleWildcardSelect = (globalPlayer: GlobalPlayer) => {
@@ -263,13 +273,38 @@ const submitAdjustment = async () => {
   showAdjustmentModal.value = false;
 };
 
+// Tracks whether the uma modal was opened in captain mode (scoped to captain's team only).
+const isCaptainUmaSession = ref(false);
+
+const openCaptainUmaModal = () => {
+  isCaptainUmaSession.value = true;
+  showUmaModal.value = true;
+};
+
 const sortedTeamsForModal = computed(() => {
   if (!props.tournamentProp?.teams) return [];
+  // In captain mode only show the captain's own team.
+  if (isCaptainUmaSession.value && props.captainTeam) {
+    return [props.captainTeam];
+  }
   return [...props.tournamentProp.teams].sort((a, b) => {
     if (a.group !== b.group) return a.group.localeCompare(b.group);
     return a.name.localeCompare(b.name);
   });
 });
+
+const handleUmaChange = async (playerId: string, umaId: string) => {
+  if (isCaptainUmaSession.value && props.onCaptainSubmitUma) {
+    try {
+      await props.onCaptainSubmitUma(playerId, umaId);
+    } catch (e: any) {
+      console.error('Captain uma submit failed', e);
+      alert(e?.message ?? 'Failed to save uma selection. Please try again.');
+    }
+  } else {
+    submitUmaForPlayer(playerId, umaId);
+  }
+};
 </script>
 
 <template>
@@ -402,8 +437,14 @@ const sortedTeamsForModal = computed(() => {
         </button>
 
         <button v-if="isAdminRef" @click="showUmaModal = true"
-                class="text-slate-500 hover:text-indigo-400 px-2 transition-colors">
+                class="text-slate-500 hover:text-indigo-400 px-2 transition-colors" title="Edit all umas">
           <i class="ph-bold ph-gear text-xl"></i>
+        </button>
+        <button v-else-if="captainTeam && tournamentProp.captainActionsEnabled && tournamentProp.status === 'active'"
+                @click="openCaptainUmaModal"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 hover:bg-indigo-600/30 transition-colors text-xs font-bold" title="Set your team's umas">
+          <i class="ph-bold ph-horse text-sm"></i>
+          My Umas
         </button>
       </div>
 
@@ -1026,7 +1067,9 @@ const sortedTeamsForModal = computed(() => {
         :secure-update="secureUpdate"
         :tournament-prop="tournament"
         :is-admin="isAdminRef"
-
+        :captain-team="captainTeam"
+        :on-captain-save-tap="onCaptainSaveTap"
+        :on-captain-update-placement="onCaptainUpdatePlacement"
       />
 
 <!--    HALL OF FAME-->
@@ -1105,7 +1148,7 @@ const sortedTeamsForModal = computed(() => {
       <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
 
         <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-bold text-white">Edit Umas</h3>
+          <h3 class="text-2xl font-bold text-white">{{ isCaptainUmaSession ? 'My Team Umas' : 'Edit Umas' }}</h3>
           <button @click="closeUmaModal" class="text-slate-400 hover:text-white">
             <i class="ph-bold ph-x text-xl"></i>
           </button>
@@ -1136,7 +1179,7 @@ const sortedTeamsForModal = computed(() => {
                   <select
                       v-if="tournament.players[playerId]"
                       v-model="tournament.players[playerId].uma"
-                      @change="submitUmaForPlayer(playerId, tournament.players[playerId].uma)"
+                      @change="handleUmaChange(playerId, tournament.players[playerId].uma)"
                       class="w-48 shrink-0 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer"
                   >
                     <option value="">- Select -</option>
@@ -1148,7 +1191,7 @@ const sortedTeamsForModal = computed(() => {
               </div>
             </div>
 
-            <div v-if="tournament.wildcards && tournament.wildcards.length > 0" class="space-y-3">
+            <div v-if="!isCaptainUmaSession && tournament.wildcards && tournament.wildcards.length > 0" class="space-y-3">
               <h4 class="font-bold text-lg text-slate-300 flex items-center gap-2">
                 <i class="ph-fill ph-ghost text-slate-500"></i> Wildcards
               </h4>

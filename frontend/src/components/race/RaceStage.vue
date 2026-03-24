@@ -7,6 +7,7 @@ defineProps<{
   tournament: Tournament;
   currentView: string;
   isAdmin: boolean;
+  canCaptainEdit?: boolean;
   activePlayers: any[];
   saving: boolean;
   editingRaceKey: string | null;
@@ -39,7 +40,7 @@ const emit = defineEmits<{
         </div>
       </div>
 
-      <button v-if="isAdmin && (tournament.stage === 'finals' && groupData.stageId === 'finals' || tournament.stage ==='groups' && groupData.stageId === 'groups')"
+      <button v-if="(isAdmin || canCaptainEdit) && (tournament.stage === 'finals' && groupData.stageId === 'finals' || tournament.stage ==='groups' && groupData.stageId === 'groups')"
               @click="$emit('update:raceInputMode', raceInputMode === 'tap' ? 'dropdown' : 'tap')"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all shrink-0"
               :class="raceInputMode === 'tap' ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300' : 'bg-amber-600/20 border-amber-500/50 text-amber-300'">
@@ -59,12 +60,14 @@ const emit = defineEmits<{
             :tournament="tournament"
             :current-view="currentView"
             :is-admin="isAdmin"
+            :can-captain-edit="canCaptainEdit"
             :input-mode="raceInputMode"
             :color-class="groupData.color"
             :focus-color-class="groupData.focusColor"
             :active-players="activePlayers"
             :editing-race-key="editingRaceKey"
             :entry-map="entryMap"
+            :saving="saving"
             :get-player-color="getPlayerColor"
             @toggle-edit="$emit('toggleEdit', groupData.stageId, groupData.id, $event)"
             @cancel-edit="$emit('cancelEdit')"

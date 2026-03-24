@@ -7,6 +7,7 @@ import type { FirestoreUpdate, Tournament, GlobalPlayer, Season } from '../types
 import { recalculateTournamentScores, migrateRaces, migratePlayers } from "../utils/utils.ts";
 import { POINTS_SYSTEM } from "../utils/constants.ts";
 import { useAdmin } from '../composables/useAdmin';
+import { useCaptainActions } from '../composables/useCaptainActions';
 import { useGameLogic } from "../composables/useGameLogic";
 import { useEasterEgg } from "../composables/useEasterEgg.ts";
 import { useVoicelines } from '../composables/useVoicelines';
@@ -69,6 +70,18 @@ const {
   adminPasswordInput, localAdminPassword, showAdminModal, isDangerZoneOpen, isDeleting, editedName, editedTiebreaker,
   isAdmin, loginAsAdmin, revalidateAdminSlip, copyPassword, updateTournamentName, togglePlacementTiebreaker, deleteTournament, autoLoginIfSuperAdmin
 } = useAdmin(tournament, secureUpdate, async () => { await router.push('/'); }, appId);
+
+const {
+    captainTeam,
+    isMyPlayerDraftTurn,
+    isMyUmaDraftTurn,
+    canCaptainEditGroup,
+    captainDraftPlayer,
+    captainPickUma,
+    captainSubmitUma,
+    captainSaveTapResults,
+    captainUpdateRacePlacement,
+} = useCaptainActions(tournament, appId);
 
 const { currentView } = useGameLogic(tournament, secureUpdate);
 const { activeVisualEgg } = useEasterEgg(tournament);
@@ -309,16 +322,23 @@ const savePointsSystem = async () => {
 
           <TrackSelectionPhase v-if="tournament.status === 'track-selection'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" />
           <RegistrationPhase v-else-if="tournament.status === 'registration'" :tournament="tournament" :is-admin="isAdmin" :app-id="appId" :secure-update="secureUpdate" :global-players="globalPlayers" :add-global-player="addGlobalPlayer" :seasons="seasons" />
-          <PlayerDraftPhase v-else-if="tournament.status === 'draft'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" :global-players="globalPlayers" :seasons="seasons" />
+          <PlayerDraftPhase v-else-if="tournament.status === 'draft'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" :global-players="globalPlayers" :seasons="seasons"
+                            :captain-team="captainTeam" :is-my-turn="isMyPlayerDraftTurn" :on-captain-draft-player="captainDraftPlayer" />
           <UmaBanPhase v-else-if="tournament.status === 'ban'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" />
-          <UmaDraftPhase v-else-if="tournament.status === 'pick'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" :global-players="globalPlayers" />
+          <UmaDraftPhase v-else-if="tournament.status === 'pick'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" :global-players="globalPlayers"
+                         :captain-team="captainTeam" :is-my-turn="isMyUmaDraftTurn" :on-captain-pick-uma="captainPickUma" />
           <GroupsFinalsPhase v-else-if="tournament.status === 'active' || tournament.status === 'completed'"
                        :tournament-prop="tournament"
                        :is-admin="isAdmin"
                        :app-id="appId"
                        :secure-update="secureUpdate"
                        :global-players="globalPlayers"
-                       :add-global-player="addGlobalPlayer" />
+                       :add-global-player="addGlobalPlayer"
+                       :captain-team="captainTeam"
+                       :can-captain-edit-group="canCaptainEditGroup"
+                       :on-captain-submit-uma="captainSubmitUma"
+                       :on-captain-save-tap="captainSaveTapResults"
+                       :on-captain-update-placement="captainUpdateRacePlacement" />
         </div>
       </main>
 
@@ -407,6 +427,25 @@ const savePointsSystem = async () => {
                   </button>
                 </div>
               </div>
+              <div class="pt-4 mt-4 border-t border-slate-700/50">
+                <div class="flex items-center justify-between">
+                  <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 uppercase font-bold">Captain Actions</label>
+                    <span class="text-[10px] text-slate-500">
+                      {{ tournament?.captainActionsEnabled ? 'Captains can make gameplay updates' : 'Only admins can make gameplay updates' }}
+                    </span>
+                  </div>
+
+                  <button @click="secureUpdate({ captainActionsEnabled: !tournament?.captainActionsEnabled })"
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                          :class="tournament?.captainActionsEnabled ? 'bg-indigo-600' : 'bg-slate-700'">
+                    <span class="sr-only">Enable Captain Actions</span>
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                          :class="tournament?.captainActionsEnabled ? 'translate-x-6' : 'translate-x-1'"/>
+                  </button>
+                </div>
+              </div>
+
               <div class="border-t border-slate-700 pt-6 mb-6">
                 <div class="flex items-center justify-between mb-3">
                   <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, ref, toRef} from 'vue';
-import type { FirestoreUpdate, Tournament } from '../../types';
+import type { FirestoreUpdate, Tournament, Team } from '../../types';
 import { useGameLogic } from '../../composables/useGameLogic';
 import { useRoster } from '../../composables/useRoster';
 import RaceStage from './RaceStage.vue';
@@ -10,6 +10,9 @@ const props = withDefaults(defineProps<{
   isAdmin: boolean;
   appId?: string;
   secureUpdate: (data: FirestoreUpdate<Tournament> | Record<string, any>) => Promise<void>;
+  captainTeam?: Team | null;
+  onCaptainSaveTap?: (group: string, raceNumber: number, placements: Record<string, number>) => Promise<void>;
+  onCaptainUpdatePlacement?: (group: string, raceNumber: number, position: number, playerId: string) => Promise<void>;
 }>(), {
   appId: 'default-app'
 });
@@ -32,6 +35,7 @@ const {
 const { getPlayerColor } = useRoster(tournament, props.secureUpdate, isAdminRef);
 
 const raceInputMode = ref<'tap' | 'dropdown'>('tap');
+const captainSaving = ref(false);
 
 // 1. Define the specific literal type
 type ValidGroupId = 'A' | 'B' | 'C' | 'Finals';
@@ -67,6 +71,59 @@ const visibleStages = computed(() => {
 
   return stages;
 });
+
+// Resolves whether the captain can edit a given group.
+// Groups: captain's team group must match. Finals: team must be inFinals.
+const captainEditableGroupId = computed((): string | null => {
+  const team = props.captainTeam;
+  if (!team || !props.tournamentProp.captainActionsEnabled || props.isAdmin) return null;
+  const stage = tournament.value.stage;
+  if (stage === 'groups') return team.group;
+  if (stage === 'finals' && (team.inFinals ?? false)) return 'Finals';
+  return null;
+});
+
+// Routed handlers — admin uses secureUpdate via useGameLogic; captain uses Cloud Functions.
+const handleSaveTap = async (groupId: string, raceNum: number) => {
+  if (props.isAdmin) {
+    await saveTapResults(groupId, raceNum);
+    return;
+  }
+  if (captainEditableGroupId.value === groupId && props.onCaptainSaveTap) {
+    if (captainSaving.value) return;
+    const placements: Record<string, number> = {};
+    Object.entries(entryMap.value).forEach(([rank, pid]) => {
+      placements[pid] = parseInt(rank);
+    });
+    captainSaving.value = true;
+    try {
+      await props.onCaptainSaveTap(groupId, raceNum, placements);
+      editingRaceKey.value = null;
+      await new Promise(resolve => setTimeout(resolve, 300));
+      entryMap.value = {};
+    } catch (e: any) {
+      console.error('Captain save tap failed', e);
+      alert(e?.message ?? 'Failed to save race results. Please try again.');
+    } finally {
+      captainSaving.value = false;
+    }
+  }
+};
+
+const handleUpdatePlacement = async (groupId: string, raceNum: number, pos: number, pid: string) => {
+  if (props.isAdmin) {
+    await updateRacePlacement(groupId, raceNum, pos, pid);
+    return;
+  }
+  if (captainEditableGroupId.value === groupId && props.onCaptainUpdatePlacement) {
+    try {
+      await props.onCaptainUpdatePlacement(groupId, raceNum, pos, pid);
+    } catch (e: any) {
+      console.error('Captain update placement failed', e);
+      alert(e?.message ?? 'Failed to update placement. Please try again.');
+    }
+  }
+};
 </script>
 
 <template>
@@ -78,8 +135,9 @@ const visibleStages = computed(() => {
         :tournament="tournament"
         :current-view="currentView"
         :is-admin="isAdminRef"
+        :can-captain-edit="stage.id === captainEditableGroupId"
         :active-players="activeStagePlayers(stage.id)"
-        :saving="saving && (stage.id === 'A' || stage.id ==='Finals')"
+        :saving="(saving || captainSaving) && (stage.id === 'A' || stage.id ==='Finals')"
         :editing-race-key="editingRaceKey"
         :entry-map="entryMap"
         :get-player-color="getPlayerColor"
@@ -89,9 +147,9 @@ const visibleStages = computed(() => {
         @toggle-edit="toggleEditRace"
         @cancel-edit="editingRaceKey = null"
         @clear-entry="entryMap = {}"
-        @save-tap="saveTapResults"
+        @save-tap="handleSaveTap"
         @tap-player="handleTapToRank"
-        @update-placement="updateRacePlacement"
+        @update-placement="handleUpdatePlacement"
     />
   </div>
 </template>

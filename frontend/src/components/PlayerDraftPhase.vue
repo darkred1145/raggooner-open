@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, toRef, computed } from 'vue';
-import type { Tournament, FirestoreUpdate, GlobalPlayer, Season } from '../types';
+import type { Tournament, FirestoreUpdate, GlobalPlayer, Season, Team } from '../types';
 import { usePlayerDraft } from '../composables/usePlayerDraft';
 import { useTournamentFlow } from '../composables/useTournamentFlow';
 import {getPlayerName} from "../utils/utils";
@@ -15,7 +15,14 @@ const props = defineProps<{
   secureUpdate: (data: FirestoreUpdate<Tournament> | Record<string, any>) => Promise<void>;
   globalPlayers: GlobalPlayer[];
   seasons: Season[];
+  captainTeam?: Team | null;
+  isMyTurn?: boolean;
+  onCaptainDraftPlayer?: (playerId: string) => Promise<void>;
 }>();
+
+const isCaptainTurn = computed(
+    () => !props.isAdmin && !!props.isMyTurn && !!props.captainTeam
+);
 
 // Season filter for dominance stat
 const selectedSeasonId = ref<string>(props.tournament.seasonId || 'all');
@@ -148,6 +155,12 @@ const sortedAvailablePlayers = computed(() => {
 <!--            </div>-->
 <!--          </div>-->
 <!--        </div>-->
+        <div v-if="isCaptainTurn"
+             class="mb-3 px-4 py-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/50 text-indigo-300 text-sm font-bold flex items-center gap-2 animate-pulse">
+          <i class="ph-fill ph-crown text-indigo-400"></i>
+          It's your turn to pick! Select a player below.
+        </div>
+
         <div class="sticky top-20 z-30 flex flex-col shadow-xl rounded-xl overflow-hidden border border-slate-700 bg-slate-900/95 backdrop-blur-md transition-all">
 
           <div class="p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -234,9 +247,9 @@ const sortedAvailablePlayers = computed(() => {
                 <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full shine-effect"></div>
               </button>
               <div v-for="player in sortedAvailablePlayers" :key="player.id" class="relative min-h-[80px]">
-                <button @click="draftPlayer(player)"
-                        @mouseenter="isAdmin && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
-                        :disabled="!isAdmin"
+                <button @click="isCaptainTurn ? onCaptainDraftPlayer?.(player.id) : draftPlayer(player)"
+                        @mouseenter="(isAdmin || isCaptainTurn) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
+                        :disabled="!isAdmin && !isCaptainTurn"
                         class="h-full w-full bg-slate-800 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-400 p-3 rounded-xl transition-all text-left group relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-indigo-500/20">
 
                   <div class="relative z-10 flex items-center gap-2 w-full pr-4 min-w-0">

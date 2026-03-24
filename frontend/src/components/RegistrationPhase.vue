@@ -8,6 +8,9 @@ import PlayerSelector from './PlayerSelector.vue';
 import PlayerProfileModal from './PlayerProfileModal.vue';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
 import { arrayUnion, deleteField } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
+import { useAuth } from '../composables/useAuth';
 import { TRACK_DICT } from '../utils/trackData';
 import { generateAnnouncementText } from '../utils/announcementUtils';
 
@@ -268,6 +271,41 @@ const profilePlayerName = computed(() =>
   profilePlayerId.value ? (props.tournament.players[profilePlayerId.value]?.name ?? '') : ''
 );
 
+const { linkedPlayer } = useAuth();
+
+// Is the current Discord-linked user already registered?
+const isSelfSignedUp = computed(() =>
+  linkedPlayer.value ? !!props.tournament.players[linkedPlayer.value.id] : false
+);
+
+const toggleSelfSignup = async () => {
+  if (!props.isAdmin) return;
+  await props.secureUpdate({ selfSignupEnabled: !props.tournament.selfSignupEnabled });
+};
+
+const selfSignupFn = httpsCallable(functions, 'selfSignupTournament');
+const selfLeaveFn = httpsCallable(functions, 'selfLeaveTournament');
+
+const selfSignup = async () => {
+  if (!linkedPlayer.value || !props.tournament.selfSignupEnabled || isSelfSignedUp.value) return;
+  try {
+    await selfSignupFn({ tournamentId: props.tournament.id, appId: props.appId });
+  } catch (e: any) {
+    console.error('Self-signup failed', e);
+    alert(e?.message ?? 'Sign-up failed. Please try again.');
+  }
+};
+
+const selfLeave = async () => {
+  if (!linkedPlayer.value) return;
+  try {
+    await selfLeaveFn({ tournamentId: props.tournament.id, appId: props.appId });
+  } catch (e: any) {
+    console.error('Self-leave failed', e);
+    alert(e?.message ?? 'Could not leave tournament. Please try again.');
+  }
+};
+
 // Handle player selection from PlayerSelector
 const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
   if (!props.isAdmin) return;
@@ -342,8 +380,8 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
           Add Participant
         </h3>
 
-        <div class="space-y-4">
-          <!-- PlayerSelector Component -->
+        <!-- Admin: player search -->
+        <div v-if="isAdmin" class="space-y-4">
           <PlayerSelector
               :app-id="appId"
               :players="globalPlayers"
@@ -352,9 +390,7 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
               placeholder="Search or add player..."
               @select="handlePlayerSelect"
               @create="addGlobalPlayer"
-              :disabled="!isAdmin"
           />
-
           <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3">
             <p class="text-xs text-slate-400 leading-relaxed">
               <i class="ph-fill ph-info text-indigo-400 mr-1"></i>
@@ -364,6 +400,64 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
               </span>.
             </p>
           </div>
+        </div>
+
+        <!-- Non-admin: self sign-up -->
+        <div v-else>
+          <div v-if="tournament.selfSignupEnabled">
+            <div v-if="!linkedPlayer" class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 text-center">
+              <i class="ph-fill ph-discord-logo text-[#5865F2] text-2xl mb-2 block"></i>
+              <p class="text-sm text-slate-400">Link your Discord account to sign up for this tournament.</p>
+            </div>
+            <div v-else-if="isSelfSignedUp" class="space-y-3">
+              <div class="bg-emerald-900/20 border border-emerald-500/30 rounded-lg p-4 flex items-center gap-3">
+                <i class="ph-fill ph-check-circle text-emerald-400 text-xl shrink-0"></i>
+                <div>
+                  <p class="text-sm font-bold text-emerald-300">You're registered!</p>
+                  <p class="text-xs text-slate-400 mt-0.5">{{ linkedPlayer.name }}</p>
+                </div>
+              </div>
+              <button @click="selfLeave"
+                      class="w-full py-2.5 rounded-lg text-sm font-bold border border-red-700/50 text-red-400 hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2">
+                <i class="ph-bold ph-sign-out"></i>
+                Leave Tournament
+              </button>
+            </div>
+            <div v-else>
+              <button @click="selfSignup"
+                      class="w-full py-3 rounded-lg text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/30">
+                <i class="ph-bold ph-user-plus"></i>
+                Sign Up as {{ linkedPlayer.name }}
+              </button>
+            </div>
+          </div>
+          <div v-else class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 text-center text-slate-500">
+            <i class="ph-bold ph-lock text-2xl mb-2 block"></i>
+            <p class="text-sm">Sign-ups are currently closed.</p>
+          </div>
+        </div>
+
+        <!-- Admin controls: self-signup toggle + schedule button -->
+        <div v-if="isAdmin" class="flex items-center justify-between gap-3 pt-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <div class="relative">
+              <input type="checkbox" class="sr-only peer"
+                     :checked="tournament.selfSignupEnabled"
+                     @change="toggleSelfSignup" />
+              <div class="w-9 h-5 bg-slate-700 rounded-full peer-checked:bg-indigo-600 transition-colors"></div>
+              <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+            </div>
+            <span class="text-xs text-slate-400">Open Sign-up</span>
+          </label>
+
+          <button @click="openScheduleModal"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors"
+                  :class="tournament.scheduledTime
+                    ? 'bg-indigo-900/40 border-indigo-500/50 text-indigo-300 hover:bg-indigo-900/60'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-indigo-500 hover:text-white'">
+            <i class="ph-bold ph-calendar-check"></i>
+            {{ tournament.scheduledTime ? 'Edit Schedule' : 'Schedule' }}
+          </button>
         </div>
 
         <!-- Requirements & Start Draft -->
@@ -411,16 +505,7 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
              class="text-center py-20 text-slate-600 border-2 border-dashed border-slate-800 rounded-xl">
           <i class="ph ph-users text-6xl mb-4 opacity-30"></i>
           <p class="text-lg font-medium">No players added yet</p>
-          <p class="text-sm text-slate-700 mt-2">Use the search on the left to add players</p>
-
-          <button v-if="isAdmin" @click="openScheduleModal"
-              class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold border transition-colors"
-              :class="tournament.scheduledTime
-                ? 'bg-indigo-900/40 border-indigo-500/50 text-indigo-300 hover:bg-indigo-900/60'
-                : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-indigo-500 hover:text-white'">
-            <i class="ph-bold ph-calendar-check"></i>
-            {{ tournament.scheduledTime ? 'Edit Schedule' : 'Schedule Tournament' }}
-          </button>
+          <p class="text-sm text-slate-700 mt-2">{{ isAdmin ? 'Use the search on the left to add players' : 'Waiting for players to sign up' }}</p>
         </div>
 
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -483,9 +568,9 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
                       class="w-8 h-8 flex items-center justify-center rounded text-indigo-400/60 hover:bg-indigo-500/10 hover:text-indigo-400 transition-colors">
                 <i class="ph-bold ph-user-circle text-lg"></i>
               </button>
-              <button @click.stop="removePlayer(player.id)"
-                      :disabled="!isAdmin"
-                      title="Remove Player"
+              <button @click.stop="isAdmin ? removePlayer(player.id) : selfLeave()"
+                      v-if="isAdmin || (tournament.selfSignupEnabled && linkedPlayer?.id === player.id)"
+                      title="Remove"
                       class="opacity-0 group-hover:opacity-100 w-8 h-8 flex items-center justify-center rounded text-slate-600 hover:bg-red-500/10 hover:text-red-400 transition-colors transition-opacity">
                 <i class="ph-bold ph-trash"></i>
               </button>

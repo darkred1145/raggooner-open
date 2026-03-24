@@ -12,6 +12,8 @@ const props = defineProps<{
   tournament: Tournament;
   currentView: string;
   isAdmin: boolean;
+  canCaptainEdit?: boolean;
+  saving?: boolean;
   inputMode: 'tap' | 'dropdown';
   colorClass: string;
   focusColorClass: string;
@@ -52,7 +54,7 @@ const isNextRace = computed(() => {
 });
 
 const canEdit = computed(() => {
-  if (!props.isAdmin) return false;
+  if (!props.isAdmin && !props.canCaptainEdit) return false;
   if (props.stageId === 'groups' && props.tournament.stage !== 'groups') return false;
   if (props.stageId === 'finals' && props.tournament.status !== 'active') return false;
   return hasResults.value || isNextRace.value;
@@ -137,7 +139,10 @@ const sortedPlayers = computed(() => [...props.activePlayers].sort((a, b) => a.n
           <div class="flex gap-2">
             <button @click.stop="$emit('cancelEdit')" class="w-6 h-6 flex items-center justify-center rounded bg-slate-800 text-rose-400 hover:bg-rose-500 hover:text-white"><i class="ph-bold ph-x"></i></button>
             <button @click.stop="$emit('clearEntry')" class="w-6 h-6 flex items-center justify-center rounded bg-slate-800 text-rose-400 hover:bg-rose-500 hover:text-white"><i class="ph-bold ph-trash"></i></button>
-            <button @click.stop="$emit('saveTap', raceNum)" class="w-6 h-6 flex items-center justify-center rounded bg-emerald-600 text-white shadow-lg"><i class="ph-bold ph-check"></i></button>
+            <button @click.stop="$emit('saveTap', raceNum)" :disabled="saving"
+                    class="w-6 h-6 flex items-center justify-center rounded bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-lg">
+              <i :class="saving ? 'ph ph-spinner animate-spin' : 'ph-bold ph-check'"></i>
+            </button>
           </div>
         </div>
 

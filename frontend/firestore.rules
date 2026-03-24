@@ -48,8 +48,8 @@ service cloud.firestore {
         allow read: if request.auth != null;
         allow create: if request.auth != null &&
           (!('isOfficial' in request.resource.data) || !request.resource.data.isOfficial || isOfficialCreator());
-        allow update, delete: if isSuperAdmin() || request.auth != null &&
-          exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(tournamentId + '_' + request.auth.uid));
+        allow update, delete: if isSuperAdmin() ||
+          (request.auth != null && exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(tournamentId + '_' + request.auth.uid)));
       }
 
       // 4. SECRETS

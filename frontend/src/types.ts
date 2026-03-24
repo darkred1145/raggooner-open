@@ -196,7 +196,9 @@ export interface Tournament {
         order: string[];
         currentIdx: number;
     };
-    isSecured?: boolean; // this field should always be true, since every new tournament is password secured. there are a handful of old legacy tournaments, that were public.
+    isSecured?: boolean;
+    selfSignupEnabled?: boolean; // this field should always be true, since every new tournament is password secured. there are a handful of old legacy tournaments, that were public.
+    captainActionsEnabled?: boolean; // enables captain-specific gameplay mutations (e.g. race result reporting)
     usePlacementTiebreaker?: boolean;
     pointsSystem?: Record<number, number>;
     banTimerStart?: string;

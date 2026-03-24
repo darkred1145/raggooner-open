@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toRef, ref, computed, onMounted, onUnmounted } from 'vue';
-import type {Tournament, FirestoreUpdate, Team, GlobalPlayer} from '../types';
+import type { Tournament, FirestoreUpdate, Team, GlobalPlayer } from '../types';
 import { useUmaDraft } from '../composables/useUmaDraft';
 import { useTournamentFlow } from '../composables/useTournamentFlow';
 import { voicelineVolume, playLocalSfx } from '../composables/useVoicelines';
@@ -16,7 +16,14 @@ const props = defineProps<{
   isAdmin: boolean;
   secureUpdate: (data: FirestoreUpdate<Tournament> | Record<string, any>) => Promise<void>;
   globalPlayers: GlobalPlayer[];
+  captainTeam?: Team | null;
+  isMyTurn?: boolean;
+  onCaptainPickUma?: (umaId: string) => Promise<void>;
 }>();
+
+const isCaptainTurn = computed(
+    () => !props.isAdmin && !!props.isMyTurn && !!props.captainTeam
+);
 
 const tournamentRef = toRef(props, 'tournament');
 const isAdminRef = toRef(props, 'isAdmin');
@@ -175,6 +182,13 @@ const sinceLastPick = computed(() => {
   <div class="space-y-6">
     <!-- Draft in progress -->
     <template v-if="!isDraftComplete">
+      <!-- Captain turn banner -->
+      <div v-if="isCaptainTurn"
+           class="px-4 py-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/50 text-indigo-300 text-sm font-bold flex items-center gap-2 animate-pulse">
+        <i class="ph-fill ph-crown text-indigo-400"></i>
+        It's your turn to pick! Select an uma below.
+      </div>
+
       <!-- Header Bar -->
       <div class="sticky top-20 z-30 flex flex-col shadow-xl rounded-xl overflow-hidden border border-slate-700 bg-slate-900/95 backdrop-blur-md transition-all">
 
@@ -310,12 +324,12 @@ const sinceLastPick = computed(() => {
                      :is-banned="isBanned(uma)"
                      :owner-team="umaToTeamMap.get(uma)"
                      :highlight-aptitude="selectedAptitude"
-                     :disabled="!isAdmin || umaOwnerMap.has(uma) || isBanned(uma)"
+                     :disabled="(!isAdmin && !isCaptainTurn) || umaOwnerMap.has(uma) || isBanned(uma)"
                      action-type="pick"
                      :surface-aptitude="selectedTrackData?.surface"
                      :distance-aptitude="selectedTrackData?.distanceType"
-                     @click="!umaOwnerMap.has(uma) && !isBanned(uma) && pickUma(uma)"
-                     @mouseenter="isAdmin && !umaOwnerMap.has(uma) && !isBanned(uma) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')" />
+                     @click="!umaOwnerMap.has(uma) && !isBanned(uma) && (isCaptainTurn ? onCaptainPickUma?.(uma) : pickUma(uma))"
+                     @mouseenter="(isAdmin || isCaptainTurn) && !umaOwnerMap.has(uma) && !isBanned(uma) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')" />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import { setGlobalOptions } from "firebase-functions";
 import { onDocumentUpdated, onDocumentDeleted } from "firebase-functions/v2/firestore";
 import { beforeUserCreated } from "firebase-functions/v2/identity";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
@@ -312,3 +313,542 @@ async function updatePlayers(
 
   await Promise.all(promises);
 }
+
+// ---------------------------------------------------------------------------
+// Captain Action Helpers
+// ---------------------------------------------------------------------------
+
+// Resolves the team captained by the authenticated user in a tournament.
+// Validates: linked player exists, captainActionsEnabled, user is a captain.
+async function resolveCaptainTeam(
+  uid: string,
+  appId: string,
+  tournamentId: string
+): Promise<{ playerId: string; team: any; tournament: any; tournamentRef: FirebaseFirestore.DocumentReference }> {
+  const playersSnap = await db
+    .collection("artifacts").doc(appId)
+    .collection("public").doc("data")
+    .collection("players")
+    .where("firebaseUid", "==", uid)
+    .limit(1)
+    .get();
+
+  if (playersSnap.empty) {
+    throw new HttpsError("not-found", "No player linked to your account.");
+  }
+  const playerId = playersSnap.docs[0].id;
+
+  const tournamentRef = db
+    .collection("artifacts").doc(appId)
+    .collection("public").doc("data")
+    .collection("tournaments").doc(tournamentId);
+
+  const snap = await tournamentRef.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Tournament not found.");
+
+  const tournament = snap.data()!;
+  if (!tournament.captainActionsEnabled) {
+    throw new HttpsError("failed-precondition", "Captain actions are disabled for this tournament.");
+  }
+
+  const teams = (tournament.teams ?? []) as any[];
+  const team = teams.find((t: any) => t.captainId === playerId);
+  if (!team) {
+    throw new HttpsError("permission-denied", "You are not a captain in this tournament.");
+  }
+
+  return { playerId, team, tournament, tournamentRef };
+}
+
+// Replicates the client-side recalculateTournamentScores() for teams only.
+// Points are summed from all races then adjustments are applied.
+function recalculateTeams(tournament: any): any[] {
+  const pointsSystem = tournament.pointsSystem || {};
+  const defaultPoints: Record<number, number> = {
+    1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2,
+  };
+  const activePoints =
+    Object.keys(pointsSystem).length > 0 ? pointsSystem : defaultPoints;
+
+  const teams = ((tournament.teams ?? []) as any[]).map((t: any) => ({
+    ...t,
+    points: 0,
+    finalsPoints: 0,
+    adjustments: t.adjustments || [],
+  }));
+
+  const findTeamIdx = (pid: string) =>
+    teams.findIndex(
+      (t: any) => t.captainId === pid || (t.memberIds ?? []).includes(pid)
+    );
+
+  Object.values(tournament.races ?? {}).forEach((race: any) => {
+    const isFinals = race.stage === "finals";
+    Object.entries(race.placements ?? {}).forEach(([pid, pos]) => {
+      const pts = activePoints[Number(pos)] || 0;
+      const idx = findTeamIdx(pid);
+      if (idx !== -1) {
+        if (isFinals) teams[idx].finalsPoints += pts;
+        else teams[idx].points += pts;
+      }
+    });
+  });
+
+  teams.forEach((t: any) => {
+    (t.adjustments || []).forEach((adj: any) => {
+      if (adj.stage === "finals") t.finalsPoints += adj.amount;
+      else t.points += adj.amount;
+    });
+  });
+
+  return teams;
+}
+
+// ---------------------------------------------------------------------------
+// captainDraftPlayer
+//
+// Callable: captain picks a player during the player draft phase.
+// Validates turn order, player availability, then appends to team.memberIds.
+// ---------------------------------------------------------------------------
+export const captainDraftPlayer = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in.");
+  const { tournamentId, appId: clientAppId, targetPlayerId } = request.data as {
+    tournamentId: string;
+    appId: string;
+    targetPlayerId: string;
+  };
+  if (!tournamentId || !targetPlayerId) {
+    throw new HttpsError("invalid-argument", "tournamentId and targetPlayerId are required.");
+  }
+  const appId = clientAppId || "default-app";
+
+  const { team, tournament, tournamentRef } =
+    await resolveCaptainTeam(request.auth.uid, appId, tournamentId);
+
+  if (tournament.status !== "draft") {
+    throw new HttpsError("failed-precondition", "Tournament is not in draft phase.");
+  }
+
+  const { order, currentIdx } = tournament.draft ?? {};
+  if (!order || currentIdx === undefined) {
+    throw new HttpsError("failed-precondition", "Draft not initialized.");
+  }
+  if (order[currentIdx] !== team.id) {
+    throw new HttpsError("permission-denied", "It is not your turn to pick.");
+  }
+
+  const player = tournament.players?.[targetPlayerId];
+  if (!player) throw new HttpsError("not-found", "Player not in this tournament.");
+
+  const teams = tournament.teams as any[];
+  const alreadyPicked = teams.some(
+    (t: any) =>
+      t.captainId === targetPlayerId ||
+      (t.memberIds ?? []).includes(targetPlayerId)
+  );
+  if (alreadyPicked) throw new HttpsError("already-exists", "Player already picked.");
+
+  const updatedTeams = teams.map((t: any) =>
+    t.id === team.id ?
+      { ...t, memberIds: [...(t.memberIds ?? []), targetPlayerId] } :
+      t
+  );
+
+  await tournamentRef.update({
+    "teams": updatedTeams,
+    "draft.currentIdx": currentIdx + 1,
+  });
+
+  return { success: true };
+});
+
+// ---------------------------------------------------------------------------
+// captainPickUma
+//
+// Callable: captain picks an uma during the uma draft (pick) phase.
+// Validates turn order, uma not banned or already picked.
+// ---------------------------------------------------------------------------
+export const captainPickUma = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in.");
+  const { tournamentId, appId: clientAppId, umaId } = request.data as {
+    tournamentId: string;
+    appId: string;
+    umaId: string;
+  };
+  if (!tournamentId || !umaId) {
+    throw new HttpsError("invalid-argument", "tournamentId and umaId are required.");
+  }
+  const appId = clientAppId || "default-app";
+
+  const { team, tournament, tournamentRef } =
+    await resolveCaptainTeam(request.auth.uid, appId, tournamentId);
+
+  if (tournament.status !== "pick") {
+    throw new HttpsError("failed-precondition", "Tournament is not in uma pick phase.");
+  }
+
+  const { order, currentIdx } = tournament.draft ?? {};
+  if (!order || currentIdx === undefined) {
+    throw new HttpsError("failed-precondition", "Uma draft not initialized.");
+  }
+  if (order[currentIdx] !== team.id) {
+    throw new HttpsError("permission-denied", "It is not your turn to pick.");
+  }
+
+  const bans = (tournament.bans ?? []) as string[];
+  if (bans.includes(umaId)) {
+    throw new HttpsError("failed-precondition", "That uma is banned.");
+  }
+
+  const teams = tournament.teams as any[];
+  const alreadyPicked = teams.some((t: any) =>
+    (t.umaPool ?? []).includes(umaId)
+  );
+  if (alreadyPicked) throw new HttpsError("already-exists", "Uma already picked by another team.");
+
+  const updatedTeams = teams.map((t: any) =>
+    t.id === team.id ?
+      { ...t, umaPool: [...(t.umaPool ?? []), umaId] } :
+      t
+  );
+
+  await tournamentRef.update({
+    "teams": updatedTeams,
+    "draft.currentIdx": currentIdx + 1,
+    "draftLastPickTime": new Date().toISOString(),
+  });
+
+  return { success: true };
+});
+
+// ---------------------------------------------------------------------------
+// captainSubmitUma
+//
+// Callable: captain assigns an uma to a player on their team.
+// Validates player is on captain's team; for uma-draft format validates the
+// uma is in the team's pool and not already taken by a teammate.
+// ---------------------------------------------------------------------------
+export const captainSubmitUma = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in.");
+  const { tournamentId, appId: clientAppId, playerId, umaId } = request.data as {
+    tournamentId: string;
+    appId: string;
+    playerId: string;
+    umaId: string;
+  };
+  if (!tournamentId || !playerId) {
+    throw new HttpsError("invalid-argument", "tournamentId and playerId are required.");
+  }
+  const appId = clientAppId || "default-app";
+
+  const { team, tournament, tournamentRef } =
+    await resolveCaptainTeam(request.auth.uid, appId, tournamentId);
+
+  if (tournament.status !== "active") {
+    throw new HttpsError("failed-precondition", "Tournament is not active.");
+  }
+
+  const teamMemberIds: string[] = [team.captainId, ...(team.memberIds ?? [])];
+  if (!teamMemberIds.includes(playerId)) {
+    throw new HttpsError("permission-denied", "That player is not on your team.");
+  }
+
+  if (tournament.format === "uma-draft" && umaId) {
+    const umaPool: string[] = team.umaPool ?? [];
+    if (!umaPool.includes(umaId)) {
+      throw new HttpsError("permission-denied", "That uma is not in your team pool.");
+    }
+    const players = tournament.players ?? {};
+    const takenByTeammate = teamMemberIds
+      .filter((pid: string) => pid !== playerId)
+      .some((pid: string) => players[pid]?.uma === umaId);
+    if (takenByTeammate) {
+      throw new HttpsError("already-exists", "Uma already assigned to a teammate.");
+    }
+  }
+
+  await tournamentRef.update({ [`players.${playerId}.uma`]: umaId ?? "" });
+  return { success: true };
+});
+
+// ---------------------------------------------------------------------------
+// captainSaveTapResults
+//
+// Callable: captain submits a full set of race placements (tap-to-rank style).
+// Replaces the race document and recalculates team scores.
+// ---------------------------------------------------------------------------
+export const captainSaveTapResults = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in.");
+  const { tournamentId, appId: clientAppId, group, raceNumber, placements } =
+    request.data as {
+      tournamentId: string;
+      appId: string;
+      group: string;
+      raceNumber: number;
+      placements: Record<string, number>;
+    };
+  if (!tournamentId || !group || !raceNumber || !placements) {
+    throw new HttpsError("invalid-argument", "Missing required fields.");
+  }
+  const appId = clientAppId || "default-app";
+
+  const { team, tournament, tournamentRef } =
+    await resolveCaptainTeam(request.auth.uid, appId, tournamentId);
+
+  if (tournament.status !== "active") {
+    throw new HttpsError("failed-precondition", "Tournament is not active.");
+  }
+
+  const stage = tournament.stage as string;
+  if (stage === "groups" && team.group !== group) {
+    throw new HttpsError("permission-denied", "Your team is not in that group.");
+  }
+  if (stage === "finals" && !team.inFinals) {
+    throw new HttpsError("permission-denied", "Your team did not qualify for finals.");
+  }
+
+  const key = `${stage}-${group}-${raceNumber}`;
+  const existingRaces = tournament.races ?? {};
+  const raceData = {
+    id: existingRaces[key]?.id || crypto.randomUUID(),
+    stage,
+    group,
+    raceNumber: Number(raceNumber),
+    timestamp: new Date().toISOString(),
+    placements,
+  };
+
+  const updatedTeams = recalculateTeams({
+    ...tournament,
+    races: { ...existingRaces, [key]: raceData },
+  });
+
+  await tournamentRef.update({
+    [`races.${key}`]: raceData,
+    teams: updatedTeams,
+  });
+
+  return { success: true };
+});
+
+// ---------------------------------------------------------------------------
+// captainUpdateRacePlacement
+//
+// Callable: captain updates a single player's position in a race (dropdown
+// style). Read-modify-write is performed server-side to stay atomic.
+// ---------------------------------------------------------------------------
+export const captainUpdateRacePlacement = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in.");
+  const {
+    tournamentId,
+    appId: clientAppId,
+    group,
+    raceNumber,
+    position,
+    playerId: targetPlayerId,
+  } = request.data as {
+    tournamentId: string;
+    appId: string;
+    group: string;
+    raceNumber: number;
+    position: number;
+    playerId: string;
+  };
+  if (!tournamentId || !group || !raceNumber || position === undefined) {
+    throw new HttpsError("invalid-argument", "Missing required fields.");
+  }
+  const appId = clientAppId || "default-app";
+
+  const { team, tournament, tournamentRef } =
+    await resolveCaptainTeam(request.auth.uid, appId, tournamentId);
+
+  if (tournament.status !== "active") {
+    throw new HttpsError("failed-precondition", "Tournament is not active.");
+  }
+
+  const stage = tournament.stage as string;
+  if (stage === "groups" && team.group !== group) {
+    throw new HttpsError("permission-denied", "Your team is not in that group.");
+  }
+  if (stage === "finals" && !team.inFinals) {
+    throw new HttpsError("permission-denied", "Your team did not qualify for finals.");
+  }
+
+  const key = `${stage}-${group}-${raceNumber}`;
+  const existingRaces = tournament.races ?? {};
+  const existingRace = existingRaces[key];
+  const raceData = existingRace ?
+    { ...existingRace } :
+    {
+      "id": crypto.randomUUID(),
+      "stage": stage,
+      "group": group,
+      "raceNumber": Number(raceNumber),
+      "timestamp": new Date().toISOString(),
+      "placements": {},
+    };
+
+  const newPlacements: Record<string, number> = { ...(raceData.placements ?? {}) };
+
+  // Remove player from their current slot
+  if (targetPlayerId) {
+    delete newPlacements[targetPlayerId];
+  }
+  // Evict whoever was at this position
+  for (const [pid, pos] of Object.entries(newPlacements)) {
+    if (pos === Number(position)) delete newPlacements[pid];
+  }
+  // Place the player
+  if (targetPlayerId) {
+    newPlacements[targetPlayerId] = Number(position);
+  }
+
+  raceData.placements = newPlacements;
+  raceData.timestamp = new Date().toISOString();
+
+  const updatedTeams = recalculateTeams({
+    ...tournament,
+    races: { ...existingRaces, [key]: raceData },
+  });
+
+  await tournamentRef.update({
+    [`races.${key}`]: raceData,
+    teams: updatedTeams,
+  });
+
+  return { success: true };
+});
+
+// ---------------------------------------------------------------------------
+// selfSignupTournament
+//
+// Callable: adds the authenticated user's linked GlobalPlayer to a tournament.
+// Validates: user is authenticated, player is linked, tournament allows
+// self-signup, and the player is not already registered.
+// ---------------------------------------------------------------------------
+export const selfSignupTournament = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in.");
+  }
+
+  const { tournamentId, appId: clientAppId } = request.data as {
+    tournamentId: string;
+    appId: string;
+  };
+  if (!tournamentId) {
+    throw new HttpsError("invalid-argument", "tournamentId is required.");
+  }
+  const appId = clientAppId || "default-app";
+
+  const uid = request.auth.uid;
+
+  // Find the player linked to this Firebase UID
+  const playersSnap = await db
+    .collection("artifacts").doc(appId)
+    .collection("public").doc("data")
+    .collection("players")
+    .where("firebaseUid", "==", uid)
+    .limit(1)
+    .get();
+
+  if (playersSnap.empty) {
+    throw new HttpsError("not-found", "No player linked to your account.");
+  }
+
+  const playerDoc = playersSnap.docs[0];
+  const playerData = playerDoc.data();
+  const playerId = playerDoc.id;
+
+  // Load and validate the tournament
+  const tournamentRef = db
+    .collection("artifacts").doc(appId)
+    .collection("public").doc("data")
+    .collection("tournaments").doc(tournamentId);
+
+  const tournamentSnap = await tournamentRef.get();
+  if (!tournamentSnap.exists) {
+    throw new HttpsError("not-found", "Tournament not found.");
+  }
+
+  const tournament = tournamentSnap.data()!;
+  if (!tournament.selfSignupEnabled) {
+    throw new HttpsError("failed-precondition", "Sign-ups are closed for this tournament.");
+  }
+
+  if (tournament.players?.[playerId]) {
+    throw new HttpsError("already-exists", "You are already registered.");
+  }
+
+  await tournamentRef.update({
+    [`players.${playerId}`]: {
+      id: playerId,
+      name: playerData.name ?? "",
+      isCaptain: false,
+      uma: "",
+    },
+    playerIds: FieldValue.arrayUnion(playerId),
+  });
+
+  return { success: true };
+});
+
+// ---------------------------------------------------------------------------
+// selfLeaveTournament
+//
+// Callable: removes the authenticated user's linked GlobalPlayer from a
+// tournament. Validates: user is authenticated, player is linked, and the
+// tournament is in registration phase.
+// ---------------------------------------------------------------------------
+export const selfLeaveTournament = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Must be signed in.");
+  }
+
+  const { tournamentId, appId: clientAppId } = request.data as {
+    tournamentId: string;
+    appId: string;
+  };
+  if (!tournamentId) {
+    throw new HttpsError("invalid-argument", "tournamentId is required.");
+  }
+  const appId = clientAppId || "default-app";
+
+  const uid = request.auth.uid;
+
+  // Find the player linked to this Firebase UID
+  const playersSnap = await db
+    .collection("artifacts").doc(appId)
+    .collection("public").doc("data")
+    .collection("players")
+    .where("firebaseUid", "==", uid)
+    .limit(1)
+    .get();
+
+  if (playersSnap.empty) {
+    throw new HttpsError("not-found", "No player linked to your account.");
+  }
+
+  const playerId = playersSnap.docs[0].id;
+
+  const tournamentRef = db
+    .collection("artifacts").doc(appId)
+    .collection("public").doc("data")
+    .collection("tournaments").doc(tournamentId);
+
+  const tournamentSnap = await tournamentRef.get();
+  if (!tournamentSnap.exists) {
+    throw new HttpsError("not-found", "Tournament not found.");
+  }
+
+  const tournament = tournamentSnap.data()!;
+  if (tournament.status !== "registration") {
+    throw new HttpsError("failed-precondition", "Can only leave during registration.");
+  }
+
+  await tournamentRef.update({
+    [`players.${playerId}`]: FieldValue.delete(),
+    playerIds: FieldValue.arrayRemove(playerId),
+  });
+
+  return { success: true };
+});

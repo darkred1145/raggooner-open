@@ -9,9 +9,22 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '3.1.0'; // Update this manually when you deploy
+export const APP_VERSION = '3.2.0'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '3.2.0',
+        date: '2026-03-25',
+        title: 'Self Sign-up and Captain Actions',
+        changes: [
+            { type: 'new', text: 'Tournament admins now have the option to enable self sign-up for a tournament during the registration phase.' },
+            { type: 'new', text: 'Players with a discord login can sign up themselves for tournaments.' },
+            { type: 'new', text: 'Tournament admins now have the option to enable Captain Actions in the admin panel. Captain Actions require the captain to have a discord login.' },
+            { type: 'new', text: 'If Captain Actions are enabled, captains can draft players and umas for their team, when it is their turn.' },
+            { type: 'new', text: 'If Captain Actions are enabled, captains can also input race results for races their team is participating in.' },
+            { type: 'new', text: 'If Captain Actions are enabled, captains can also input umas for their team members.' },
+        ]
+    },
     {
         version: '3.1.0',
         date: '2026-03-23',
