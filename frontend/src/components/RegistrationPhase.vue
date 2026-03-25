@@ -49,9 +49,15 @@ const getDominance = (playerId: string): number | null => {
   return ((beaten || 0) / faced) * 100;
 };
 
+const playerSortOrder = ref<'dominance' | 'join'>('dominance');
+
 const sortedPlayers = computed(() => {
-  return Object.values(props.tournament.players).sort((a, b) => {
-    // Then by dominance descending
+  const players = Object.values(props.tournament.players);
+  if (playerSortOrder.value === 'join') {
+    const joinIndex = new Map(props.tournament.playerIds.map((id, i) => [id, i]));
+    return players.slice().sort((a, b) => (joinIndex.get(a.id) ?? 0) - (joinIndex.get(b.id) ?? 0));
+  }
+  return players.sort((a, b) => {
     const domA = getDominance(a.id) ?? -1;
     const domB = getDominance(b.id) ?? -1;
     if (domA === domB) return a.name.localeCompare(b.name);
@@ -369,12 +375,19 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
         <p class="text-slate-400">Phase: <span class="text-indigo-400 font-semibold">Registration</span></p>
       </div>
       <div class="md:col-span-2 flex items-end justify-between gap-3">
-        <select v-if="Object.keys(tournament.players).length > 0"
-                v-model="selectedSeasonId"
-                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
-          <option value="all">All Time</option>
-          <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
-        </select>
+        <div v-if="Object.keys(tournament.players).length > 0" class="flex items-center gap-2">
+          <select v-model="playerSortOrder"
+                  class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
+            <option value="dominance">Sort: Dominance</option>
+            <option value="join">Sort: Join Order</option>
+          </select>
+          <select v-if="playerSortOrder === 'dominance'"
+                  v-model="selectedSeasonId"
+                  class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
+            <option value="all">All Time</option>
+            <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
+          </select>
+        </div>
         <div class="flex items-center gap-3 ml-auto">
           <!-- Hint pill -->
           <div class="px-3 py-2 rounded-lg border flex items-center gap-2"
