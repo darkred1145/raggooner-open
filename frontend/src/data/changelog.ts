@@ -9,9 +9,17 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '3.2.0'; // Update this manually when you deploy
+export const APP_VERSION = '3.2.1'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '3.2.1',
+        date: '2026-03-25',
+        title: 'One-Click Discord Posts.',
+        changes: [
+            { type: 'new', text: 'Official Tournament Creators can now make one-click posts (announcements and results) to discord.' },
+        ]
+    },
     {
         version: '3.2.0',
         date: '2026-03-25',
