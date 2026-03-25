@@ -535,6 +535,8 @@ const savePointsSystem = async () => {
         v-if="tournament"
         :is-open="isTrackPanelOpen"
         :tournament="tournament"
+        :is-admin="isAdmin"
+        :app-id="appId"
         @close="isTrackPanelOpen = false"
     />
 

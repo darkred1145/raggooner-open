@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
 import type { Tournament } from '../types';
 import { TRACK_DICT } from '../utils/trackData';
 import { generateAnnouncementText } from '../utils/announcementUtils';
@@ -7,6 +9,8 @@ import { generateAnnouncementText } from '../utils/announcementUtils';
 const props = defineProps<{
   isOpen: boolean;
   tournament: Tournament;
+  isAdmin?: boolean;
+  appId?: string;
 }>();
 
 const emit = defineEmits(['close']);
@@ -34,6 +38,34 @@ const condition = computed(() => props.tournament.selectedCondition || null);
 
 const showCopySuccess = ref(false);
 const showCopyImageSuccess = ref(false);
+const showPostSuccess = ref(false);
+const isPosting = ref(false);
+
+const postDiscordAnnouncementFn = httpsCallable(functions, 'postDiscordAnnouncement');
+
+const postToDiscord = async () => {
+  if (!track.value || isPosting.value) return;
+  isPosting.value = true;
+  try {
+    const content = generateAnnouncementText(props.tournament, track.value, condition.value);
+    const blob = await fetch(`/assets/tracks/${track.value.id}.png`).then(r => r.blob());
+    const base64 = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1] ?? '');
+      reader.readAsDataURL(blob);
+    });
+    await postDiscordAnnouncementFn({
+      appId: props.appId ?? 'default-app',
+      content,
+      imageBase64: base64,
+      imageFileName: `${track.value.id}.png`,
+    });
+    showPostSuccess.value = true;
+    setTimeout(() => { showPostSuccess.value = false; }, 2500);
+  } catch (e) { console.error('Discord post failed', e); } finally {
+    isPosting.value = false;
+  }
+};
 
 const copyAnnouncement = async () => {
     const text = generateAnnouncementText(props.tournament, track.value, condition.value);
@@ -120,6 +152,14 @@ const getSeasonIcon = (s: string) => {
                     : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'">
                 <i :class="showCopyImageSuccess ? 'ph-bold ph-check' : 'ph-bold ph-image'" class="text-xs"></i>
                 <span class="hidden sm:inline">{{ showCopyImageSuccess ? 'Copied!' : 'Image' }}</span>
+              </button>
+              <button v-if="isAdmin" @click="postToDiscord" :disabled="isPosting"
+                  class="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="showPostSuccess
+                    ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40'
+                    : 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 hover:bg-indigo-600/30'">
+                <i :class="isPosting ? 'ph ph-spinner animate-spin' : showPostSuccess ? 'ph-bold ph-check' : 'ph-bold ph-discord-logo'" class="text-xs"></i>
+                <span class="hidden sm:inline">{{ showPostSuccess ? 'Posted!' : isPosting ? 'Posting...' : 'Post' }}</span>
               </button>
             </template>
             <button @click="emit('close')" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 text-slate-400 hover:text-white transition-colors ml-1">

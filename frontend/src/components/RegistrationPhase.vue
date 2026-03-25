@@ -126,6 +126,39 @@ const scheduledTimeInput = ref('');
 const isSavingSchedule = ref(false);
 const showScheduleCopySuccess = ref(false);
 const showScheduleCopyImageSuccess = ref(false);
+const showSchedulePostSuccess = ref(false);
+const isSchedulePosting = ref(false);
+
+const postDiscordAnnouncementFn = httpsCallable(functions, 'postDiscordAnnouncement');
+
+const postToDiscord = async () => {
+  if (isSchedulePosting.value) return;
+  isSchedulePosting.value = true;
+  try {
+    const content = announcementText.value;
+    let imageBase64: string | undefined;
+    let imageFileName: string | undefined;
+    if (selectedTrack.value) {
+      const blob = await fetch(`/assets/tracks/${selectedTrack.value.id}.png`).then(r => r.blob());
+      imageBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1] ?? '');
+        reader.readAsDataURL(blob);
+      });
+      imageFileName = `${selectedTrack.value.id}.png`;
+    }
+    await postDiscordAnnouncementFn({
+      appId: props.appId,
+      content,
+      imageBase64,
+      imageFileName,
+    });
+    showSchedulePostSuccess.value = true;
+    setTimeout(() => { showSchedulePostSuccess.value = false; }, 2500);
+  } catch (e) { console.error('Discord post failed', e); } finally {
+    isSchedulePosting.value = false;
+  }
+};
 
 const selectedTrack = computed(() =>
     props.tournament.selectedTrack
@@ -674,8 +707,16 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
                   class="px-4 py-2 rounded-lg text-sm font-bold border border-rose-700/50 text-rose-400 hover:bg-rose-900/30 transition-colors mr-auto">
             Clear Schedule
           </button>
+          <button @click="postToDiscord" :disabled="isSchedulePosting"
+                  class="px-4 py-2 rounded-lg text-sm font-bold border transition-colors flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
+                  :class="showSchedulePostSuccess
+                    ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40'
+                    : 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 hover:bg-indigo-600/30'">
+            <i :class="isSchedulePosting ? 'ph ph-spinner animate-spin' : showSchedulePostSuccess ? 'ph-bold ph-check' : 'ph-bold ph-discord-logo'"></i>
+            {{ showSchedulePostSuccess ? 'Posted!' : isSchedulePosting ? 'Posting...' : 'Post to Discord' }}
+          </button>
           <button @click="showScheduleModal = false"
-                  class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-colors ml-auto">
+                  class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-colors">
             Cancel
           </button>
           <button @click="saveSchedule"
