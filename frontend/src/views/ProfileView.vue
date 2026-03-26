@@ -174,7 +174,7 @@ const sortedOwnedCards = computed(() =>
                         <i class="ph-fill ph-discord-logo text-[#5865F2]"></i>
                         {{ user.displayName }}
                     </div>
-                    <div class="flex gap-4 mt-2 text-xs text-slate-500">
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-slate-500">
                         <span><span class="text-white font-bold">{{ linkedPlayer.metadata.totalTournaments }}</span> tournaments</span>
                         <span><span class="text-white font-bold">{{ linkedPlayer.metadata.totalRaces }}</span> races</span>
                         <span><span class="inline-block min-w-[2ch] text-right tabular-nums text-white font-bold">{{ linkedPlayer.roster?.length ?? 0 }}</span> umas</span>
@@ -191,7 +191,7 @@ const sortedOwnedCards = computed(() =>
 
             <!-- ── Uma Roster ─────────────────────────────────────────── -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden mb-6">
-                <div class="px-5 py-4 border-b border-slate-700 bg-slate-900 flex items-center justify-between gap-4">
+                <div class="px-5 py-4 border-b border-slate-700 bg-slate-900 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 class="font-bold text-white uppercase tracking-wider text-sm">Uma Roster</h2>
                         <p class="text-xs text-slate-500 mt-0.5"><span class="inline-block min-w-[2ch] text-right tabular-nums">{{ ownedUmas.size }}</span> / {{ UMA_LIST.length }} umas owned</p>
@@ -199,7 +199,7 @@ const sortedOwnedCards = computed(() =>
                     <input
                         v-model="umaSearch"
                         placeholder="Search…"
-                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-48"
+                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-full sm:w-48"
                     />
                 </div>
 
@@ -293,7 +293,7 @@ const sortedOwnedCards = computed(() =>
                     <div
                         v-for="entry in sortedOwnedCards"
                         :key="entry.cardId"
-                        class="flex items-center gap-4 px-5 py-3 hover:bg-slate-700/30 transition-colors"
+                        class="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-3 hover:bg-slate-700/30 transition-colors"
                     >
                         <template v-if="SUPPORT_CARD_DICT[entry.cardId]" v-for="card in [SUPPORT_CARD_DICT[entry.cardId]!]">
                             <!-- Type badge -->
@@ -315,7 +315,7 @@ const sortedOwnedCards = computed(() =>
                                     :key="lb"
                                     @click="updateLimitBreak(entry.cardId, lb)"
                                     :disabled="savingCards"
-                                    class="w-7 h-7 rounded text-xs font-bold border transition-colors"
+                                    class="w-6 h-6 sm:w-7 sm:h-7 rounded text-xs font-bold border transition-colors"
                                     :class="entry.limitBreak === lb
                                         ? 'bg-indigo-600 border-indigo-500 text-white'
                                         : 'bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300'"

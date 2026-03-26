@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { inject, type Ref } from 'vue';
+import { inject, ref, onUnmounted, type Ref } from 'vue';
 import { useAuth } from '../../composables/useAuth';
 
 const openChangelog = inject<() => void>('openChangelog')!;
 const hasNewUpdates = inject<Ref<boolean>>('hasNewUpdates')!;
 
 const { user, linkedPlayer, loading, loginError, loginWithDiscord, logout, isDiscordUser } = useAuth();
+
+const showUserMenu = ref(false);
+
+function closeUserMenu() { showUserMenu.value = false; }
+
+function toggleMenu(e: Event) {
+    e.stopPropagation();
+    showUserMenu.value = !showUserMenu.value;
+    if (showUserMenu.value) {
+        document.addEventListener('click', closeUserMenu, { once: true });
+    } else {
+        document.removeEventListener('click', closeUserMenu);
+    }
+}
+
+onUnmounted(() => document.removeEventListener('click', closeUserMenu));
 </script>
 
 <template>
@@ -31,26 +47,32 @@ const { user, linkedPlayer, loading, loginError, loginWithDiscord, logout, isDis
                     </div>
 
                     <!-- Show Profile only for Discord users -->
-                    <div v-else-if="user" class="relative group flex items-center gap-3 cursor-pointer">
-                        <div class="hidden md:flex flex-col items-end">
-                            <span class="text-xs font-bold text-white leading-none">{{ user.displayName }}</span>
-                            <span v-if="linkedPlayer" class="text-[10px] text-indigo-400 font-bold tracking-tighter">{{ linkedPlayer.name }}</span>
-                            <span v-else class="text-[10px] text-amber-500 font-bold uppercase tracking-tighter italic">Not Linked</span>
+                    <div v-else-if="user" class="relative group flex items-center gap-3">
+                        <div @click.stop="toggleMenu" class="flex items-center gap-3 cursor-pointer">
+                            <div class="hidden md:flex flex-col items-end">
+                                <span class="text-xs font-bold text-white leading-none">{{ user.displayName }}</span>
+                                <span v-if="linkedPlayer" class="text-[10px] text-indigo-400 font-bold tracking-tighter">{{ linkedPlayer.name }}</span>
+                                <span v-else class="text-[10px] text-amber-500 font-bold uppercase tracking-tighter italic">Not Linked</span>
+                            </div>
+
+                            <img v-if="user.photoURL" :src="user.photoURL" class="w-8 h-8 rounded-full border border-slate-700" alt="User" />
+                            <div v-else class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                                <i class="ph-bold ph-user text-slate-400"></i>
+                            </div>
                         </div>
 
-                        <img v-if="user.photoURL" :src="user.photoURL" class="w-8 h-8 rounded-full border border-slate-700" alt="User" />
-                        <div v-else class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
-                            <i class="ph-bold ph-user text-slate-400"></i>
-                        </div>
-
-                        <!-- Dropdown Wrapper (Bridges the hover gap) -->
-                        <div class="absolute right-0 top-full pt-2 w-48 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all transform translate-y-2 group-hover:translate-y-0 z-50">
+                        <!-- Dropdown: desktop uses CSS group-hover; mobile uses JS click toggle -->
+                        <div @click.stop
+                             class="absolute right-0 top-full pt-2 w-48 z-[51] transition-all transform group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0"
+                             :class="showUserMenu
+                                 ? 'opacity-100 pointer-events-auto translate-y-0'
+                                 : 'opacity-0 pointer-events-none translate-y-2'">
                             <div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1">
                                 <div class="px-3 py-2 border-b border-slate-800 md:hidden">
                                     <div class="text-xs font-bold text-white truncate">{{ user.displayName }}</div>
                                     <div v-if="linkedPlayer" class="text-[10px] text-indigo-400 font-bold truncate">{{ linkedPlayer.name }}</div>
                                 </div>
-                                <router-link to="/profile" class="w-full text-left px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all flex items-center gap-2">
+                                <router-link to="/profile" @click="closeUserMenu" class="w-full text-left px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all flex items-center gap-2">
                                     <i class="ph-bold ph-user"></i>
                                     Profile
                                 </router-link>

@@ -388,7 +388,7 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
             <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
           </select>
         </div>
-        <div class="flex items-center gap-3 ml-auto">
+        <div class="flex items-end gap-3 ml-auto">
           <!-- Hint pill -->
           <div class="px-3 py-2 rounded-lg border flex items-center gap-2"
                :class="{
@@ -423,7 +423,7 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
 
     <div class="grid md:grid-cols-3 gap-6">
       <!-- Left Panel: Add Player -->
-      <div class="md:col-span-1 glass-panel p-6 rounded-xl h-fit sticky top-20">
+      <div class="md:col-span-1 glass-panel p-6 rounded-xl h-fit md:sticky md:top-20">
         <h3 class="text-xl font-bold mb-4 text-white flex items-center gap-2">
           <i class="ph-bold ph-user-plus text-indigo-400"></i>
           Add Participant
