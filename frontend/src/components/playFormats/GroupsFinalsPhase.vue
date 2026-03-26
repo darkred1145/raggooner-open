@@ -16,6 +16,7 @@ import PlayerSelector from "../PlayerSelector.vue";
 import type {GlobalPlayer} from "../../types.ts";
 import RaceInputs from "../race/RaceInputs.vue";
 import PlayerStatsBoard from "../PlayerStatsBoard.vue";
+import PlayerProfileModal from "../PlayerProfileModal.vue";
 
 const props = withDefaults(defineProps<{
   tournamentProp: Tournament;
@@ -36,6 +37,12 @@ const props = withDefaults(defineProps<{
 // Create Refs for composables
 const tournament = toRef(props, 'tournamentProp');
 const isAdminRef = toRef(props, 'isAdmin');
+
+const profileModalOpen = ref(false);
+const profilePlayerId = ref('');
+const profilePlayer = computed(() => props.globalPlayers.find(gp => gp.id === profilePlayerId.value) ?? null);
+const profilePlayerName = computed(() => tournament.value.players[profilePlayerId.value]?.name ?? '');
+const openProfile = (pid: string) => { profilePlayerId.value = pid; profileModalOpen.value = true; };
 
 const showAdjustmentModal = ref(false);
 const activeTeamId = ref('');
@@ -509,7 +516,8 @@ const handleUmaChange = async (playerId: string, umaId: string) => {
               <div class="flex flex-col sm:flex-row gap-1.5 mt-2">
                 <div v-for="pid in [team.captainId, ...team.memberIds].sort((a,b) => getRoundPoints(b) - getRoundPoints(a))"
                      :key="pid"
-                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden">
+                     @click="openProfile(pid)"
+                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden cursor-pointer hover:bg-slate-800/80 transition-colors">
                   <img v-if="tournament.players[pid]?.uma"
                        :src="getUmaImagePath(tournament.players[pid]!.uma)"
                        :alt="tournament.players[pid]!.uma"
@@ -630,7 +638,8 @@ const handleUmaChange = async (playerId: string, umaId: string) => {
               <div class="flex flex-col sm:flex-row gap-1.5 mt-2">
                 <div v-for="pid in [team.captainId, ...team.memberIds].sort((a,b) => getRoundPoints(b) - getRoundPoints(a))"
                      :key="pid"
-                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden">
+                     @click="openProfile(pid)"
+                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden cursor-pointer hover:bg-slate-800/80 transition-colors">
                   <img v-if="tournament.players[pid]?.uma"
                        :src="getUmaImagePath(tournament.players[pid]!.uma)"
                        :alt="tournament.players[pid]!.uma"
@@ -749,7 +758,8 @@ const handleUmaChange = async (playerId: string, umaId: string) => {
               <div class="flex flex-col sm:flex-row gap-1.5 mt-2">
                 <div v-for="pid in [team.captainId, ...team.memberIds].sort((a,b) => getRoundPoints(b) - getRoundPoints(a))"
                      :key="pid"
-                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden">
+                     @click="openProfile(pid)"
+                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden cursor-pointer hover:bg-slate-800/80 transition-colors">
                   <img v-if="tournament.players[pid]?.uma"
                        :src="getUmaImagePath(tournament.players[pid]!.uma)"
                        :alt="tournament.players[pid]!.uma"
@@ -860,7 +870,8 @@ const handleUmaChange = async (playerId: string, umaId: string) => {
               <div class="flex flex-col sm:flex-row gap-1.5 mt-2">
                 <div v-for="pid in [team.captainId, ...team.memberIds].sort((a,b) => getRoundPoints(b) - getRoundPoints(a))"
                      :key="pid"
-                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden">
+                     @click="openProfile(pid)"
+                     class="flex items-center gap-1.5 bg-slate-900/80 rounded-md px-2 py-1.5 min-w-0 flex-1 overflow-hidden cursor-pointer hover:bg-slate-800/80 transition-colors">
                   <img v-if="tournament.players[pid]?.uma"
                        :src="getUmaImagePath(tournament.players[pid]!.uma)"
                        :alt="tournament.players[pid]!.uma"
@@ -1536,4 +1547,11 @@ const handleUmaChange = async (playerId: string, umaId: string) => {
       <div v-if="showRules || showDraftOrder" @click="showRules = false; showDraftOrder = false" class="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm"></div>
     </Transition>
   </Teleport>
+
+  <PlayerProfileModal
+      :open="profileModalOpen"
+      :player-name="profilePlayerName"
+      :global-player="profilePlayer"
+      @close="profileModalOpen = false"
+  />
 </template>
