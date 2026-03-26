@@ -9,12 +9,12 @@ export interface SupportCard {
 }
 
 export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {
-    'admire-vega-power':        { id: 'admire-vega-power',     name: 'Admire Vega',  cardName: 'Lucky Star In The Sky',                               type: 'power',   rarity: 'SSR' },
+    'admire-vega-power':        { id: 'admire-vega-power',        name: 'Admire Vega',        cardName: 'Lucky Star In The Sky',                                      type: 'power',   rarity: 'SSR' },
     'agnes-digital-power':      { id: 'agnes-digital-power',      name: 'Agnes Digital',      cardName: 'A Fan\'s Joy',                                               type: 'power',   rarity: 'SSR' },
     'air-shakur-wit':           { id: 'air-shakur-wit',           name: 'Air Shakur',         cardName: '7 Centimeters Ahead',                                        type: 'wit',     rarity: 'SSR' },
     'bamboo-memory-power':      { id: 'bamboo-memory-power',      name: 'Bamboo Memory',      cardName: 'Head-on Fight!',                                             type: 'power',   rarity: 'SSR' },
-    'curren-chan-wit':           { id: 'curren-chan-wit',           name: 'Curren Chan',        cardName: 'Cutie Pie with Shining Eyes',                                type: 'wit',     rarity: 'SSR' },
-    'daitaku-helios-power':     { id: 'daitaku-helios-power',      name: 'Daitaku Helios',     cardName: 'Make! Some! NOISE!',                                         type: 'power',   rarity: 'SSR' },
+    'curren-chan-wit':          { id: 'curren-chan-wit',          name: 'Curren Chan',        cardName: 'Cutie Pie with Shining Eyes',                                type: 'wit',     rarity: 'SSR' },
+    'daitaku-helios-power':     { id: 'daitaku-helios-power',     name: 'Daitaku Helios',     cardName: 'Make! Some! NOISE!',                                         type: 'power',   rarity: 'SSR' },
     'biko-pegasus-speed':       { id: 'biko-pegasus-speed',       name: 'Biko Pegasus',       cardName: 'Double Carrot Punch!',                                       type: 'speed',   rarity: 'SSR' },
     'daiwa-scarlet-power':      { id: 'daiwa-scarlet-power',      name: 'Daiwa Scarlet',      cardName: 'Mini☆Vacation',                                              type: 'power',   rarity: 'SSR' },
     'el-condor-pasa-power':     { id: 'el-condor-pasa-power',     name: 'El Condor Pasa',     cardName: 'Champion\'s Passion',                                        type: 'power',   rarity: 'SSR' },
@@ -30,12 +30,13 @@ export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {
     'kawakami-princess-speed':  { id: 'kawakami-princess-speed',  name: 'Kawakami Princess',  cardName: 'Princess Bride',                                             type: 'speed',   rarity: 'SSR' },
     'manhattan-cafe-stamina':   { id: 'manhattan-cafe-stamina',   name: 'Manhattan Cafe',     cardName: 'My Solo Spun in Spiraling Runs',                             type: 'stamina', rarity: 'SSR' },
     'marvelous-sunday-power':   { id: 'marvelous-sunday-power',   name: 'Marvelous Sunday',   cardName: 'Dazzling Day in the Snow',                                   type: 'power',   rarity: 'SSR' },
+    'marvelous-sunday-guts':    { id: 'marvelous-sunday-guts',    name: 'Marvelous Sunday',   cardName: 'A MORE MARVELOUS WORLD!⭐️',                                  type: 'guts',    rarity: 'SSR' },
     'mayano-top-gun-speed':     { id: 'mayano-top-gun-speed',     name: 'Mayano Top Gun',     cardName: 'Party Formation',                                            type: 'speed',   rarity: 'SSR' },
     'king-halo-power':          { id: 'king-halo-power',          name: 'King Halo',          cardName: 'Tonight, We Waltz',                                          type: 'power',   rarity: 'SSR' },
     'kitasan-black-speed':      { id: 'kitasan-black-speed',      name: 'Kitasan Black',      cardName: 'Fire at My Heels!',                                          type: 'speed',   rarity: 'SSR' },
-    'matikanefukukitaru-speed':  { id: 'matikanefukukitaru-speed',  name: 'Matikanefukukitaru', cardName: 'Touching Sleeves Is Good Luck!♪',                          type: 'speed',   rarity: 'SSR' },
+    'matikanefukukitaru-speed': { id: 'matikanefukukitaru-speed', name: 'Matikanefukukitaru', cardName: 'Touching Sleeves Is Good Luck!♪',                            type: 'speed',   rarity: 'SSR' },
     'matikanetannhauser-guts':  { id: 'matikanetannhauser-guts',  name: 'Matikanetannhauser', cardName: 'Just Keep Going',                                            type: 'guts',    rarity: 'SSR' },
-    'meisho-doto-stamina':   { id: 'meisho-doto-stamina',   name: 'Meisho Doto',     cardName: 'Leaping Into The Unknown',                                              type: 'stamina', rarity: 'SSR' },
+    'meisho-doto-stamina':      { id: 'meisho-doto-stamina',      name: 'Meisho Doto',     cardName: 'Leaping Into The Unknown',                                      type: 'stamina', rarity: 'SSR' },
     'mejiro-bright-stamina':    { id: 'mejiro-bright-stamina',    name: 'Mejiro Bright',      cardName: 'Little by Little',                                           type: 'stamina', rarity: 'SSR' },
     'mejiro-dober-wit':         { id: 'mejiro-dober-wit',         name: 'Mejiro Dober',       cardName: 'My Thoughts, My Desires',                                    type: 'wit',     rarity: 'SSR' },
     'mejiro-mcqueen-stamina':   { id: 'mejiro-mcqueen-stamina',   name: 'Mejiro McQueen',     cardName: 'Your Team Ace',                                              type: 'stamina', rarity: 'SSR' },
@@ -77,13 +78,13 @@ export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {
     'tokai-teio-speed':         { id: 'tokai-teio-speed',         name: 'Tokai Teio',         cardName: 'Dream Big!',                                                 type: 'speed',   rarity: 'SSR' },
     'twin-turbo-speed':         { id: 'twin-turbo-speed',         name: 'Twin Turbo',         cardName: 'Turbo Booooost',                                             type: 'speed',   rarity: 'SSR' },
     'vodka-power':              { id: 'vodka-power',              name: 'Vodka',              cardName: 'Wild Rider',                                                 type: 'power',   rarity: 'SSR' },
-    'winning-ticket-guts':      { id: 'winning-ticket-guts',      name: 'Winning Ticket',     cardName: 'B・N・Winner!!',                                             type: 'guts',    rarity: 'SSR' },
+    'winning-ticket-guts':      { id: 'winning-ticket-guts',      name: 'Winning Ticket',     cardName: 'B・N・Winner!!',                                              type: 'guts',    rarity: 'SSR' },
     'winning-ticket-power':     { id: 'winning-ticket-power',     name: 'Winning Ticket',     cardName: 'Dreams Do Come True!',                                       type: 'power',   rarity: 'SSR' },
     'winning-ticket-stamina':   { id: 'winning-ticket-stamina',   name: 'Winning Ticket',     cardName: 'Full-Blown Tantrum',                                         type: 'stamina', rarity: 'SSR' },
     'yaeno-muteki-power':       { id: 'yaeno-muteki-power',       name: 'Yaeno Muteki',       cardName: 'Fiery Discipline',                                           type: 'power',   rarity: 'SSR' },
     'yukino-bijin-guts':        { id: 'yukino-bijin-guts',        name: 'Yukino Bijin',       cardName: 'Dancing Light into the Night',                               type: 'guts',    rarity: 'SSR' },
     'yukino-bijin-wit':         { id: 'yukino-bijin-wit',         name: 'Yukino Bijin',       cardName: 'Hometown Cheers',                                            type: 'wit',     rarity: 'SSR' },
-    'zenno-rob-roy-speed':    { id: 'zenno-rob-roy-speed',    name: 'Zenno Rob Roy',      cardName: 'Magical Heroine',                                            type: 'speed', rarity: 'SSR' },
+    'zenno-rob-roy-speed':      { id: 'zenno-rob-roy-speed',      name: 'Zenno Rob Roy',      cardName: 'Magical Heroine',                                            type: 'speed',   rarity: 'SSR' },
 };
 
 export const SUPPORT_CARD_LIST = Object.values(SUPPORT_CARD_DICT);

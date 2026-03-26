@@ -254,10 +254,10 @@ const sortedOwnedCards = computed(() =>
                         <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">Card</label>
                         <select
                             v-model="addCardId"
-                            class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                            class="w-52 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
                         >
                             <option v-for="card in availableToAdd" :key="card.id" :value="card.id">
-                                {{ card.name }} ({{ SUPPORT_CARD_TYPE_META[card.type].label }})
+                                {{ card.name }} ({{ SUPPORT_CARD_TYPE_META[card.type].label }}) — {{ card.cardName }}
                             </option>
                         </select>
                     </div>
@@ -304,8 +304,11 @@ const sortedOwnedCards = computed(() =>
 
                             <!-- Name + rarity -->
                             <div class="flex-1 min-w-0">
-                                <span class="text-sm font-bold text-white">{{ card.name }}</span>
-                                <span class="ml-2 text-xs text-slate-500">{{ card.rarity }}</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-sm font-bold text-white">{{ card.name }}</span>
+                                    <span class="text-xs text-slate-500">{{ card.rarity }}</span>
+                                </div>
+                                <div class="text-xs text-slate-400 truncate">{{ card.cardName }}</div>
                             </div>
 
                             <!-- Limit break selector -->

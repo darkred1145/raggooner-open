@@ -261,7 +261,10 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                               :class="[SUPPORT_CARD_TYPE_META[card.type].color, SUPPORT_CARD_TYPE_META[card.type].bg]">
                                             {{ SUPPORT_CARD_TYPE_META[card.type].label }}
                                         </span>
-                                        <span class="text-sm font-bold text-white flex-1 min-w-0 truncate">{{ card.name }}</span>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="text-sm font-bold text-white truncate">{{ card.name }}</div>
+                                            <div class="text-xs text-slate-500 truncate">{{ card.cardName }}</div>
+                                        </div>
                                         <span class="text-xs text-slate-600 shrink-0">{{ card.rarity }}</span>
                                         <!-- LB dots -->
                                         <div class="flex gap-0.5 shrink-0">
