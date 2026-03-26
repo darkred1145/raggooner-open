@@ -2,6 +2,14 @@
 import type { UmaData } from '../types';
 
 export const UMA_DICT: Record<string, UmaData> = {
+    'Mejiro Bright': {
+        id: 'mejiro-bright', name: 'Mejiro Bright', stars: 3, releaseDate: '2026-03-26T22:00:00.000Z', characterId: 107401,
+        aptitudes: {
+            surface: { turf: 'A', dirt: 'G' },
+            distance: { sprint: 'F', mile: 'C', medium: 'A', long: 'A' },
+            style: { frontRunner: 'G', paceChaser: 'D', lateSurger: 'A', endCloser: 'A' }
+        }
+    },
     'Satono Diamond': {
         id: 'satono-diamond', name: 'Satono Diamond', stars: 3, releaseDate: '2026-03-22T22:00:00.000Z', characterId: 106701,
         aptitudes: {
