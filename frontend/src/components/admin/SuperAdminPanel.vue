@@ -631,6 +631,18 @@ const executeMerge = async () => {
       metadataUpdate['metadata.lastPlayed'] = mergedLastPlayed;
     }
 
+    // Copy Discord account fields from duplicate to keeper if keeper has none
+    if (!keeper.value.firebaseUid && duplicate.value.firebaseUid)
+      metadataUpdate.firebaseUid = duplicate.value.firebaseUid;
+    if (!keeper.value.discordId && duplicate.value.discordId)
+      metadataUpdate.discordId = duplicate.value.discordId;
+    if (!keeper.value.avatarUrl && duplicate.value.avatarUrl)
+      metadataUpdate.avatarUrl = duplicate.value.avatarUrl;
+    if ((!keeper.value.roster || keeper.value.roster.length === 0) && duplicate.value.roster?.length)
+      metadataUpdate.roster = duplicate.value.roster;
+    if ((!keeper.value.supportCards || keeper.value.supportCards.length === 0) && duplicate.value.supportCards?.length)
+      metadataUpdate.supportCards = duplicate.value.supportCards;
+
     batch.update(keeperRef, metadataUpdate);
 
     // 3. Delete Duplicate
