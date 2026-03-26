@@ -56,17 +56,6 @@ export function useUserRoles() {
         } else {
             await setDoc(roleRef, { uid: targetUid, role, displayName: displayName ?? '', updatedAt: new Date().toISOString() });
         }
-        // Also update the role field on the player document if it exists
-        try {
-            const playersRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
-            const allPlayers = await getDocs(playersRef);
-            const playerDoc = allPlayers.docs.find(d => d.data().firebaseUid === targetUid);
-            if (playerDoc) {
-                await updateDoc(playerDoc.ref, { role: role === 'player' ? null : role });
-            }
-        } catch {
-            // Non-critical — player doc role is for display only
-        }
     };
 
     const fetchAllRoles = async (): Promise<UserRoleEntry[]> => {

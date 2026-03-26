@@ -477,6 +477,7 @@ const playerFameMap = computed(() => {
 .card-inner {
   position: relative;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transition: transform 0.5s;
 }
 .card-inner.is-flipped {
@@ -486,6 +487,9 @@ const playerFameMap = computed(() => {
 .card-back-face {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+.card-face {
+  transform: rotateY(0deg);
 }
 .card-back-face {
   position: absolute;
