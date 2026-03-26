@@ -9,19 +9,41 @@
  *   node scripts/bootstrapSuperAdmins.mjs                  # write to emulator
  *   node scripts/bootstrapSuperAdmins.mjs --live --dry-run # preview against production
  *   node scripts/bootstrapSuperAdmins.mjs --live           # write to production
+ *
+ * Setup:
+ *   Copy scripts/.env.example to scripts/.env and fill in the UIDs.
  */
 
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { confirmLiveMode, IS_LIVE, DRY_RUN, col } from './config.mjs';
 
-const SUPERADMIN_UIDS = [
-  'JrBubSUpmlNqYV4Gi7TsYY7yRqzO',
-  '0u3zMN1xD3SrcVKIzw10UMvnmFJ2',
-  '7IjG3AzSTybzW0AxfxZFwQ6ZKDB3',
-  'mehTFP5BuqdrT6mw4xqnaNrHSMk1',
-  'j7kIBg1mIXO5m824GeBQmXYfb6q2',
-  'LCwXSR9TZUPqdpv8qM7qD3y7m0uh',
-  'JXs2aov8XqTfnB9XLOVHVNzw3psv',
-];
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function loadEnv(filename) {
+  const path = join(__dirname, filename);
+  const lines = readFileSync(path, 'utf-8').split('\n');
+  const env = {};
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const idx = trimmed.indexOf('=');
+    if (idx > 0) env[trimmed.slice(0, idx).trim()] = trimmed.slice(idx + 1).trim();
+  }
+  return env;
+}
+
+const env = loadEnv('.env');
+const SUPERADMIN_UIDS = (env.SUPERADMIN_UIDS ?? '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+if (SUPERADMIN_UIDS.length === 0) {
+  console.error('No SUPERADMIN_UIDS found. Copy scripts/.env.example to scripts/.env and fill it in.');
+  process.exit(1);
+}
 
 async function main() {
   await confirmLiveMode();

@@ -23,3 +23,7 @@
 hs_err_pid*
 replay_pid*
 /frontend/scripts/serviceAccountKey.json
+
+# Local database backups and gitleaks reports — never commit these
+/backups/
+report.json

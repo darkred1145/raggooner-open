@@ -26,4 +26,9 @@ coverage
 *.sln
 *.sw?
 
-frontend/index-backup.html
+index-backup.html
+
+# Local dev data — not for version control
+emulator-data/
+analytics.json
+*-database-backup.json
