@@ -1,17 +1,21 @@
 rules_version = '2';
 
-// Storage Rules! Don't need storage anymore, actually. test7
+// Firebase Storage Rules
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Match the specific analytics file or any path
-    match /{allPaths=**} {
+    // 1. SECURE BACKUPS: Only Firebase Admins (via Admin SDK) can access this.
+    // The web/mobile client is completely blocked.
+    match /backups/{allPaths=**} {
+      allow read, write: if false;
+    }
 
-      // Allow any authenticated user to read (Dashboard loading)
+    // 2. PUBLIC/APP ASSETS: Allow logged-in users to read analytics or other data
+    match /{allPaths=**} {
+      // Allow read for authenticated users for everything ELSE
       allow read: if request.auth != null;
 
-      // Block all writes from the web/mobile client
-      // (Your Admin SDK scripts will still be able to write)
+      // Always block client-side writes
       allow write: if false;
     }
   }
