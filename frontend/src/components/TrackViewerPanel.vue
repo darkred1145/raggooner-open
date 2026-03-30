@@ -6,6 +6,7 @@ import type { Tournament } from '../types';
 import { useUserRoles } from '../composables/useUserRoles';
 import { TRACK_DICT } from '../utils/trackData';
 import { generateAnnouncementText } from '../utils/announcementUtils';
+import { useGlobalSettings } from '../composables/useGlobalSettings';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -39,6 +40,7 @@ const condition = computed(() => props.tournament.selectedCondition || null);
 
 const { can } = useUserRoles();
 const canPostToDiscord = computed(() => props.isAdmin && can('post_to_discord'));
+const { settings: globalSettings } = useGlobalSettings();
 
 const showCopySuccess = ref(false);
 const showCopyImageSuccess = ref(false);
@@ -51,7 +53,7 @@ const postToDiscord = async () => {
   if (!track.value || isPosting.value) return;
   isPosting.value = true;
   try {
-    const content = generateAnnouncementText(props.tournament, track.value, condition.value);
+    const content = generateAnnouncementText(props.tournament, track.value, condition.value, globalSettings.value.announcementTemplate);
     const blob = await fetch(`/assets/tracks/${track.value.id}.png`).then(r => r.blob());
     const base64 = await new Promise<string>((resolve) => {
       const reader = new FileReader();
@@ -72,7 +74,7 @@ const postToDiscord = async () => {
 };
 
 const copyAnnouncement = async () => {
-    const text = generateAnnouncementText(props.tournament, track.value, condition.value);
+    const text = generateAnnouncementText(props.tournament, track.value, condition.value, globalSettings.value.announcementTemplate);
     try {
         await navigator.clipboard.writeText(text);
         showCopySuccess.value = true;

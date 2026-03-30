@@ -15,11 +15,13 @@ const baseNav = [
 ];
 
 const profileNav = { to: '/profile', icon: 'ph-fill ph-user-circle', label: 'Profile', sub: 'My Account' };
+const settingsNav = { to: '/settings', icon: 'ph-fill ph-sliders', label: 'Settings', sub: 'Defaults' };
 const adminNav = { to: '/admin/users', icon: 'ph-fill ph-shield-check', label: 'Admin', sub: 'User Roles' };
 
 const nav = computed(() => {
     const items = [...baseNav];
     if (linkedPlayer.value) items.push(profileNav);
+    if (can('create_official_tournament')) items.push(settingsNav);
     if (can('manage_users')) items.push(adminNav);
     return items;
 });
@@ -31,19 +33,19 @@ function isActive(to: string) {
 </script>
 
 <template>
-    <div class="max-w-3xl mx-auto grid grid-flow-col auto-cols-fr gap-2 sm:gap-4 mt-4 mb-12 border-b border-slate-800 pb-12 animate-fade-in">
+    <div class="max-w-3xl mx-auto flex flex-wrap gap-2 mt-4 mb-12 border-b border-slate-800 pb-12 animate-fade-in">
 
         <router-link
             v-for="item in nav"
             :key="item.to"
             :to="item.to"
-            class="group rounded-xl p-2 sm:p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3 transition-colors border"
+            class="group flex-1 basis-12 rounded-xl p-2 md:p-4 flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 transition-colors border"
             :class="isActive(item.to)
                 ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20 cursor-default pointer-events-none'
                 : 'bg-slate-800 border-slate-700 hover:border-indigo-500 hover:bg-slate-750 cursor-pointer'"
         >
             <i :class="[item.icon, 'text-2xl', isActive(item.to) ? 'text-white' : 'text-indigo-400 group-hover:text-indigo-300']"></i>
-            <div class="hidden sm:block">
+            <div class="hidden md:block">
                 <div class="text-sm font-bold uppercase tracking-widest"
                      :class="isActive(item.to) ? 'text-white' : 'text-white group-hover:text-indigo-100'">
                     {{ item.label }}

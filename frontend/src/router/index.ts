@@ -46,6 +46,22 @@ const router = createRouter({
                 }
                 can('manage_users') ? next() : next('/');
             }
+        },
+        {
+            path: '/settings',
+            name: 'settings',
+            component: () => import('../views/GlobalSettingsView.vue'),
+            beforeEnter: async (_to, _from, next) => {
+                const { can, roleLoading } = useUserRoles();
+                if (roleLoading.value) {
+                    await new Promise<void>(resolve => {
+                        const stop = watch(roleLoading, loading => {
+                            if (!loading) { stop(); resolve(); }
+                        });
+                    });
+                }
+                can('create_official_tournament') ? next() : next('/');
+            }
         }
     ]
 })

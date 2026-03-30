@@ -152,7 +152,7 @@ export function usePlayerDraft(
     };
 
     // --- RANDOM WHEEL LOGIC ---
-    const startRandomDraft = () => {
+    const startRandomDraft = (captainDraftFn?: (playerId: string) => Promise<void>) => {
         const candidates = availablePlayers.value;
         if (candidates.length === 0) return;
 
@@ -178,11 +178,11 @@ export function usePlayerDraft(
         randomWheelRotation.value = 0;
 
         setTimeout(() => {
-            spinRandomWheel(winner, wheelSet);
+            spinRandomWheel(winner, wheelSet, captainDraftFn);
         }, 300);
     };
 
-    const spinRandomWheel = (winner: Player, wheelSet: Player[]) => {
+    const spinRandomWheel = (winner: Player, wheelSet: Player[], captainDraftFn?: (playerId: string) => Promise<void>) => {
         const winnerIdx = wheelSet.findIndex(p => p.id === winner.id);
         const sliceSize = 360 / wheelSet.length;
         const targetAngle = (winnerIdx * sliceSize) + (sliceSize / 2);
@@ -192,7 +192,11 @@ export function usePlayerDraft(
 
         setTimeout(async () => {
             showRandomModal.value = false;
-            await draftPlayer(winner);
+            if (captainDraftFn) {
+                await captainDraftFn(winner.id);
+            } else {
+                await draftPlayer(winner);
+            }
         }, 5000);
     };
 

@@ -14,6 +14,7 @@ import { useAuth } from '../composables/useAuth';
 import { useUserRoles } from '../composables/useUserRoles';
 import { TRACK_DICT } from '../utils/trackData';
 import { generateAnnouncementText } from '../utils/announcementUtils';
+import { useGlobalSettings } from '../composables/useGlobalSettings';
 
 const props = defineProps<{
   tournament: Tournament;
@@ -181,7 +182,8 @@ const announcementText = computed(() => {
     return generateAnnouncementText(
         { ...props.tournament, scheduledTime: isoOverride },
         selectedTrack.value,
-        selectedCondition.value
+        selectedCondition.value,
+        globalSettings.value.announcementTemplate
     );
 });
 
@@ -313,6 +315,7 @@ const profilePlayerName = computed(() =>
 
 const { linkedPlayer } = useAuth();
 const { can } = useUserRoles();
+const { settings: globalSettings } = useGlobalSettings();
 const canPostToDiscord = computed(() => props.isAdmin && can('post_to_discord'));
 
 // Is the current Discord-linked user already registered?

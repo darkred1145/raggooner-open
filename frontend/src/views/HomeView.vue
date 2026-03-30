@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, doc, getDocs, orderBy, query, writeBatch, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import type { Tournament, Season } from '../types';
-import { POINTS_SYSTEM, TOURNAMENT_FORMATS } from "../utils/constants.ts";
+import { TOURNAMENT_FORMATS } from "../utils/constants.ts";
 import { getStatusColor } from "../utils/utils.ts";
 import { useUserRoles } from '../composables/useUserRoles';
+import { useGlobalSettings } from '../composables/useGlobalSettings';
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 
@@ -15,6 +16,7 @@ const router = useRouter();
 const appId = 'default-app';
 
 const { isOfficialCreator } = useUserRoles();
+const { settings } = useGlobalSettings();
 
 // State
 const newTournamentName = ref('');
@@ -27,7 +29,13 @@ const joinId = ref('');
 const isCreating = ref(false);
 const availableSeasons = ref<Season[]>([]);
 const selectedSeasonId = ref('');
-const selectedFormat = ref('uma-draft');
+const selectedFormat = ref(settings.value.defaultFormat);
+
+// Update selectedFormat once when settings finish loading (if different from default)
+const stopFormatWatch = watch(() => settings.value.defaultFormat, (fmt) => {
+  selectedFormat.value = fmt;
+  stopFormatWatch();
+});
 const homeListLoading = ref(true);
 const showHistory = ref(false);
 const allTournaments = ref<Tournament[]>([]);
@@ -153,8 +161,10 @@ const createTournament = async () => {
       format: TOURNAMENT_FORMATS[selectedFormat.value]!.id,
       isOfficial: isOfficialCreator.value ? isOfficial.value : false,
       isSecured: true,
-      usePlacementTiebreaker: true,
-      pointsSystem: { ...POINTS_SYSTEM },
+      selfSignupEnabled: settings.value.defaultSelfSignupEnabled,
+      captainActionsEnabled: settings.value.defaultCaptainActionsEnabled,
+      usePlacementTiebreaker: settings.value.defaultUsePlacementTiebreaker,
+      pointsSystem: { ...settings.value.pointsSystem },
       createdAt: new Date().toISOString(),
     };
 

@@ -28,11 +28,11 @@ export function useUmaDraft(
         });
     };
 
-    const startRandomUma = () => {
+    const startRandomUma = (captainPickFn?: (umaId: string) => Promise<void>) => {
         const bannedUmas = new Set(tournament.value!.bans || []);
         const candidates = availableUmas.value.filter(uma => !bannedUmas.has(uma));
-        if (candidates.length === 0 || !isAdmin.value) return;
-        roll(candidates, (winner) => pickUma(winner));
+        if (candidates.length === 0 || (!isAdmin.value && !captainPickFn)) return;
+        roll(candidates, (winner) => captainPickFn ? captainPickFn(winner) : pickUma(winner));
     };
 
     const currentPicker = computed(() => {

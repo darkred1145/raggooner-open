@@ -305,9 +305,9 @@ const sinceLastPick = computed(() => {
             No Umas found matching "{{ umaSearch }}"
           </div>
           <div v-else class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            <button @click="startRandomUma"
-                    @mouseenter="isAdmin && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
-                    :disabled="!isAdmin"
+            <button @click="startRandomUma(isCaptainTurn ? onCaptainPickUma : undefined)"
+                    @mouseenter="(isAdmin || isCaptainTurn) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
+                    :disabled="!isAdmin && !isCaptainTurn"
                     class="col-span-2 sm:col-span-2 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 p-4 rounded-lg shadow-lg border-2 border-indigo-400 flex items-center justify-between group relative overflow-hidden transition-all transform hover:scale-[1.02]">
               <div class="relative z-10 text-left">
                 <div class="font-black text-white text-lg uppercase tracking-wider">Random</div>

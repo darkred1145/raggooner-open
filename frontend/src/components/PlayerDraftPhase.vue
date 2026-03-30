@@ -230,9 +230,9 @@ const sortedAvailablePlayers = computed(() => {
               </select>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
-              <button @click="startRandomDraft"
-                      @mouseenter="isAdmin && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
-                      :disabled="!isAdmin"
+              <button @click="startRandomDraft(isCaptainTurn ? onCaptainDraftPlayer : undefined)"
+                      @mouseenter="(isAdmin || isCaptainTurn) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
+                      :disabled="!isAdmin && !isCaptainTurn"
                       class="bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 p-4 rounded-lg shadow-lg border-2 border-amber-300 flex items-center justify-between group relative overflow-hidden transition-all transform hover:scale-[1.02]">
 
                 <div class="relative z-10 text-left">

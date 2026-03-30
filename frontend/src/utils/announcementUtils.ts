@@ -1,9 +1,63 @@
 import type { Tournament, Condition, Track } from '../types';
 
+export const ANNOUNCEMENT_PLACEHOLDERS = [
+    { placeholder: '{{name}}',       description: 'Tournament name' },
+    { placeholder: '{{url}}',        description: 'Full tournament URL' },
+    { placeholder: '{{time}}',       description: 'Scheduled time (Discord timestamp format)' },
+    { placeholder: '{{track}}',      description: 'Track line — 🏆 TRACK: Location Surface Distancem (Direction)' },
+    { placeholder: '{{conditions}}', description: 'Conditions line — 📅 CONDITIONS: Season / Weather / Ground' },
+];
+
+export const DEFAULT_ANNOUNCEMENT_RULES = {
+    umaDraft: [
+        '{{name}}',
+        '{{url}}',
+        '{{time}}',
+        '{{track}}',
+        '{{conditions}}',
+        '',
+        'Rules:',
+        '• Teams of 3, each player makes an uma in one run on the day and then they race. 5 races total. Points are allocated based on each player\'s placement and the team with the most points wins.',
+        '• Teams are established via a snake draft made up of all people who have signed up.',
+        '• There is no ban phase.',
+        '• There will be an uma snake draft phase where teams will pick the umas they wish to run.',
+        '• There can be no duplicate umas',
+        '• 2 points will be deducted per minute over the time limit up to 10 points. If a player is still not ready after 10 minutes, an NPC will replace them until they are able to join with a completed ace.',
+        '• Borrows are allowed for this tournament',
+        '• If your career fails get fucked LMAO',
+        '• The exception to this is if you start your career on the wrong scenario (e.g. Aoharu instead of MANT), in which case you may restart.',
+        '• In order to join, the signup on the website will be enabled 1 hour before the tournament. the start time is not rigid and may be delayed up to 30 minutes depending on numbers, but it may also start on the dot so try not to be late. The tournament may take up to three hours.',
+        '@everyone',
+    ].join('\n'),
+    umaBan: [
+        '{{name}}',
+        '{{url}}',
+        '{{time}}',
+        '{{track}}',
+        '{{conditions}}',
+        '',
+        'Rules:',
+        '• Teams of 3, each player makes an uma in one run on the day and then they race. 5 races total. Points are allocated based on each player\'s placement and the team with the most points wins.',
+        '• Captains are chosen for each team and teams are established via a snake draft made up of all people who have signed up',
+        '• If there are 18 or more players, instead of all teams in one race, teams will be split into groups and each group will do 5 races. The winning team from each group and the next highest point scoring team will then do 5 more races to determine a winner.',
+        '• Borrows are allowed for this tournament',
+        '• If your career fails get fucked LMAO',
+        '• The exception to this is if you start your career on the wrong scenario (e.g. URA instead of Aoharu), in which case you may restart.',
+        '• A ban system will be implemented wherein team Captains will DM me their single ban. Teams will have no knowledge of other bans, so bans can overlap. This means it is possible for only 1 uma to be banned during a tournament.',
+        '• In order to join, the signup on the website will be enabled 1 hour before the tournament. the start time is not rigid and may be delayed up to 30 minutes depending on numbers, but it may also start on the dot so try not to be late. The tournament may take up to three hours.',
+        '• After Team Select, you will have a maximum of 5 minutes to make a ban.',
+        '• Each team may only have 2 umas in the same style',
+        '• Each team may only have 2 duplicate umas',
+        '• After the ban phase, you will have only 55 minutes to make your uma before penalties apply.',
+        '@everyone',
+    ].join('\n'),
+};
+
 export function generateAnnouncementText(
     tournament: Tournament,
     track: Track | null,
-    condition: Condition | null
+    condition: Condition | null,
+    announcementTemplate?: { umaDraft: string; umaBan: string }
 ): string {
     const timeStr = tournament.scheduledTime
         ? `<t:${Math.floor(new Date(tournament.scheduledTime).getTime() / 1000)}:F>`
@@ -18,50 +72,15 @@ export function generateAnnouncementText(
         : '📅 CONDITIONS: <not selected>';
 
     const isDraft = tournament.format === 'uma-draft';
+    const template = announcementTemplate ?? DEFAULT_ANNOUNCEMENT_RULES;
+    const tmpl = isDraft ? template.umaDraft : template.umaBan;
 
-    const lines: string[] = [
-        tournament.name,
-        timeStr,
-        trackLine,
-        conditionLine,
-        ''
-    ];
-
-    if (isDraft) {
-        lines.push(
-            'Rules:',
-            '• Teams of 3, each player makes an uma in one run on the day and then they race. 5 races total. Points are allocated based on each player\'s placement and the team with the most points wins.',
-            '• Teams are established via a snake draft made up of all people who have signed up.',
-            '• There is no ban phase.',
-            '• There will be an uma snake draft phase where teams will pick the umas they wish to run.',
-            '• There can be no duplicate umas',
-            '• 2 points will be deducted per minute over the time limit up to 10 points. If a player is still not ready after 10 minutes, an NPC will replace them until they are able to join with a completed ace.',
-            '• Borrows are allowed for this tournament',
-            '• If your career fails get fucked LMAO',
-            '• The exception to this is if you start your career on the wrong scenario (e.g. Aoharu instead of MANT), in which case you may restart.',
-            '• In order to join, you just enter the signup channel on the day, the start time is not rigid and may be delayed up to 30 minutes depending on numbers, but it may also start on the dot so try not to be late. The tournament may take up to three hours.',
-        );
-    } else {
-        lines.push(
-            'Rules:',
-            '• Teams of 3, each player makes an uma in one run on the day and then they race. 5 races total. Points are allocated based on each player\'s placement and the team with the most points wins.',
-            '• Captains are chosen for each team and teams are established via a snake draft made up of all people who have signed up',
-            '• If there are 18 or more players, instead of all teams in one race, teams will be split into groups and each group will do 5 races. The winning team from each group and the next highest point scoring team will then do 5 more races to determine a winner.',
-            '• Borrows are allowed for this tournament',
-            '• If your career fails get fucked LMAO',
-            '• The exception to this is if you start your career on the wrong scenario (e.g. URA instead of Aoharu), in which case you may restart.',
-            '• A ban system will be implemented wherein team Captains will DM me their single ban. Teams will have no knowledge of other bans, so bans can overlap. This means it is possible for only 1 uma to be banned during a tournament.',
-            '• In order to join, you just enter the signup channel on the day, the start time is not rigid and may be delayed up to 30 minutes depending on numbers, but it may also start on the dot so try not to be late. The tournament may take up to two hours.',
-            '• After Team Select, you will have a maximum of 5 minutes to make a ban.',
-            '• Each team may only have 2 umas in the same style',
-            '• Each team may only have 2 duplicate umas',
-            '• After the ban phase, you will have only 55 minutes to make your uma before penalties apply.',
-        );
-    }
-
-    lines.push('@everyone');
-
-    return lines.join('\n');
+    return tmpl
+        .replace(/\{\{name\}\}/g, tournament.name)
+        .replace(/\{\{url\}\}/g, `${window.location.origin}/t/${tournament.id}`)
+        .replace(/\{\{time\}\}/g, timeStr)
+        .replace(/\{\{track\}\}/g, trackLine)
+        .replace(/\{\{conditions\}\}/g, conditionLine);
 }
 
 function capitalize(str: string): string {

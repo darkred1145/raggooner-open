@@ -209,6 +209,19 @@ export interface Tournament {
 }
 
 
+export interface GlobalSettings {
+    pointsSystem: Record<number, number>;
+    announcementTemplate: {
+        umaDraft: string;
+        umaBan: string;
+    };
+    defaultSelfSignupEnabled: boolean;
+    defaultCaptainActionsEnabled: boolean;
+    defaultUsePlacementTiebreaker: boolean;
+    defaultFormat: string;
+    updatedAt?: string;
+}
+
 // UMAS not yet used
 export type AptitudeGrade = 'G' | 'F' | 'E' | 'D' | 'C' | 'B' | 'A' | 'S';
 
