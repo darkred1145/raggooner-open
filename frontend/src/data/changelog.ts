@@ -9,11 +9,11 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '3.3.1'; // Update this manually when you deploy
+export const APP_VERSION = '3.3.0'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
     {
-        version: '3.3.1',
+        version: '3.3.0',
         date: '2026-03-30',
         title: 'Default Settings for new Tournaments.',
         changes: [
@@ -262,7 +262,7 @@ export const changelogData: ChangeLogEntry[] = [
     },
     {
         version: '1.0.0',
-        date: '1900-01-01',
+        date: '2025-12-09',
         title: 'Ascending from Stone Age',
         changes: [
             { type: 'new', text: 'Created first draft of the tool that\'s revolutionizing Racc Opens.' }
