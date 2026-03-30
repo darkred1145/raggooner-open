@@ -90,11 +90,16 @@ onMounted(() => {
 
     <footer class="border-t border-slate-800 bg-slate-900/50 py-8 mt-auto backdrop-blur-sm">
       <div class="max-w-[1800px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="text-xs font-mono text-slate-600 flex items-center gap-2">
+        <div class="text-xs font-mono text-slate-600 flex items-center gap-3">
           <i class="ph-bold ph-code"></i>
           <span>
             Powered by <span class="text-emerald-500 font-bold">Vue</span> & <span class="text-amber-500 font-bold">Firebase</span>
           </span>
+          <a href="https://github.com/jacobfreise/raggooner-open" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors">
+            <i class="ph-fill ph-github-logo text-base"></i>
+            <span>Source</span>
+          </a>
         </div>
         <div class="text-sm text-slate-400 flex items-center gap-2">
           <span>Created with <i class="ph-fill ph-heart text-rose-500 inline-block animate-pulse"></i> by</span>
