@@ -13,7 +13,7 @@ const RETENTION_DAYS = 14;
 
 export const scheduledFirestoreBackup = onSchedule(
   {
-    schedule: "0 2 * * *",
+    schedule: "0 3 * * *",
     timeZone: "UTC",
     timeoutSeconds: 540,
     memory: "512MiB",

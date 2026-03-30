@@ -9,9 +9,17 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '3.2.1'; // Update this manually when you deploy
+export const APP_VERSION = '3.3.1'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '3.3.1',
+        date: '2026-03-30',
+        title: 'Default Settings for new Tournaments.',
+        changes: [
+            { type: 'new', text: 'Official Tournament Creators can now change default values for new Tournaments in the new Settings section.' },
+        ]
+    },
     {
         version: '3.2.1',
         date: '2026-03-25',
