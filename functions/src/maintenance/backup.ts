@@ -23,7 +23,7 @@ export const scheduledFirestoreBackup = onSchedule(
     const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
     await exportToJson(db, dateStr);
-    await triggerNativeExport(dateStr);
+    // await triggerNativeExport(dateStr); // disabled: storage bucket and Firestore are in incompatible locations
     await cleanupOldBackups(dateStr);
   }
 );
@@ -98,7 +98,8 @@ async function getMetadataToken(): Promise<string> {
   return data.access_token;
 }
 
-async function triggerNativeExport(dateStr: string): Promise<void> {
+// Kept for future use once a compatible storage bucket is configured
+export async function triggerNativeExport(dateStr: string): Promise<void> {
   const projectId = process.env.GCLOUD_PROJECT;
   if (!projectId) throw new Error("GCLOUD_PROJECT env var is not set");
 
@@ -144,12 +145,13 @@ async function cleanupOldBackups(currentDateStr: string): Promise<void> {
   }
 
   // Native exports produce many files under a date-keyed prefix
-  const [nativeFiles] = await bucket.getFiles({ prefix: "backups/native/" });
-  for (const file of nativeFiles) {
-    const match = file.name.match(/^backups\/native\/(\d{4}-\d{2}-\d{2})\//);
-    if (match && new Date(match[1]) < cutoff) {
-      await file.delete();
-      console.log(`Deleted expired native export file: ${file.name}`);
-    }
-  }
+  // (disabled: native export is currently commented out due to incompatible storage/Firestore locations)
+  // const [nativeFiles] = await bucket.getFiles({ prefix: "backups/native/" });
+  // for (const file of nativeFiles) {
+  //   const match = file.name.match(/^backups\/native\/(\d{4}-\d{2}-\d{2})\//);
+  //   if (match && new Date(match[1]) < cutoff) {
+  //     await file.delete();
+  //     console.log(`Deleted expired native export file: ${file.name}`);
+  //   }
+  // }
 }

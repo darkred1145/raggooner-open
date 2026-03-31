@@ -53,6 +53,12 @@ onAuthStateChanged(auth, async (u) => {
     user.value = u;
     if (u) {
         await fetchLinkedPlayerInternal(u.uid);
+        // Sync avatar if Firebase Auth has a newer URL than what's stored in Firestore
+        if (u.photoURL && linkedPlayer.value && linkedPlayer.value.avatarUrl !== u.photoURL) {
+            const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
+            await updateDoc(playerRef, { avatarUrl: u.photoURL });
+            linkedPlayer.value = { ...linkedPlayer.value, avatarUrl: u.photoURL };
+        }
     } else {
         linkedPlayer.value = null;
     }
