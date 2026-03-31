@@ -3,10 +3,11 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, doc, getDocs, orderBy, query, writeBatch, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import type { Tournament, Season } from '../types';
+import type { Tournament, Season, TournamentCreator } from '../types';
 import { TOURNAMENT_FORMATS } from "../utils/constants.ts";
 import { getStatusColor } from "../utils/utils.ts";
 import { useUserRoles } from '../composables/useUserRoles';
+import { useAuth } from '../composables/useAuth';
 import { useGlobalSettings } from '../composables/useGlobalSettings';
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
@@ -16,6 +17,7 @@ const router = useRouter();
 const appId = 'default-app';
 
 const { isOfficialCreator } = useUserRoles();
+const { linkedPlayer } = useAuth();
 const { settings } = useGlobalSettings();
 
 // State
@@ -166,6 +168,14 @@ const createTournament = async () => {
       usePlacementTiebreaker: settings.value.defaultUsePlacementTiebreaker,
       pointsSystem: { ...settings.value.pointsSystem },
       createdAt: new Date().toISOString(),
+      createdBy: {
+        uid: userId,
+        ...(linkedPlayer.value && {
+          playerId: linkedPlayer.value.id,
+          displayName: linkedPlayer.value.name,
+          avatarUrl: linkedPlayer.value.avatarUrl,
+        }),
+      } satisfies TournamentCreator,
     };
 
     const batch = writeBatch(db);

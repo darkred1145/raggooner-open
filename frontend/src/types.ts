@@ -169,6 +169,13 @@ export interface TournamentFormat {
 }
 
 
+export interface TournamentCreator {
+    uid: string;
+    playerId?: string;   // GlobalPlayer doc ID, if the creator has a linked player
+    displayName?: string;
+    avatarUrl?: string;
+}
+
 export interface Tournament {
     id: string;
     name: string;
@@ -186,6 +193,7 @@ export interface Tournament {
     races: Record<string, Race>;
     bans?: string[];
     createdAt: string;
+    createdBy?: TournamentCreator;
     completedAt?: string;
     playedAt?: string; // ISO UTC string, set when tournament enters active status
     scheduledTime?: string; // ISO UTC string
