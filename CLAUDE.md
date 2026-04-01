@@ -24,6 +24,10 @@ This is the monorepo for **Raccoon Open**, a tournament management web app for t
 - Firestore, Firebase Auth (Discord OIDC via `oidc.discord.com`), Cloud Functions, Cloud Storage
 - All Firestore data lives under `artifacts/default-app/public/data/{collection}/{docId}`
 
+## Git
+
+Do not add `Co-Authored-By` trailers or any co-author lines to commit messages.
+
 ## Deployment
 
 CI/CD runs via GitHub Actions on push to `main`:

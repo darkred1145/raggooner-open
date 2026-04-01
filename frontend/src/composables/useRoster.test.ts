@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('firebase/firestore', () => ({
   arrayUnion: vi.fn((val) => ({ _union: val })),
+  arrayRemove: vi.fn((val) => ({ _remove: val })),
   deleteField: vi.fn(() => ({ _delete: true })),
 }));
 
@@ -223,13 +224,13 @@ describe('useRoster', () => {
       expect(secureUpdate).not.toHaveBeenCalled();
     });
 
-    it('calls secureUpdate with deleteField for the player and the remaining playerIds', async () => {
+    it('calls secureUpdate with deleteField for the player and arrayRemove for playerIds', async () => {
       const tournament = ref(makeTournament({ players: { p1: makePlayer('p1'), p2: makePlayer('p2') } }));
       const { removePlayer } = useRoster(tournament, secureUpdate, isAdmin);
       await removePlayer('p1');
       expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({
         'players.p1': expect.objectContaining({ _delete: true }),
-        playerIds: ['p2'],
+        playerIds: expect.objectContaining({ _remove: 'p1' }),
       }));
     });
   });

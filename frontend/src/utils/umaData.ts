@@ -586,35 +586,13 @@ export const getUmaData = (name: string | undefined): UmaData | null => {
     return UMA_DICT[name] || null;
 };
 
-const VARIANT_PREFIXES = [
-    'Valentine',
-    'Ballroom',
-    'Onsen',
-    'Cheerleader',
-    'Camping',
-    'New Year',
-    'Christmas',
-    'Festival',
-    'Halloween',
-    'Full Armor',
-    'Summer',
-    'Fantasy',
-    'Wedding',
-    'Anime'];
-
 export const getUmaImagePath = (name: string): string => {
-    let baseName = name;
-    for (const prefix of VARIANT_PREFIXES) {
-        if (baseName.startsWith(prefix + ' ')) {
-            baseName = baseName.slice(prefix.length + 1);
-            break;
-        }
+    const data = UMA_DICT[name];
+    if (!data) {
+        // Fallback for characters not in UMA_DICT (legacy slug-based filenames)
+        return `/assets/uma/${name.toLowerCase().replace(/\s+/g, '_')}.png`;
     }
-    const baseData = UMA_DICT[baseName];
-    const slug = baseData
-        ? baseData.id.replace(/-/g, '_')
-        : baseName.toLowerCase().replace(/\s+/g, '_');
-    return `/assets/uma/${slug}.png`;
+    return `/assets/uma/${data.characterId}.png`;
 };
 
 // Helpful array export for your <select> loops (e.g., v-for="uma in UMA_LIST")

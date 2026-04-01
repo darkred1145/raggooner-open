@@ -1,5 +1,5 @@
 import { ref, computed, type Ref } from 'vue';
-import {arrayUnion, deleteField} from 'firebase/firestore';
+import {arrayUnion, arrayRemove, deleteField} from 'firebase/firestore';
 import type { Tournament, Player, Wildcard, FirestoreUpdate } from '../types';
 import { UMA_DICT } from '../utils/umaData';
 import {getPlayerName, getPlayerUma} from "../utils/utils.ts";
@@ -93,10 +93,9 @@ export function useRoster(
     const removePlayer = async (pid: string) => {
         if (!tournament.value || !isAdmin.value) return;
 
-        const remainingIds = Object.keys(tournament.value.players).filter(id => id !== pid);
         await secureUpdate({
             [`players.${pid}`]: deleteField(),
-            playerIds: remainingIds
+            playerIds: arrayRemove(pid)
         });
     };
 
