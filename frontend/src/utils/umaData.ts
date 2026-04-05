@@ -2,6 +2,22 @@
 import type { UmaData } from '../types';
 
 export const UMA_DICT: Record<string, UmaData> = {
+    'Ballroom Fuji Kiseki': {
+        id: 'ballroom-fuji-kiseki', name: 'Ballroom Fuji Kiseki', stars: 3, releaseDate: '2026-04-05T22:00:00.000Z', characterId: 100502,
+        aptitudes: {
+            surface: { turf: 'A', dirt: 'F' },
+            distance: { sprint: 'B', mile: 'A', medium: 'B', long: 'E' },
+            style: { frontRunner: 'C', paceChaser: 'A', lateSurger: 'C', endCloser: 'G' }
+        }
+    },
+    'Ballroom Seiun Sky': {
+        id: 'ballroom-seiun-sky', name: 'Ballroom Seiun Sky', stars: 3, releaseDate: '2026-04-05T22:00:00.000Z', characterId: 102002,
+        aptitudes: {
+            surface: { turf: 'A', dirt: 'G' },
+            distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'A' },
+            style: { frontRunner: 'A', paceChaser: 'B', lateSurger: 'D', endCloser: 'E' }
+        }
+    },
     'Mejiro Bright': {
         id: 'mejiro-bright', name: 'Mejiro Bright', stars: 3, releaseDate: '2026-03-26T22:00:00.000Z', characterId: 107401,
         aptitudes: {
