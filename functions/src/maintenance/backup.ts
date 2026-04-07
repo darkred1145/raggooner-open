@@ -53,13 +53,17 @@ function serializeValue(value: unknown): unknown {
 
 async function exportCollection(colRef: CollectionReference): Promise<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
-  const snapshot = await colRef.get();
-  for (const doc of snapshot.docs) {
+  // listDocuments() includes implicit documents (no fields, subcollections only).
+  // collection.get() skips them, which empties the backup for paths like
+  // artifacts/default-app/public/data where intermediate docs are implicit.
+  const docRefs = await colRef.listDocuments();
+  for (const docRef of docRefs) {
+    const snap = await docRef.get();
     const data: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(doc.data())) {
+    for (const [key, val] of Object.entries(snap.data() ?? {})) {
       data[key] = serializeValue(val);
     }
-    const subcols = await doc.ref.listCollections();
+    const subcols = await docRef.listCollections();
     if (subcols.length > 0) {
       const subs: Record<string, unknown> = {};
       for (const sub of subcols) {
@@ -67,7 +71,7 @@ async function exportCollection(colRef: CollectionReference): Promise<Record<str
       }
       data._subcollections = subs;
     }
-    result[doc.id] = data;
+    result[docRef.id] = data;
   }
   return result;
 }
