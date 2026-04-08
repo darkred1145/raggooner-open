@@ -1,0 +1,2476 @@
+[
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "TrainedCharaTradeItem",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 5
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "MasterTrainedCharaTradeItem",
+    "methods": [
+      {
+        "name": "get_dictionary",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": "_SelectOne",
+        "params": 1
+      },
+      {
+        "name": "GetWithTrainedCharaRank",
+        "params": 1
+      },
+      {
+        "name": "_SelectWithTrainedCharaRank",
+        "params": 1
+      },
+      {
+        "name": "_CreateOrmByQueryResultWithTrainedCharaRank",
+        "params": 2
+      },
+      {
+        "name": "Unload",
+        "params": 0
+      },
+      {
+        "name": "_ForcePreloadAllEntries",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "RoomMatchTrainedCharaData",
+    "methods": [
+      {
+        "name": "get_JoinType",
+        "params": 0
+      },
+      {
+        "name": "get_MemberId",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "TrainedCharaData",
+    "methods": [
+      {
+        "name": "get_Id",
+        "params": 0
+      },
+      {
+        "name": "get_IsSaved",
+        "params": 0
+      },
+      {
+        "name": "get_ViewerId",
+        "params": 0
+      },
+      {
+        "name": "get_OwnerViewerId",
+        "params": 0
+      },
+      {
+        "name": "get_CardId",
+        "params": 0
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_NickNameId",
+        "params": 0
+      },
+      {
+        "name": "SetNickNameId",
+        "params": 1
+      },
+      {
+        "name": "get_NickName",
+        "params": 0
+      },
+      {
+        "name": "get_MasterNickname",
+        "params": 0
+      },
+      {
+        "name": "get_IsSetNickName",
+        "params": 0
+      },
+      {
+        "name": "get_AcquiredNickNameIdArray",
+        "params": 0
+      },
+      {
+        "name": "get_Stamina",
+        "params": 0
+      },
+      {
+        "name": "get_Speed",
+        "params": 0
+      },
+      {
+        "name": "get_Power",
+        "params": 0
+      },
+      {
+        "name": "get_Guts",
+        "params": 0
+      },
+      {
+        "name": "get_Wiz",
+        "params": 0
+      },
+      {
+        "name": "get_Fans",
+        "params": 0
+      },
+      {
+        "name": "get_Rank",
+        "params": 0
+      },
+      {
+        "name": "get_RankScore",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyle",
+        "params": 0
+      },
+      {
+        "name": "get_ProperGroundTurf",
+        "params": 0
+      },
+      {
+        "name": "get_ProperGroundDirt",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceShort",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceMile",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceMiddle",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceLong",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleNige",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleSenko",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleSashi",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleOikomi",
+        "params": 0
+      },
+      {
+        "name": "get_SuccessionCount",
+        "params": 0
+      },
+      {
+        "name": "set_SuccessionCount",
+        "params": 1
+      },
+      {
+        "name": "get_FactorDataArray",
+        "params": 0
+      },
+      {
+        "name": "set_FactorDataArray",
+        "params": 1
+      },
+      {
+        "name": "get_CreateTime",
+        "params": 0
+      },
+      {
+        "name": "set_CreateTime",
+        "params": 1
+      },
+      {
+        "name": "get_ScenarioId",
+        "params": 0
+      },
+      {
+        "name": "set_ScenarioId",
+        "params": 1
+      },
+      {
+        "name": "get_TalentLevel",
+        "params": 0
+      },
+      {
+        "name": "set_TalentLevel",
+        "params": 1
+      },
+      {
+        "name": "get_CharaGrade",
+        "params": 0
+      },
+      {
+        "name": "set_CharaGrade",
+        "params": 1
+      },
+      {
+        "name": "get_Rarity",
+        "params": 0
+      },
+      {
+        "name": "set_Rarity",
+        "params": 1
+      },
+      {
+        "name": "get_IsLock",
+        "params": 0
+      },
+      {
+        "name": "set_IsLock",
+        "params": 1
+      },
+      {
+        "name": "get_FavoriteType",
+        "params": 0
+      },
+      {
+        "name": "set_FavoriteType",
+        "params": 1
+      },
+      {
+        "name": "get_Memo",
+        "params": 0
+      },
+      {
+        "name": "set_Memo",
+        "params": 1
+      },
+      {
+        "name": "get_SuccessionCharaList",
+        "params": 0
+      },
+      {
+        "name": "set_SuccessionCharaList",
+        "params": 1
+      },
+      {
+        "name": "get_SuccessionHistoryList",
+        "params": 0
+      },
+      {
+        "name": "set_SuccessionHistoryList",
+        "params": 1
+      },
+      {
+        "name": "get_SuccessionChara1",
+        "params": 0
+      },
+      {
+        "name": "get_SuccessionChara2",
+        "params": 0
+      },
+      {
+        "name": "GetCreateTimeStamp",
+        "params": 0
+      },
+      {
+        "name": "GetChangedModelDressId",
+        "params": 0
+      },
+      {
+        "name": "GetRaceDressId",
+        "params": 1
+      },
+      {
+        "name": "MakeCreateTimeStampCache",
+        "params": 0
+      },
+      {
+        "name": "get_AcquiredSkillArray",
+        "params": 0
+      },
+      {
+        "name": "set_AcquiredSkillArray",
+        "params": 1
+      },
+      {
+        "name": "get_SupportCardArray",
+        "params": 0
+      },
+      {
+        "name": "set_SupportCardArray",
+        "params": 1
+      },
+      {
+        "name": "get_SingleModeRaceResultArray",
+        "params": 0
+      },
+      {
+        "name": "set_SingleModeRaceResultArray",
+        "params": 1
+      },
+      {
+        "name": "get_WinSaddleArray",
+        "params": 0
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_MasterCardData",
+        "params": 0
+      },
+      {
+        "name": "get_MasterCharaData",
+        "params": 0
+      },
+      {
+        "name": "get_MasterCardRarityData",
+        "params": 0
+      },
+      {
+        "name": "get_SingleTotalRaceNum",
+        "params": 0
+      },
+      {
+        "name": "set_SingleTotalRaceNum",
+        "params": 1
+      },
+      {
+        "name": "get_SingleWinNum",
+        "params": 0
+      },
+      {
+        "name": "get_IsPlayer",
+        "params": 0
+      },
+      {
+        "name": "get_IsGhost",
+        "params": 0
+      },
+      {
+        "name": "get_IsRental",
+        "params": 0
+      },
+      {
+        "name": "get_IsOthers",
+        "params": 0
+      },
+      {
+        "name": "get_TrainedCharaDataAccessor",
+        "params": 0
+      },
+      {
+        "name": "set_TrainedCharaDataAccessor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "ClearMasterDataCache",
+        "params": 0
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "SetupFactor",
+        "params": 1
+      },
+      {
+        "name": "SetupFactor",
+        "params": 1
+      },
+      {
+        "name": "UpdateRunningStyle",
+        "params": 1
+      },
+      {
+        "name": "GetParam",
+        "params": 1
+      },
+      {
+        "name": "GetMaxParameterDic",
+        "params": 0
+      },
+      {
+        "name": "CalcSingleWinNum",
+        "params": 0
+      },
+      {
+        "name": "CalcSingleModeProgramIdWinNum",
+        "params": 1
+      },
+      {
+        "name": "GetSortedFactorList",
+        "params": 0
+      },
+      {
+        "name": "GetCountIntermFactor",
+        "params": 0
+      },
+      {
+        "name": "CreateSortedFactorList",
+        "params": 1
+      },
+      {
+        "name": "GetSortedFactorListForProfileCard",
+        "params": 0
+      },
+      {
+        "name": "CreateSortedFactorListProfileCard",
+        "params": 1
+      },
+      {
+        "name": "GetFactorListIncludingSuccession",
+        "params": 0
+      },
+      {
+        "name": "CheckEquals",
+        "params": 1
+      },
+      {
+        "name": "GetMaxProperGroundType",
+        "params": 1
+      },
+      {
+        "name": "GetProperGround",
+        "params": 1
+      },
+      {
+        "name": "GetMaxProperDistanceType",
+        "params": 1
+      },
+      {
+        "name": "GetProperDistance",
+        "params": 1
+      },
+      {
+        "name": "GetMaxProperRunningStyle",
+        "params": 1
+      },
+      {
+        "name": "GetProperRunningStyle",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "WorkTrainedCharaData",
+    "methods": [
+      {
+        "name": "get_List",
+        "params": 0
+      },
+      {
+        "name": "set_List",
+        "params": 1
+      },
+      {
+        "name": "get_TrainedCharaNumMax",
+        "params": 0
+      },
+      {
+        "name": "Get",
+        "params": 2
+      },
+      {
+        "name": "HasData",
+        "params": 1
+      },
+      {
+        "name": "UpdateAll",
+        "params": 1
+      },
+      {
+        "name": "AddTrainedCharaArray",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "UpdateList",
+        "params": 0
+      },
+      {
+        "name": "UpdateRunningStyle",
+        "params": 2
+      },
+      {
+        "name": "UpdateFavoriteData",
+        "params": 1
+      },
+      {
+        "name": "GetFavoriteData",
+        "params": 1
+      },
+      {
+        "name": "SendChangeLockApi",
+        "params": 4
+      },
+      {
+        "name": "SendChangeMemoApi",
+        "params": 3
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailInnerBase",
+    "methods": [
+      {
+        "name": "ApplyName",
+        "params": 1
+      },
+      {
+        "name": "ApplyRankImage",
+        "params": 2
+      },
+      {
+        "name": "GetCreateTime",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailInnerBoss",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailInnerMob",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailInnerNpc",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailInnerOthers",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailInnerOwn",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "ApplyNickName",
+        "params": 1
+      },
+      {
+        "name": "ApplyFavorite",
+        "params": 1
+      },
+      {
+        "name": "ApplyMemo",
+        "params": 1
+      },
+      {
+        "name": "ApplyLockButtons",
+        "params": 0
+      },
+      {
+        "name": "OnClickNickNameChangeButton",
+        "params": 1
+      },
+      {
+        "name": "ChangeNickName",
+        "params": 1
+      },
+      {
+        "name": "OnClickLockButton",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<ApplyMemo>b__16_0",
+        "params": 0
+      },
+      {
+        "name": "<ApplyMemo>b__16_1",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailInnerPartner",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogChangeTrainedCharacterMemo",
+    "methods": [
+      {
+        "name": "GetFormType",
+        "params": 0
+      },
+      {
+        "name": "GetParentType",
+        "params": 0
+      },
+      {
+        "name": "Open",
+        "params": 2
+      },
+      {
+        "name": "OnEndEdit",
+        "params": 1
+      },
+      {
+        "name": "CheckText",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogTrainedCharacterChampionsDetail",
+    "methods": [
+      {
+        "name": "RegisterDownload",
+        "params": 2
+      },
+      {
+        "name": "Open",
+        "params": 3
+      },
+      {
+        "name": "Open",
+        "params": 5
+      },
+      {
+        "name": "CreateDialogData",
+        "params": 3
+      },
+      {
+        "name": "Setup",
+        "params": 2
+      },
+      {
+        "name": "SetupToggleGroup",
+        "params": 0
+      },
+      {
+        "name": "ChangeToggleAtFour",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<Setup>b__12_0",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_1",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_2",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_3",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_4",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_5",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_6",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_7",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_8",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_9",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__12_10",
+        "params": 1
+      },
+      {
+        "name": "<SetupToggleGroup>b__13_0",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogTrainedCharacterDetail",
+    "methods": [
+      {
+        "name": "GetFormType",
+        "params": 0
+      },
+      {
+        "name": "Open",
+        "params": 4
+      },
+      {
+        "name": "OpenResult",
+        "params": 2
+      },
+      {
+        "name": "Open",
+        "params": 2
+      },
+      {
+        "name": "OpenForTransferEvent",
+        "params": 2
+      },
+      {
+        "name": "Open",
+        "params": 2
+      },
+      {
+        "name": "OpenWithGetViewerName",
+        "params": 3
+      },
+      {
+        "name": "CreateSetupParameter",
+        "params": 2
+      },
+      {
+        "name": "CreateSetupParameter",
+        "params": 3
+      },
+      {
+        "name": "CreateSetupParameterForNpc",
+        "params": 2
+      },
+      {
+        "name": "CreateDialogData",
+        "params": 4
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "ChangeToggleAtTwo",
+        "params": 1
+      },
+      {
+        "name": "ChangeToggleAtThree",
+        "params": 1
+      },
+      {
+        "name": "ChangeToggleAtNone",
+        "params": 0
+      },
+      {
+        "name": "OnChangePracticePartner",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogTrainedCharacterFactorList",
+    "methods": [
+      {
+        "name": "GetFormType",
+        "params": 0
+      },
+      {
+        "name": "GetParentType",
+        "params": 0
+      },
+      {
+        "name": "Open",
+        "params": 2
+      },
+      {
+        "name": "Open",
+        "params": 2
+      },
+      {
+        "name": "RequestUser",
+        "params": 2
+      },
+      {
+        "name": "Setup",
+        "params": 4
+      },
+      {
+        "name": "Setup",
+        "params": 4
+      },
+      {
+        "name": "SetupRentalInfo",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<Setup>b__16_0",
+        "params": 1
+      },
+      {
+        "name": "<Setup>b__17_0",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogTrainedCharaList",
+    "methods": [
+      {
+        "name": "GetFormType",
+        "params": 0
+      },
+      {
+        "name": "GetParentType",
+        "params": 0
+      },
+      {
+        "name": "OpenCommon",
+        "params": 2
+      },
+      {
+        "name": "OpenForSharePracticePartner",
+        "params": 1
+      },
+      {
+        "name": "OpenForProfilePartnerSelect",
+        "params": 1
+      },
+      {
+        "name": "OpenForProfileCardPartnerSelect",
+        "params": 2
+      },
+      {
+        "name": "OpenForChampionsEntryRecord",
+        "params": 0
+      },
+      {
+        "name": "OpenForMainStoryInheritChara",
+        "params": 1
+      },
+      {
+        "name": "Instantiate",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "SetupDescriptionNumberText",
+        "params": 2
+      },
+      {
+        "name": "ResetCursor",
+        "params": 0
+      },
+      {
+        "name": "ResetMark",
+        "params": 0
+      },
+      {
+        "name": "OnTapCharaButton",
+        "params": 1
+      },
+      {
+        "name": "OnLongTapCharaButton",
+        "params": 1
+      },
+      {
+        "name": "OnUpdateCharaButton",
+        "params": 1
+      },
+      {
+        "name": "SetupMarks",
+        "params": 0
+      },
+      {
+        "name": "CreateMark",
+        "params": 1
+      },
+      {
+        "name": "UpdateRightButton",
+        "params": 0
+      },
+      {
+        "name": "IsIntaractableTrainedChara",
+        "params": 2
+      },
+      {
+        "name": "GetUseCursor",
+        "params": 1
+      },
+      {
+        "name": "GetSortFilterSaveTag",
+        "params": 0
+      },
+      {
+        "name": "GetTrainedCharaList",
+        "params": 0
+      },
+      {
+        "name": "GetNoneText",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      },
+      {
+        "name": "<ResetCursor>b__36_0",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogTrainedCharaRetiredMessage",
+    "methods": [
+      {
+        "name": "GetFormType",
+        "params": 0
+      },
+      {
+        "name": "GetParentType",
+        "params": 0
+      },
+      {
+        "name": "Open",
+        "params": 2
+      },
+      {
+        "name": "Setup",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "ITrainedCharaDataAccessor",
+    "methods": [
+      {
+        "name": "GetTrainedCharaData",
+        "params": 1
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 2
+      },
+      {
+        "name": "GetTrainerName",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PlayerTrainedCharaDataAccessor",
+    "methods": [
+      {
+        "name": "get_Instance",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 1
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 2
+      },
+      {
+        "name": "GetTrainerName",
+        "params": 1
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsTrainedCharacterDetailHeaderTitle",
+    "methods": [
+      {
+        "name": "CreateSetupParameter",
+        "params": 2
+      },
+      {
+        "name": "CreateSetupParameter",
+        "params": 2
+      },
+      {
+        "name": "Setup",
+        "params": 3
+      },
+      {
+        "name": "SetupForMob",
+        "params": 1
+      },
+      {
+        "name": "SetupForBoss",
+        "params": 2
+      },
+      {
+        "name": "SetupForNpc",
+        "params": 2
+      },
+      {
+        "name": "SetupForOwn",
+        "params": 2
+      },
+      {
+        "name": "SetupForOther",
+        "params": 2
+      },
+      {
+        "name": "SetupForPartner",
+        "params": 3
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogTrainedCharaGetOnTutorial",
+    "methods": [
+      {
+        "name": "GetFormType",
+        "params": 0
+      },
+      {
+        "name": "GetParentType",
+        "params": 0
+      },
+      {
+        "name": "Open",
+        "params": 1
+      },
+      {
+        "name": "Init",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharacterChampionsRaceRecordUI",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "TrainedCharaDetailDialogInfo",
+    "methods": [
+      {
+        "name": "Check",
+        "params": 0
+      },
+      {
+        "name": "Show",
+        "params": 3
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaListView",
+    "methods": [
+      {
+        "name": "get_CharacterListUI",
+        "params": 0
+      },
+      {
+        "name": "set_CharacterListUI",
+        "params": 1
+      },
+      {
+        "name": "get_ButtonAccessoryPrefab",
+        "params": 0
+      },
+      {
+        "name": "set_ButtonAccessoryPrefab",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaListViewController",
+    "methods": [
+      {
+        "name": "InitializeView",
+        "params": 0
+      },
+      {
+        "name": "InitializeEachPlayIn",
+        "params": 0
+      },
+      {
+        "name": "PlayOutView",
+        "params": 0
+      },
+      {
+        "name": "EndView",
+        "params": 0
+      },
+      {
+        "name": "PlayInView",
+        "params": 0
+      },
+      {
+        "name": "CreateCharacterList",
+        "params": 0
+      },
+      {
+        "name": "UpdateCharacterList",
+        "params": 0
+      },
+      {
+        "name": "ChangeDispMode",
+        "params": 1
+      },
+      {
+        "name": "OnUpdateCharacterButton",
+        "params": 1
+      },
+      {
+        "name": "UpdateCharaButtonAtTransfer",
+        "params": 2
+      },
+      {
+        "name": "CanCharaTransfer",
+        "params": 3
+      },
+      {
+        "name": "OnLongTapSelectCharacter",
+        "params": 1
+      },
+      {
+        "name": "OnClickCharacter",
+        "params": 1
+      },
+      {
+        "name": "OnClickRetireButton",
+        "params": 0
+      },
+      {
+        "name": "OnClickDecideButton",
+        "params": 0
+      },
+      {
+        "name": "UpdateDecideButton",
+        "params": 0
+      },
+      {
+        "name": "OnClickFavoriteModeButton",
+        "params": 0
+      },
+      {
+        "name": "OnClickDecideFavoriteButton",
+        "params": 0
+      },
+      {
+        "name": "UpdateDecideFavoriteButton",
+        "params": 0
+      },
+      {
+        "name": "SendRetireApi",
+        "params": 0
+      },
+      {
+        "name": "OnClickBackButton",
+        "params": 0
+      },
+      {
+        "name": "OnClickOsBackKey",
+        "params": 0
+      },
+      {
+        "name": "UpdateDiffSp",
+        "params": 0
+      },
+      {
+        "name": "ResetSelectedRetireList",
+        "params": 0
+      },
+      {
+        "name": "ResetSelectedFavoriteList",
+        "params": 0
+      },
+      {
+        "name": "PlayRetireButtonInAnimation",
+        "params": 0
+      },
+      {
+        "name": "PlayRetireButtonOutAnimation",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<>n__0",
+        "params": 0
+      },
+      {
+        "name": "<>n__1",
+        "params": 0
+      },
+      {
+        "name": "<CanCharaTransfer>g__AddCenterText|24_0",
+        "params": 2
+      },
+      {
+        "name": "<OnClickFavoriteModeButton>b__30_0",
+        "params": 2
+      },
+      {
+        "name": "<OnClickDecideFavoriteButton>b__31_0",
+        "params": 1
+      },
+      {
+        "name": "<OnClickDecideFavoriteButton>g__OnApiSuccess|31_2",
+        "params": 1
+      },
+      {
+        "name": "<OnClickDecideFavoriteButton>b__31_5",
+        "params": 0
+      },
+      {
+        "name": "<UpdateDecideFavoriteButton>b__32_0",
+        "params": 1
+      },
+      {
+        "name": "<SendRetireApi>g__OnSuccess|33_0",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsRoomMatchEntryTrainedCharaListItem",
+    "methods": [
+      {
+        "name": "get_ViewerId",
+        "params": 0
+      },
+      {
+        "name": "set_ViewerId",
+        "params": 1
+      },
+      {
+        "name": "get_CardId",
+        "params": 0
+      },
+      {
+        "name": "set_CardId",
+        "params": 1
+      },
+      {
+        "name": "get_IsEmpty",
+        "params": 0
+      },
+      {
+        "name": "set_IsEmpty",
+        "params": 1
+      },
+      {
+        "name": "get_AnimationRoot",
+        "params": 0
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "SetupPrivateSetting",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsRoomMatchEntryTrainedCharaList",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 5
+      },
+      {
+        "name": "Setup",
+        "params": 5
+      },
+      {
+        "name": "SetupTrainedCharaListParam",
+        "params": 1
+      },
+      {
+        "name": "UpdateList",
+        "params": 1
+      },
+      {
+        "name": "UpdateListItem",
+        "params": 1
+      },
+      {
+        "name": "SetCurrentEntryNumText",
+        "params": 1
+      },
+      {
+        "name": "EndView",
+        "params": 0
+      },
+      {
+        "name": "ResetNormalizedPosition",
+        "params": 0
+      },
+      {
+        "name": "PlayUIAnimation",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsSingleModeResultTrainedCharacterDetail",
+    "methods": [
+      {
+        "name": "Open",
+        "params": 1
+      },
+      {
+        "name": "Initialize",
+        "params": 1
+      },
+      {
+        "name": "Hide",
+        "params": 0
+      },
+      {
+        "name": "ShowTutorialNextButtonGuide",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<Open>b__2_0",
+        "params": 0
+      },
+      {
+        "name": "<Open>b__2_1",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "TeamStadiumTrainedCharaDataAccessor",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 2
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 1
+      },
+      {
+        "name": "AddTrainerName",
+        "params": 1
+      },
+      {
+        "name": "GetTrainerName",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "PartsSingleModeResultTrainedCharacterDetail",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop.TrainingChallenge",
+    "name": "TrainedCharaExtensions",
+    "methods": [
+      {
+        "name": "OpenDetailAtUneditable",
+        "params": 1
+      },
+      {
+        "name": "GetDetailUneditableParameter",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeLockMultiRequest",
+    "methods": [
+      {
+        "name": "CreateTask",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeLockMultiResponse",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeLockMultiTask",
+    "methods": [
+      {
+        "name": "get_CacheTime",
+        "params": 0
+      },
+      {
+        "name": "get_IsCompressed",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": "SetHeader",
+        "params": 2
+      },
+      {
+        "name": "Send",
+        "params": 1
+      },
+      {
+        "name": "Deserialize",
+        "params": 1
+      },
+      {
+        "name": "OnError",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeMemoRequest",
+    "methods": [
+      {
+        "name": "CreateTask",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeMemoResponse",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeMemoTask",
+    "methods": [
+      {
+        "name": "get_CacheTime",
+        "params": 0
+      },
+      {
+        "name": "get_IsCompressed",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": "SetHeader",
+        "params": 2
+      },
+      {
+        "name": "Send",
+        "params": 1
+      },
+      {
+        "name": "Deserialize",
+        "params": 1
+      },
+      {
+        "name": "OnError",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeNicknameRequest",
+    "methods": [
+      {
+        "name": "CreateTask",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeNicknameResponse",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaChangeNicknameTask",
+    "methods": [
+      {
+        "name": "get_CacheTime",
+        "params": 0
+      },
+      {
+        "name": "get_IsCompressed",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": "SetHeader",
+        "params": 2
+      },
+      {
+        "name": "Send",
+        "params": 1
+      },
+      {
+        "name": "Deserialize",
+        "params": 1
+      },
+      {
+        "name": "OnError",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaLoadRequest",
+    "methods": [
+      {
+        "name": "CreateTask",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaLoadResponse",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaLoadTask",
+    "methods": [
+      {
+        "name": "get_CacheTime",
+        "params": 0
+      },
+      {
+        "name": "get_IsCompressed",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": "SetHeader",
+        "params": 2
+      },
+      {
+        "name": "Send",
+        "params": 1
+      },
+      {
+        "name": "Deserialize",
+        "params": 1
+      },
+      {
+        "name": "OnError",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaRemoveRequest",
+    "methods": [
+      {
+        "name": "CreateTask",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaRemoveResponse",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaRemoveTask",
+    "methods": [
+      {
+        "name": "get_CacheTime",
+        "params": 0
+      },
+      {
+        "name": "get_IsCompressed",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": "SetHeader",
+        "params": 2
+      },
+      {
+        "name": "Send",
+        "params": 1
+      },
+      {
+        "name": "Deserialize",
+        "params": 1
+      },
+      {
+        "name": "OnError",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "RoomMatchTrainedChara",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "SingleModeSuccessionTrainedChara",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedChara",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaFavorite",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaParam",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaRaceResult",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "TrainedCharaSupportCardList",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "UserTrainedCharaAtFriend",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "RoomMatchTrainedCharaFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "SingleModeSuccessionTrainedCharaFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeLockMultiRequestFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeLockMultiResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeLockMultiResponse_CommonResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeMemoRequestFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeMemoResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeMemoResponse_CommonResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeNicknameRequestFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeNicknameResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaChangeNicknameResponse_CommonResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaFavoriteFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaLoadRequestFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaLoadResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaLoadResponse_CommonResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaParamFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaRaceResultFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaRemoveRequestFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaRemoveResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaRemoveResponse_CommonResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "TrainedCharaSupportCardListFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "UserTrainedCharaAtFriendFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  }
+]

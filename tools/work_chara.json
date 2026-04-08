@@ -1,0 +1,96 @@
+[
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "WorkCharacterStoryData",
+    "methods": [
+      {
+        "name": "UpdateAll",
+        "params": 1
+      },
+      {
+        "name": "UpdateData",
+        "params": 1
+      },
+      {
+        "name": "IsReadStory",
+        "params": 1
+      },
+      {
+        "name": "IsReadStory",
+        "params": 1
+      },
+      {
+        "name": "IsCharaStoryIdList",
+        "params": 0
+      },
+      {
+        "name": "GetReleaseNoticeCharaStoryIdList",
+        "params": 1
+      },
+      {
+        "name": "GetUnlockLoveRankStoryIdList",
+        "params": 0
+      },
+      {
+        "name": "ExistNewCharaStoryData",
+        "params": 0
+      },
+      {
+        "name": "ExistNewCharaStoryData",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "WorkCharaData",
+    "methods": [
+      {
+        "name": "GetList",
+        "params": 0
+      },
+      {
+        "name": "GetListShuffle",
+        "params": 0
+      },
+      {
+        "name": "AddFan",
+        "params": 2
+      },
+      {
+        "name": "UpdateLovePoint",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "UpdateAll",
+        "params": 1
+      },
+      {
+        "name": "UpdateCharaData",
+        "params": 1
+      },
+      {
+        "name": "AddCharaData",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  }
+]

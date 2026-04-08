@@ -1,0 +1,161 @@
+[
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "CharacterListUI",
+    "methods": [
+      {
+        "name": "get_LoopScroll",
+        "params": 0
+      },
+      {
+        "name": "get_HorizontalInterval",
+        "params": 0
+      },
+      {
+        "name": "get_CharacterButtonContainerArray",
+        "params": 0
+      },
+      {
+        "name": "get_ContainerLength",
+        "params": 0
+      },
+      {
+        "name": "get_OnContainerUpdate",
+        "params": 0
+      },
+      {
+        "name": "set_OnContainerUpdate",
+        "params": 1
+      },
+      {
+        "name": "get_CurrentButtonInfoList",
+        "params": 0
+      },
+      {
+        "name": "set_CurrentButtonInfoList",
+        "params": 1
+      },
+      {
+        "name": "get_ListInfo",
+        "params": 0
+      },
+      {
+        "name": "set_ListInfo",
+        "params": 1
+      },
+      {
+        "name": "get_ListNum",
+        "params": 0
+      },
+      {
+        "name": "set_ListNum",
+        "params": 1
+      },
+      {
+        "name": "CreateList",
+        "params": 3
+      },
+      {
+        "name": "SetLayoutParam",
+        "params": 0
+      },
+      {
+        "name": "CreateContainerCache",
+        "params": 0
+      },
+      {
+        "name": "CallAllButtonUpdate",
+        "params": 0
+      },
+      {
+        "name": "UpdateAllButtons",
+        "params": 1
+      },
+      {
+        "name": "FindCharacterButtonById",
+        "params": 1
+      },
+      {
+        "name": "FindCharacterButtonByTrainedChara",
+        "params": 1
+      },
+      {
+        "name": "FindCharacterButtonByTrainedCharaIdAndViewerId",
+        "params": 2
+      },
+      {
+        "name": "FindInteractableButtonWithPositionMove",
+        "params": 1
+      },
+      {
+        "name": "FindButtonByIndex",
+        "params": 1
+      },
+      {
+        "name": "MoveCellToBottom",
+        "params": 1
+      },
+      {
+        "name": "RefreshOnCountChanged",
+        "params": 1
+      },
+      {
+        "name": "RefreshOptimize",
+        "params": 2
+      },
+      {
+        "name": "ClearCharacterList",
+        "params": 0
+      },
+      {
+        "name": "PlayAnimation",
+        "params": 1
+      },
+      {
+        "name": "PlayAnimation",
+        "params": 2
+      },
+      {
+        "name": "CreateInAnimationDataList",
+        "params": 1
+      },
+      {
+        "name": "AddAnimationData",
+        "params": 3
+      },
+      {
+        "name": "IsEnableResourceManageByList",
+        "params": 0
+      },
+      {
+        "name": "Load",
+        "params": 1
+      },
+      {
+        "name": "Unload",
+        "params": 0
+      },
+      {
+        "name": "OnDestroy",
+        "params": 0
+      },
+      {
+        "name": "Release",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<CreateList>b__38_0",
+        "params": 1
+      },
+      {
+        "name": "<RefreshOnCountChanged>b__49_0",
+        "params": 1
+      }
+    ]
+  }
+]

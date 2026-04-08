@@ -1,0 +1,69 @@
+[
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "DialogSupportDeckCardSelect",
+    "methods": [
+      {
+        "name": "GetFormType",
+        "params": 0
+      },
+      {
+        "name": "GetParentType",
+        "params": 0
+      },
+      {
+        "name": "Open",
+        "params": 7
+      },
+      {
+        "name": "Setup",
+        "params": 7
+      },
+      {
+        "name": "SetupSupportCardList",
+        "params": 2
+      },
+      {
+        "name": "IsSingleModeStartView",
+        "params": 0
+      },
+      {
+        "name": "CreateCharacterButtonInfo",
+        "params": 3
+      },
+      {
+        "name": "OnUpdateButton",
+        "params": 1
+      },
+      {
+        "name": "UpdateAccessoryPartsStatus",
+        "params": 2
+      },
+      {
+        "name": "SetButtonNotInteractable",
+        "params": 1
+      },
+      {
+        "name": "IsSameTrainingCharaId",
+        "params": 1
+      },
+      {
+        "name": "IsEquippedCharaId",
+        "params": 1
+      },
+      {
+        "name": "OnSelectSupportCard",
+        "params": 1
+      },
+      {
+        "name": "UnEquipSupportCard",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  }
+]

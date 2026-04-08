@@ -1,0 +1,2611 @@
+[
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "IMiniCharaData",
+    "methods": [
+      {
+        "name": "get_UniqueId",
+        "params": 0
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_DressId",
+        "params": 0
+      },
+      {
+        "name": "get_IsVisibleMessage",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "MiniCharaData",
+    "methods": [
+      {
+        "name": "get_UniqueId",
+        "params": 0
+      },
+      {
+        "name": "set_UniqueId",
+        "params": 1
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "set_Name",
+        "params": 1
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "set_CharaId",
+        "params": 1
+      },
+      {
+        "name": "get_DressId",
+        "params": 0
+      },
+      {
+        "name": "set_DressId",
+        "params": 1
+      },
+      {
+        "name": "get_IsVisibleMessage",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "CharaData",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 43
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_FormalName",
+        "params": 0
+      },
+      {
+        "name": "get_Furigana",
+        "params": 0
+      },
+      {
+        "name": "get_Voice",
+        "params": 0
+      },
+      {
+        "name": "get_Catchphrase",
+        "params": 0
+      },
+      {
+        "name": "GetCharacterCameraHight",
+        "params": 0
+      },
+      {
+        "name": "IsMiniRightMayuHide",
+        "params": 0
+      },
+      {
+        "name": "IsMiniLeftMayuHide",
+        "params": 0
+      },
+      {
+        "name": "get_MainColor",
+        "params": 0
+      },
+      {
+        "name": "get_SubColor",
+        "params": 0
+      },
+      {
+        "name": "get_UIMainColor",
+        "params": 0
+      },
+      {
+        "name": "get_UISubColor",
+        "params": 0
+      },
+      {
+        "name": "get_UITrainingColor1",
+        "params": 0
+      },
+      {
+        "name": "get_UITrainingColor2",
+        "params": 0
+      },
+      {
+        "name": "get_UIBorderColor",
+        "params": 0
+      },
+      {
+        "name": "get_UINumColor1",
+        "params": 0
+      },
+      {
+        "name": "get_UINumColor2",
+        "params": 0
+      },
+      {
+        "name": "get_UITurnColor",
+        "params": 0
+      },
+      {
+        "name": "get_UIWipeColor1",
+        "params": 0
+      },
+      {
+        "name": "get_UIWipeColor2",
+        "params": 0
+      },
+      {
+        "name": "get_UIWipeColor3",
+        "params": 0
+      },
+      {
+        "name": "get_UISpeechColor1",
+        "params": 0
+      },
+      {
+        "name": "get_UISpeechColor2",
+        "params": 0
+      },
+      {
+        "name": "get_UINameplateColor1",
+        "params": 0
+      },
+      {
+        "name": "get_UINameplateColor2",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "MasterCharaData",
+    "methods": [
+      {
+        "name": "get_dictionary",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": "_SelectOne",
+        "params": 1
+      },
+      {
+        "name": "Unload",
+        "params": 0
+      },
+      {
+        "name": "_ForcePreloadAllEntries",
+        "params": 0
+      },
+      {
+        "name": "IsCharaId",
+        "params": 1
+      },
+      {
+        "name": "GetDictInTerm",
+        "params": 2
+      },
+      {
+        "name": "GetHaveDict",
+        "params": 1
+      },
+      {
+        "name": "GetCharacterDataListShuffle",
+        "params": 1
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "LegendRaceCuttCharaData",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 6
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "MasterLegendRaceCuttCharaData",
+    "methods": [
+      {
+        "name": "get_dictionary",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": "_SelectOne",
+        "params": 1
+      },
+      {
+        "name": "GetWithSubIdAndCharaNumOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "_SelectWithSubIdAndCharaNumOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "GetListWithSubIdAndCharaNumOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "MaybeListWithSubIdAndCharaNumOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "_ListSelectWithSubIdAndCharaNumOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "_CreateOrmByQueryResultWithSubIdAndCharaNumOrderByCharaIdAsc",
+        "params": 3
+      },
+      {
+        "name": "Unload",
+        "params": 0
+      },
+      {
+        "name": "_ForcePreloadAllEntries",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "MainStoryRaceCharaData",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 27
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "MasterMainStoryRaceCharaData",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": "_SelectOne",
+        "params": 1
+      },
+      {
+        "name": "GetWithGroupIdOrderByBracketNumberAsc",
+        "params": 1
+      },
+      {
+        "name": "_SelectWithGroupIdOrderByBracketNumberAsc",
+        "params": 1
+      },
+      {
+        "name": "GetListWithGroupIdOrderByBracketNumberAsc",
+        "params": 1
+      },
+      {
+        "name": "MaybeListWithGroupIdOrderByBracketNumberAsc",
+        "params": 1
+      },
+      {
+        "name": "_ListSelectWithGroupIdOrderByBracketNumberAsc",
+        "params": 1
+      },
+      {
+        "name": "_CreateOrmByQueryResultWithGroupIdOrderByBracketNumberAsc",
+        "params": 2
+      },
+      {
+        "name": "GetWithRunningStyleOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "_SelectWithRunningStyleOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "GetListWithRunningStyleOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "MaybeListWithRunningStyleOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "_ListSelectWithRunningStyleOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "_CreateOrmByQueryResultWithRunningStyleOrderByIdAsc",
+        "params": 2
+      },
+      {
+        "name": "Unload",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "TrainingCuttCharaData",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 9
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "MasterTrainingCuttCharaData",
+    "methods": [
+      {
+        "name": "get_dictionary",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": "_SelectOne",
+        "params": 1
+      },
+      {
+        "name": "GetWithCommandIdAndSubIdOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "_SelectWithCommandIdAndSubIdOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "GetListWithCommandIdAndSubIdOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "MaybeListWithCommandIdAndSubIdOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "_ListSelectWithCommandIdAndSubIdOrderByCharaIdAsc",
+        "params": 2
+      },
+      {
+        "name": "_CreateOrmByQueryResultWithCommandIdAndSubIdOrderByCharaIdAsc",
+        "params": 3
+      },
+      {
+        "name": "Unload",
+        "params": 0
+      },
+      {
+        "name": "_ForcePreloadAllEntries",
+        "params": 0
+      },
+      {
+        "name": "GetListWithCommandIdAndSubIdAndCharaNumOrderByCharaIdAsc",
+        "params": 3
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "IMasterCharaDataAccessor",
+    "methods": [
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_BirthYear",
+        "params": 0
+      },
+      {
+        "name": "get_BirthMonth",
+        "params": 0
+      },
+      {
+        "name": "get_BirthDay",
+        "params": 0
+      },
+      {
+        "name": "get_ImageColorMain",
+        "params": 0
+      },
+      {
+        "name": "get_ImageColorSub",
+        "params": 0
+      },
+      {
+        "name": "get_PersonalDress",
+        "params": 0
+      },
+      {
+        "name": "get_TailModelId",
+        "params": 0
+      },
+      {
+        "name": "get_EarRandomTimeMin",
+        "params": 0
+      },
+      {
+        "name": "get_EarRandomTimeMax",
+        "params": 0
+      },
+      {
+        "name": "get_TailRandomTimeMax",
+        "params": 0
+      },
+      {
+        "name": "get_StoryEarRandomTimeMin",
+        "params": 0
+      },
+      {
+        "name": "get_StoryEarRandomTimeMax",
+        "params": 0
+      },
+      {
+        "name": "get_StoryTailRandomTimeMin",
+        "params": 0
+      },
+      {
+        "name": "get_StoryTailRandomTimeMax",
+        "params": 0
+      },
+      {
+        "name": "get_AttachmentModelId",
+        "params": 0
+      },
+      {
+        "name": "get_MiniMayuShaderType",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "ChampionsCharaData",
+    "methods": [
+      {
+        "name": "get_UniqueId",
+        "params": 0
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_IsVisibleMessage",
+        "params": 0
+      },
+      {
+        "name": "get_DressId",
+        "params": 0
+      },
+      {
+        "name": "set_DressId",
+        "params": 1
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "set_CharaId",
+        "params": 1
+      },
+      {
+        "name": "get_CardId",
+        "params": 0
+      },
+      {
+        "name": "set_CardId",
+        "params": 1
+      },
+      {
+        "name": "get_DefaultDressId",
+        "params": 0
+      },
+      {
+        "name": "set_DefaultDressId",
+        "params": 1
+      },
+      {
+        "name": "get_NickNameId",
+        "params": 0
+      },
+      {
+        "name": "set_NickNameId",
+        "params": 1
+      },
+      {
+        "name": "get_TeamMemberId",
+        "params": 0
+      },
+      {
+        "name": "set_TeamMemberId",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "CharaData",
+    "methods": [
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "get_Id",
+        "params": 0
+      },
+      {
+        "name": "set_Id",
+        "params": 1
+      },
+      {
+        "name": "get_TrainingNum",
+        "params": 0
+      },
+      {
+        "name": "set_TrainingNum",
+        "params": 1
+      },
+      {
+        "name": "get_LovePoint",
+        "params": 0
+      },
+      {
+        "name": "set_LovePoint",
+        "params": 1
+      },
+      {
+        "name": "get_LoveRank",
+        "params": 0
+      },
+      {
+        "name": "get_FanNum",
+        "params": 0
+      },
+      {
+        "name": "set_FanNum",
+        "params": 1
+      },
+      {
+        "name": "GetFanNumText",
+        "params": 0
+      },
+      {
+        "name": "AddFanNum",
+        "params": 1
+      },
+      {
+        "name": "IsInTerm",
+        "params": 1
+      },
+      {
+        "name": "SetMasterData",
+        "params": 0
+      },
+      {
+        "name": "GetMasterChara",
+        "params": 0
+      },
+      {
+        "name": "GetCharacterName",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "WorkCharaData",
+    "methods": [
+      {
+        "name": "GetList",
+        "params": 0
+      },
+      {
+        "name": "GetListShuffle",
+        "params": 0
+      },
+      {
+        "name": "AddFan",
+        "params": 2
+      },
+      {
+        "name": "UpdateLovePoint",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "UpdateAll",
+        "params": 1
+      },
+      {
+        "name": "UpdateCharaData",
+        "params": 1
+      },
+      {
+        "name": "AddCharaData",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "WorkGalleryModeCharaData",
+    "methods": [
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_IsValidChara",
+        "params": 0
+      },
+      {
+        "name": "get_CardId",
+        "params": 0
+      },
+      {
+        "name": "get_CardData",
+        "params": 0
+      },
+      {
+        "name": "get_CardRarityData",
+        "params": 0
+      },
+      {
+        "name": "get_RaceDressId",
+        "params": 0
+      },
+      {
+        "name": "get_LimitBreakCount",
+        "params": 0
+      },
+      {
+        "name": "set_LimitBreakCount",
+        "params": 1
+      },
+      {
+        "name": "get_TalentLevel",
+        "params": 0
+      },
+      {
+        "name": "set_TalentLevel",
+        "params": 1
+      },
+      {
+        "name": "ApplyCharaInfo",
+        "params": 1
+      },
+      {
+        "name": "RessetCharaInfo",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "RestrictCharaData",
+    "methods": [
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_DressIdList",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "RoomMatchTrainedCharaData",
+    "methods": [
+      {
+        "name": "get_JoinType",
+        "params": 0
+      },
+      {
+        "name": "get_MemberId",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "WorkSingleModeCharaData",
+    "methods": [
+      {
+        "name": "get_Id",
+        "params": 0
+      },
+      {
+        "name": "set_Id",
+        "params": 1
+      },
+      {
+        "name": "get_CardId",
+        "params": 0
+      },
+      {
+        "name": "set_CardId",
+        "params": 1
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_CardData",
+        "params": 0
+      },
+      {
+        "name": "get_CardRarityData",
+        "params": 0
+      },
+      {
+        "name": "get_SuccessionTrainedCharaInfoFirst",
+        "params": 0
+      },
+      {
+        "name": "get_SuccessionTrainedCharaInfoSecond",
+        "params": 0
+      },
+      {
+        "name": "get_TalentLevel",
+        "params": 0
+      },
+      {
+        "name": "set_TalentLevel",
+        "params": 1
+      },
+      {
+        "name": "get_LimitBreakCount",
+        "params": 0
+      },
+      {
+        "name": "set_LimitBreakCount",
+        "params": 1
+      },
+      {
+        "name": "get_EquipSupportCardArray",
+        "params": 0
+      },
+      {
+        "name": "set_EquipSupportCardArray",
+        "params": 1
+      },
+      {
+        "name": "get_ChangedModelDressId",
+        "params": 0
+      },
+      {
+        "name": "set_ChangedModelDressId",
+        "params": 1
+      },
+      {
+        "name": "get_CharaGrade",
+        "params": 0
+      },
+      {
+        "name": "get_Hp",
+        "params": 0
+      },
+      {
+        "name": "get_MaxHp",
+        "params": 0
+      },
+      {
+        "name": "get_Speed",
+        "params": 0
+      },
+      {
+        "name": "set_Speed",
+        "params": 1
+      },
+      {
+        "name": "get_Stamina",
+        "params": 0
+      },
+      {
+        "name": "set_Stamina",
+        "params": 1
+      },
+      {
+        "name": "get_Power",
+        "params": 0
+      },
+      {
+        "name": "set_Power",
+        "params": 1
+      },
+      {
+        "name": "get_Guts",
+        "params": 0
+      },
+      {
+        "name": "set_Guts",
+        "params": 1
+      },
+      {
+        "name": "get_Wiz",
+        "params": 0
+      },
+      {
+        "name": "set_Wiz",
+        "params": 1
+      },
+      {
+        "name": "GetAllTotalParameterValue",
+        "params": 0
+      },
+      {
+        "name": "get_MaxSpeed",
+        "params": 0
+      },
+      {
+        "name": "set_MaxSpeed",
+        "params": 1
+      },
+      {
+        "name": "get_MaxStamina",
+        "params": 0
+      },
+      {
+        "name": "set_MaxStamina",
+        "params": 1
+      },
+      {
+        "name": "get_MaxPower",
+        "params": 0
+      },
+      {
+        "name": "set_MaxPower",
+        "params": 1
+      },
+      {
+        "name": "get_MaxGuts",
+        "params": 0
+      },
+      {
+        "name": "set_MaxGuts",
+        "params": 1
+      },
+      {
+        "name": "get_MaxWiz",
+        "params": 0
+      },
+      {
+        "name": "set_MaxWiz",
+        "params": 1
+      },
+      {
+        "name": "get_DefaultMaxSpeed",
+        "params": 0
+      },
+      {
+        "name": "set_DefaultMaxSpeed",
+        "params": 1
+      },
+      {
+        "name": "get_DefaultMaxStamina",
+        "params": 0
+      },
+      {
+        "name": "set_DefaultMaxStamina",
+        "params": 1
+      },
+      {
+        "name": "get_DefaultMaxPower",
+        "params": 0
+      },
+      {
+        "name": "set_DefaultMaxPower",
+        "params": 1
+      },
+      {
+        "name": "get_DefaultMaxGuts",
+        "params": 0
+      },
+      {
+        "name": "set_DefaultMaxGuts",
+        "params": 1
+      },
+      {
+        "name": "get_DefaultMaxWiz",
+        "params": 0
+      },
+      {
+        "name": "set_DefaultMaxWiz",
+        "params": 1
+      },
+      {
+        "name": "get_EntryProgramId",
+        "params": 0
+      },
+      {
+        "name": "set_EntryProgramId",
+        "params": 1
+      },
+      {
+        "name": "get_ScenarioId",
+        "params": 0
+      },
+      {
+        "name": "get_ScenarioImageId",
+        "params": 0
+      },
+      {
+        "name": "get_DifficultyId",
+        "params": 0
+      },
+      {
+        "name": "get_Difficulty",
+        "params": 0
+      },
+      {
+        "name": "get_IsDifficultyTpBoost",
+        "params": 0
+      },
+      {
+        "name": "get_RouteId",
+        "params": 0
+      },
+      {
+        "name": "get_StartTime",
+        "params": 0
+      },
+      {
+        "name": "get_TrainingEventType",
+        "params": 0
+      },
+      {
+        "name": "set_TrainingEventType",
+        "params": 1
+      },
+      {
+        "name": "get_AcquiredSkillList",
+        "params": 0
+      },
+      {
+        "name": "get_DisableSkillIdList",
+        "params": 0
+      },
+      {
+        "name": "get_SkillTipsList",
+        "params": 0
+      },
+      {
+        "name": "get_SkillPoint",
+        "params": 0
+      },
+      {
+        "name": "set_SkillPoint",
+        "params": 1
+      },
+      {
+        "name": "get_ProperDistanceShort",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceMile",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceMiddle",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceLong",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleNige",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleSenko",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleSashi",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleOikomi",
+        "params": 0
+      },
+      {
+        "name": "get_ProperGroundTurf",
+        "params": 0
+      },
+      {
+        "name": "get_ProperGroundDirt",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyle",
+        "params": 0
+      },
+      {
+        "name": "set_RunningStyle",
+        "params": 1
+      },
+      {
+        "name": "get_EventShortcutType",
+        "params": 0
+      },
+      {
+        "name": "get_FanCount",
+        "params": 0
+      },
+      {
+        "name": "get_EvaluationList",
+        "params": 0
+      },
+      {
+        "name": "get_ReservedRaceProgramId",
+        "params": 0
+      },
+      {
+        "name": "set_ReservedRaceProgramId",
+        "params": 1
+      },
+      {
+        "name": "get_UpdateReservedPaceProgramId",
+        "params": 0
+      },
+      {
+        "name": "get_Motivation",
+        "params": 0
+      },
+      {
+        "name": "get_CharaEffectIdArray",
+        "params": 0
+      },
+      {
+        "name": "get_RouteRaceIdArray",
+        "params": 0
+      },
+      {
+        "name": "get_IsShortRace",
+        "params": 0
+      },
+      {
+        "name": "set_IsShortRace",
+        "params": 1
+      },
+      {
+        "name": "get_ScenarioProgress",
+        "params": 0
+      },
+      {
+        "name": "set_ScenarioProgress",
+        "params": 1
+      },
+      {
+        "name": "get_Race",
+        "params": 0
+      },
+      {
+        "name": "get_TeamRace",
+        "params": 0
+      },
+      {
+        "name": "get_RaceReserveContext",
+        "params": 0
+      },
+      {
+        "name": "get_WorkScenarioFree",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "EntryRace",
+        "params": 1
+      },
+      {
+        "name": "InitForMonthStart",
+        "params": 1
+      },
+      {
+        "name": "IsClearPermission",
+        "params": 2
+      },
+      {
+        "name": "IsClearClass",
+        "params": 2
+      },
+      {
+        "name": "GetTrainingLevel",
+        "params": 1
+      },
+      {
+        "name": "ApplySingleModeChara",
+        "params": 1
+      },
+      {
+        "name": "ApplySingleModeTeamDataSet",
+        "params": 1
+      },
+      {
+        "name": "ApplySingleModeCharaLight",
+        "params": 1
+      },
+      {
+        "name": "ApplySelectdDifficultyInfo",
+        "params": 1
+      },
+      {
+        "name": "ApplyStartDressInfo",
+        "params": 1
+      },
+      {
+        "name": "GetEquipSupportCard",
+        "params": 1
+      },
+      {
+        "name": "GetEquipSupportCardBySupportCardId",
+        "params": 1
+      },
+      {
+        "name": "GetEquipSupportCardByCharaId",
+        "params": 1
+      },
+      {
+        "name": "GetEquipSupportCard",
+        "params": 1
+      },
+      {
+        "name": "GetParamFromType",
+        "params": 1
+      },
+      {
+        "name": "GetMaxParamFromType",
+        "params": 1
+      },
+      {
+        "name": "GetParamFromType",
+        "params": 1
+      },
+      {
+        "name": "GetParameterDic",
+        "params": 0
+      },
+      {
+        "name": "GetMaxParameterDic",
+        "params": 0
+      },
+      {
+        "name": "GetDefaultMaxParameterDic",
+        "params": 0
+      },
+      {
+        "name": "GetProperDistanceTypeListByGrade",
+        "params": 1
+      },
+      {
+        "name": "GetProperGradeByDistanceType",
+        "params": 1
+      },
+      {
+        "name": "GetProperGroundTypeListByGrade",
+        "params": 1
+      },
+      {
+        "name": "GetProperGradeByGroundType",
+        "params": 1
+      },
+      {
+        "name": "GetMaxProperGroundList",
+        "params": 0
+      },
+      {
+        "name": "GetCharaGradeName",
+        "params": 0
+      },
+      {
+        "name": "GetCharaGradeNameGradientColor",
+        "params": 0
+      },
+      {
+        "name": "CalcNeedSkillPoint",
+        "params": 2
+      },
+      {
+        "name": "GetTipsSkillPointDiscount",
+        "params": 1
+      },
+      {
+        "name": "GetTipsSkillLevel",
+        "params": 1
+      },
+      {
+        "name": "GetCharaEffectSkillPointDiscount",
+        "params": 0
+      },
+      {
+        "name": "GetRaceDressId",
+        "params": 1
+      },
+      {
+        "name": "IsEntryCurrentMonthRace",
+        "params": 0
+      },
+      {
+        "name": "IsAcquiredSkillInGroup",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "SuccessionCharaData",
+    "methods": [
+      {
+        "name": "get_PositionId",
+        "params": 0
+      },
+      {
+        "name": "get_CardId",
+        "params": 0
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_Rarity",
+        "params": 0
+      },
+      {
+        "name": "get_Level",
+        "params": 0
+      },
+      {
+        "name": "get_Rank",
+        "params": 0
+      },
+      {
+        "name": "get_FactorDataArray",
+        "params": 0
+      },
+      {
+        "name": "get_OwnerViewerId",
+        "params": 0
+      },
+      {
+        "name": "get_IsRental",
+        "params": 0
+      },
+      {
+        "name": "get_IsPlayer",
+        "params": 0
+      },
+      {
+        "name": "get_WinSaddleArray",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 2
+      },
+      {
+        "name": "GetSortedFactorList",
+        "params": 0
+      },
+      {
+        "name": "GetSortedFactorListForProfielCard",
+        "params": 0
+      },
+      {
+        "name": "GetCountIntermFactor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "TrainedCharaData",
+    "methods": [
+      {
+        "name": "get_Id",
+        "params": 0
+      },
+      {
+        "name": "get_IsSaved",
+        "params": 0
+      },
+      {
+        "name": "get_ViewerId",
+        "params": 0
+      },
+      {
+        "name": "get_OwnerViewerId",
+        "params": 0
+      },
+      {
+        "name": "get_CardId",
+        "params": 0
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_NickNameId",
+        "params": 0
+      },
+      {
+        "name": "SetNickNameId",
+        "params": 1
+      },
+      {
+        "name": "get_NickName",
+        "params": 0
+      },
+      {
+        "name": "get_MasterNickname",
+        "params": 0
+      },
+      {
+        "name": "get_IsSetNickName",
+        "params": 0
+      },
+      {
+        "name": "get_AcquiredNickNameIdArray",
+        "params": 0
+      },
+      {
+        "name": "get_Stamina",
+        "params": 0
+      },
+      {
+        "name": "get_Speed",
+        "params": 0
+      },
+      {
+        "name": "get_Power",
+        "params": 0
+      },
+      {
+        "name": "get_Guts",
+        "params": 0
+      },
+      {
+        "name": "get_Wiz",
+        "params": 0
+      },
+      {
+        "name": "get_Fans",
+        "params": 0
+      },
+      {
+        "name": "get_Rank",
+        "params": 0
+      },
+      {
+        "name": "get_RankScore",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyle",
+        "params": 0
+      },
+      {
+        "name": "get_ProperGroundTurf",
+        "params": 0
+      },
+      {
+        "name": "get_ProperGroundDirt",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceShort",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceMile",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceMiddle",
+        "params": 0
+      },
+      {
+        "name": "get_ProperDistanceLong",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleNige",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleSenko",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleSashi",
+        "params": 0
+      },
+      {
+        "name": "get_ProperRunningStyleOikomi",
+        "params": 0
+      },
+      {
+        "name": "get_SuccessionCount",
+        "params": 0
+      },
+      {
+        "name": "set_SuccessionCount",
+        "params": 1
+      },
+      {
+        "name": "get_FactorDataArray",
+        "params": 0
+      },
+      {
+        "name": "set_FactorDataArray",
+        "params": 1
+      },
+      {
+        "name": "get_CreateTime",
+        "params": 0
+      },
+      {
+        "name": "set_CreateTime",
+        "params": 1
+      },
+      {
+        "name": "get_ScenarioId",
+        "params": 0
+      },
+      {
+        "name": "set_ScenarioId",
+        "params": 1
+      },
+      {
+        "name": "get_TalentLevel",
+        "params": 0
+      },
+      {
+        "name": "set_TalentLevel",
+        "params": 1
+      },
+      {
+        "name": "get_CharaGrade",
+        "params": 0
+      },
+      {
+        "name": "set_CharaGrade",
+        "params": 1
+      },
+      {
+        "name": "get_Rarity",
+        "params": 0
+      },
+      {
+        "name": "set_Rarity",
+        "params": 1
+      },
+      {
+        "name": "get_IsLock",
+        "params": 0
+      },
+      {
+        "name": "set_IsLock",
+        "params": 1
+      },
+      {
+        "name": "get_FavoriteType",
+        "params": 0
+      },
+      {
+        "name": "set_FavoriteType",
+        "params": 1
+      },
+      {
+        "name": "get_Memo",
+        "params": 0
+      },
+      {
+        "name": "set_Memo",
+        "params": 1
+      },
+      {
+        "name": "get_SuccessionCharaList",
+        "params": 0
+      },
+      {
+        "name": "set_SuccessionCharaList",
+        "params": 1
+      },
+      {
+        "name": "get_SuccessionHistoryList",
+        "params": 0
+      },
+      {
+        "name": "set_SuccessionHistoryList",
+        "params": 1
+      },
+      {
+        "name": "get_SuccessionChara1",
+        "params": 0
+      },
+      {
+        "name": "get_SuccessionChara2",
+        "params": 0
+      },
+      {
+        "name": "GetCreateTimeStamp",
+        "params": 0
+      },
+      {
+        "name": "GetChangedModelDressId",
+        "params": 0
+      },
+      {
+        "name": "GetRaceDressId",
+        "params": 1
+      },
+      {
+        "name": "MakeCreateTimeStampCache",
+        "params": 0
+      },
+      {
+        "name": "get_AcquiredSkillArray",
+        "params": 0
+      },
+      {
+        "name": "set_AcquiredSkillArray",
+        "params": 1
+      },
+      {
+        "name": "get_SupportCardArray",
+        "params": 0
+      },
+      {
+        "name": "set_SupportCardArray",
+        "params": 1
+      },
+      {
+        "name": "get_SingleModeRaceResultArray",
+        "params": 0
+      },
+      {
+        "name": "set_SingleModeRaceResultArray",
+        "params": 1
+      },
+      {
+        "name": "get_WinSaddleArray",
+        "params": 0
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_MasterCardData",
+        "params": 0
+      },
+      {
+        "name": "get_MasterCharaData",
+        "params": 0
+      },
+      {
+        "name": "get_MasterCardRarityData",
+        "params": 0
+      },
+      {
+        "name": "get_SingleTotalRaceNum",
+        "params": 0
+      },
+      {
+        "name": "set_SingleTotalRaceNum",
+        "params": 1
+      },
+      {
+        "name": "get_SingleWinNum",
+        "params": 0
+      },
+      {
+        "name": "get_IsPlayer",
+        "params": 0
+      },
+      {
+        "name": "get_IsGhost",
+        "params": 0
+      },
+      {
+        "name": "get_IsRental",
+        "params": 0
+      },
+      {
+        "name": "get_IsOthers",
+        "params": 0
+      },
+      {
+        "name": "get_TrainedCharaDataAccessor",
+        "params": 0
+      },
+      {
+        "name": "set_TrainedCharaDataAccessor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "ClearMasterDataCache",
+        "params": 0
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "SetupFactor",
+        "params": 1
+      },
+      {
+        "name": "SetupFactor",
+        "params": 1
+      },
+      {
+        "name": "UpdateRunningStyle",
+        "params": 1
+      },
+      {
+        "name": "GetParam",
+        "params": 1
+      },
+      {
+        "name": "GetMaxParameterDic",
+        "params": 0
+      },
+      {
+        "name": "CalcSingleWinNum",
+        "params": 0
+      },
+      {
+        "name": "CalcSingleModeProgramIdWinNum",
+        "params": 1
+      },
+      {
+        "name": "GetSortedFactorList",
+        "params": 0
+      },
+      {
+        "name": "GetCountIntermFactor",
+        "params": 0
+      },
+      {
+        "name": "CreateSortedFactorList",
+        "params": 1
+      },
+      {
+        "name": "GetSortedFactorListForProfileCard",
+        "params": 0
+      },
+      {
+        "name": "CreateSortedFactorListProfileCard",
+        "params": 1
+      },
+      {
+        "name": "GetFactorListIncludingSuccession",
+        "params": 0
+      },
+      {
+        "name": "CheckEquals",
+        "params": 1
+      },
+      {
+        "name": "GetMaxProperGroundType",
+        "params": 1
+      },
+      {
+        "name": "GetProperGround",
+        "params": 1
+      },
+      {
+        "name": "GetMaxProperDistanceType",
+        "params": 1
+      },
+      {
+        "name": "GetProperDistance",
+        "params": 1
+      },
+      {
+        "name": "GetMaxProperRunningStyle",
+        "params": 1
+      },
+      {
+        "name": "GetProperRunningStyle",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "WorkTrainedCharaData",
+    "methods": [
+      {
+        "name": "get_List",
+        "params": 0
+      },
+      {
+        "name": "set_List",
+        "params": 1
+      },
+      {
+        "name": "get_TrainedCharaNumMax",
+        "params": 0
+      },
+      {
+        "name": "Get",
+        "params": 2
+      },
+      {
+        "name": "HasData",
+        "params": 1
+      },
+      {
+        "name": "UpdateAll",
+        "params": 1
+      },
+      {
+        "name": "AddTrainedCharaArray",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "UpdateList",
+        "params": 0
+      },
+      {
+        "name": "UpdateRunningStyle",
+        "params": 2
+      },
+      {
+        "name": "UpdateFavoriteData",
+        "params": 1
+      },
+      {
+        "name": "GetFavoriteData",
+        "params": 1
+      },
+      {
+        "name": "SendChangeLockApi",
+        "params": 4
+      },
+      {
+        "name": "SendChangeMemoApi",
+        "params": 3
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "ITrainedCharaDataAccessor",
+    "methods": [
+      {
+        "name": "GetTrainedCharaData",
+        "params": 1
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 2
+      },
+      {
+        "name": "GetTrainerName",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PlayerTrainedCharaDataAccessor",
+    "methods": [
+      {
+        "name": "get_Instance",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 1
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 2
+      },
+      {
+        "name": "GetTrainerName",
+        "params": 1
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "ISortableCharaData",
+    "methods": [
+      {
+        "name": "get_Id",
+        "params": 0
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_NameForSort",
+        "params": 0
+      },
+      {
+        "name": "get_SkillArray",
+        "params": 0
+      },
+      {
+        "name": "get_RankScore",
+        "params": 0
+      },
+      {
+        "name": "get_WinNum",
+        "params": 0
+      },
+      {
+        "name": "get_Rank",
+        "params": 0
+      },
+      {
+        "name": "get_IsNew",
+        "params": 0
+      },
+      {
+        "name": "get_CreateTimeStamp",
+        "params": 0
+      },
+      {
+        "name": "get_LoveRank",
+        "params": 0
+      },
+      {
+        "name": "get_TotalFanNum",
+        "params": 0
+      },
+      {
+        "name": "get_HaveChara",
+        "params": 0
+      },
+      {
+        "name": "get_MaxProperGroundType",
+        "params": 0
+      },
+      {
+        "name": "get_MaxProperDistanceType",
+        "params": 0
+      },
+      {
+        "name": "get_MaxProperRunningStyleType",
+        "params": 0
+      },
+      {
+        "name": "get_TurfRank",
+        "params": 0
+      },
+      {
+        "name": "get_DirtRank",
+        "params": 0
+      },
+      {
+        "name": "get_DistanceShortRank",
+        "params": 0
+      },
+      {
+        "name": "get_DistanceMileRank",
+        "params": 0
+      },
+      {
+        "name": "get_DistanceMiddleRank",
+        "params": 0
+      },
+      {
+        "name": "get_DistanceLongRank",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyleNigeRank",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyleSenkoRank",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyleSashiRank",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyleOikomiRank",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "FanRaidMiniCharaData",
+    "methods": [
+      {
+        "name": "get_UniqueId",
+        "params": 0
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "get_DressId",
+        "params": 0
+      },
+      {
+        "name": "get_IsVisibleMessage",
+        "params": 0
+      },
+      {
+        "name": "get_MiniBgCharaMotionId",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "RoomMatchLobbyMiniCharaData",
+    "methods": [
+      {
+        "name": "get_UniqueId",
+        "params": 0
+      },
+      {
+        "name": "set_UniqueId",
+        "params": 1
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_CharaId",
+        "params": 0
+      },
+      {
+        "name": "set_CharaId",
+        "params": 1
+      },
+      {
+        "name": "get_DressId",
+        "params": 0
+      },
+      {
+        "name": "set_DressId",
+        "params": 1
+      },
+      {
+        "name": "get_IsVisibleMessage",
+        "params": 0
+      },
+      {
+        "name": "get_ViewerId",
+        "params": 0
+      },
+      {
+        "name": "set_ViewerId",
+        "params": 1
+      },
+      {
+        "name": "get_TrainerName",
+        "params": 0
+      },
+      {
+        "name": "set_TrainerName",
+        "params": 1
+      },
+      {
+        "name": "get_TrainedChara",
+        "params": 0
+      },
+      {
+        "name": "set_TrainedChara",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 4
+      },
+      {
+        "name": ".ctor",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "TeamStadiumTrainedCharaDataAccessor",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 2
+      },
+      {
+        "name": "GetTrainedCharaData",
+        "params": 1
+      },
+      {
+        "name": "AddTrainerName",
+        "params": 1
+      },
+      {
+        "name": "GetTrainerName",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "WorkSingleModeCharaData",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "PresetEntryCharaData",
+    "methods": [
+      {
+        "name": "get_EntryId",
+        "params": 0
+      },
+      {
+        "name": "get_RunningStyle",
+        "params": 0
+      },
+      {
+        "name": "get_TrainedCharaId",
+        "params": 0
+      },
+      {
+        "name": "get_ViewerId",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": ".ctor",
+        "params": 4
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop.CutIn.Cutt",
+    "name": "TimelineKeyCameraTargetCharaDataList",
+    "methods": [
+      {
+        "name": "get_TargetCharacterId",
+        "params": 0
+      },
+      {
+        "name": "set_TargetCharacterId",
+        "params": 1
+      },
+      {
+        "name": "GetTempKeyListBetweenFrame",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop.CutIn.Cutt",
+    "name": "TimelineKeyCameraTargetCharaData",
+    "methods": [
+      {
+        "name": "get_dataType",
+        "params": 0
+      },
+      {
+        "name": "set_UseTargetCharacter",
+        "params": 1
+      },
+      {
+        "name": "get_UseTargetCharacter",
+        "params": 0
+      },
+      {
+        "name": "set_TargetCharacterId",
+        "params": 1
+      },
+      {
+        "name": "get_TargetCharacterId",
+        "params": 0
+      },
+      {
+        "name": "get_IsBlendPersonalityMotion",
+        "params": 0
+      },
+      {
+        "name": "set_IsBlendPersonalityMotion",
+        "params": 1
+      },
+      {
+        "name": "get_IndividualScale",
+        "params": 0
+      },
+      {
+        "name": "get_TargetCharacterIndices",
+        "params": 0
+      },
+      {
+        "name": "get_IsHighestCharacter",
+        "params": 0
+      },
+      {
+        "name": "set_IsHighestCharacter",
+        "params": 1
+      },
+      {
+        "name": "get_IsMainAndSubAverage",
+        "params": 0
+      },
+      {
+        "name": "set_IsMainAndSubAverage",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "NoteGetCharaDataRequest",
+    "methods": [
+      {
+        "name": "CreateTask",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "NoteGetCharaDataResponse",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "NoteGetCharaDataTask",
+    "methods": [
+      {
+        "name": "get_CacheTime",
+        "params": 0
+      },
+      {
+        "name": "get_IsCompressed",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": "SetHeader",
+        "params": 2
+      },
+      {
+        "name": "Send",
+        "params": 1
+      },
+      {
+        "name": "Deserialize",
+        "params": 1
+      },
+      {
+        "name": "OnError",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "NoteSaveCharaDataRequest",
+    "methods": [
+      {
+        "name": "CreateTask",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "NoteSaveCharaDataResponse",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop",
+    "name": "NoteSaveCharaDataTask",
+    "methods": [
+      {
+        "name": "get_CacheTime",
+        "params": 0
+      },
+      {
+        "name": "get_IsCompressed",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 3
+      },
+      {
+        "name": "SetHeader",
+        "params": 2
+      },
+      {
+        "name": "Send",
+        "params": 1
+      },
+      {
+        "name": "Deserialize",
+        "params": 1
+      },
+      {
+        "name": "OnError",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "NoteGetCharaDataRequestFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "NoteGetCharaDataResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "NoteGetCharaDataResponse_CommonResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "NoteSaveCharaDataRequestFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "NoteSaveCharaDataResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.Http.dll",
+    "namespace": "Gallop.MsgPack.Formatters",
+    "name": "NoteSaveCharaDataResponse_CommonResponseFormatter",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "Serialize",
+        "params": 4
+      },
+      {
+        "name": "Deserialize",
+        "params": 4
+      }
+    ]
+  }
+]

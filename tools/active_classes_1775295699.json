@@ -1,0 +1,32 @@
+[
+  {
+    "namespace": "Gallop",
+    "name": "FlickHandler",
+    "ts": 1775295695333
+  },
+  {
+    "namespace": "Gallop",
+    "name": "FlickableButton",
+    "ts": 1775295695333
+  },
+  {
+    "namespace": "Gallop",
+    "name": "PartsSupportCardFrame",
+    "ts": 1775295695333
+  },
+  {
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreak",
+    "ts": 1775295695333
+  },
+  {
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreakIcon",
+    "ts": 1775295695333
+  },
+  {
+    "namespace": "System.Collections.Generic",
+    "name": "List`1",
+    "ts": 1775295695334
+  }
+]

@@ -1,0 +1,374 @@
+[
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreak",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "CreateNextLimitBreakAnimationObj",
+        "params": 0
+      },
+      {
+        "name": "ShowNextLimitBreak",
+        "params": 2
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreakAnimation",
+    "methods": [
+      {
+        "name": "Initialize",
+        "params": 1
+      },
+      {
+        "name": "IsPlayingAnimation",
+        "params": 0
+      },
+      {
+        "name": "IsSkipEnd",
+        "params": 0
+      },
+      {
+        "name": "SkipAnimation",
+        "params": 0
+      },
+      {
+        "name": "IsFinishStoneAnimation",
+        "params": 0
+      },
+      {
+        "name": "AnimationStart",
+        "params": 2
+      },
+      {
+        "name": "AnimationEnd",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<Initialize>b__23_0",
+        "params": 1
+      },
+      {
+        "name": "<AnimationStart>b__28_0",
+        "params": 0
+      },
+      {
+        "name": "<AnimationStart>b__28_1",
+        "params": 1
+      },
+      {
+        "name": "<AnimationStart>b__28_3",
+        "params": 0
+      },
+      {
+        "name": "<AnimationStart>b__28_2",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreakIcon",
+    "methods": [
+      {
+        "name": "RegisterDownload",
+        "params": 1
+      },
+      {
+        "name": "Apply",
+        "params": 1
+      },
+      {
+        "name": "ShowAnimatedObj",
+        "params": 0
+      },
+      {
+        "name": "GreyOut",
+        "params": 0
+      },
+      {
+        "name": "CreateNextLimitBreakAnimatedObject",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreakItemIcon",
+    "methods": [
+      {
+        "name": "get_ItemId",
+        "params": 0
+      },
+      {
+        "name": "set_ItemId",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 3
+      },
+      {
+        "name": "SetCursor",
+        "params": 1
+      },
+      {
+        "name": "UpdateDispNum",
+        "params": 4
+      },
+      {
+        "name": "IsAbleLimitBreak",
+        "params": 2
+      },
+      {
+        "name": "GetNeedItemNum",
+        "params": 2
+      },
+      {
+        "name": "UpdateItemNum",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreakItemList",
+    "methods": [
+      {
+        "name": "get_SelectItemId",
+        "params": 0
+      },
+      {
+        "name": "set_SelectItemId",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 0
+      },
+      {
+        "name": "InitTabSelect",
+        "params": 0
+      },
+      {
+        "name": "UpdateItemList",
+        "params": 4
+      },
+      {
+        "name": "UpdateTabChange",
+        "params": 1
+      },
+      {
+        "name": "UpdateSelect",
+        "params": 1
+      },
+      {
+        "name": "IsAbleLimitBreakItem",
+        "params": 2
+      },
+      {
+        "name": "IsAbleLimitBreakSelectItem",
+        "params": 2
+      },
+      {
+        "name": "GetSelectItemData",
+        "params": 0
+      },
+      {
+        "name": "UpdateItemNum",
+        "params": 0
+      },
+      {
+        "name": "OnDestroy",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": "<Setup>b__13_1",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "PartsSupportCardLimitBreakMain",
+    "methods": [
+      {
+        "name": "Setup",
+        "params": 1
+      },
+      {
+        "name": "Release",
+        "params": 0
+      },
+      {
+        "name": "Initialize",
+        "params": 0
+      },
+      {
+        "name": "SetParticle",
+        "params": 1
+      },
+      {
+        "name": "OffParticle",
+        "params": 0
+      },
+      {
+        "name": "WaitTap",
+        "params": 0
+      },
+      {
+        "name": "UpdateTabSelect",
+        "params": 0
+      },
+      {
+        "name": "UpdateStrengthenMainUI",
+        "params": 0
+      },
+      {
+        "name": "IsLimit",
+        "params": 0
+      },
+      {
+        "name": "IsAbleUseLimitBreakItem",
+        "params": 0
+      },
+      {
+        "name": "CalcUpgradeableLimitBreak",
+        "params": 0
+      },
+      {
+        "name": "InitHorseShoe",
+        "params": 0
+      },
+      {
+        "name": "ChangeSupportCard",
+        "params": 1
+      },
+      {
+        "name": "ApplyLimitBreakStatus",
+        "params": 1
+      },
+      {
+        "name": "UpdateLimitBreakDisp",
+        "params": 0
+      },
+      {
+        "name": "UpdateUppterBreakNumDisp",
+        "params": 0
+      },
+      {
+        "name": "UpdateCenterButtonDisp",
+        "params": 1
+      },
+      {
+        "name": "OnClickCenterButton",
+        "params": 0
+      },
+      {
+        "name": "OnSuccessLimitBreak",
+        "params": 0
+      },
+      {
+        "name": "OnAnimationEnd",
+        "params": 0
+      },
+      {
+        "name": "InitTab",
+        "params": 0
+      },
+      {
+        "name": "OnChangeToggle",
+        "params": 1
+      },
+      {
+        "name": "ForceToggleChange",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      },
+      {
+        "name": "<OnClickCenterButton>b__56_0",
+        "params": 0
+      },
+      {
+        "name": "<OnClickCenterButton>b__56_1",
+        "params": 0
+      },
+      {
+        "name": "<OnSuccessLimitBreak>b__57_0",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "PartsSupportCardLimitBreakMain",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "PartsSupportCardLimitBreakItemIcon",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 0
+      },
+      {
+        "name": ".cctor",
+        "params": 0
+      }
+    ]
+  }
+]

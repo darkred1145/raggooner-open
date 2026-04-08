@@ -1,0 +1,601 @@
+[
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "SupportCardData",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 17
+      },
+      {
+        "name": "get_Name",
+        "params": 0
+      },
+      {
+        "name": "get_Titlename",
+        "params": 0
+      },
+      {
+        "name": "get_Charaname",
+        "params": 0
+      },
+      {
+        "name": "get_CharaNameFurigana",
+        "params": 0
+      },
+      {
+        "name": "get_GroupName",
+        "params": 0
+      },
+      {
+        "name": "get_Story",
+        "params": 0
+      },
+      {
+        "name": "get_IsFriendSupportCard",
+        "params": 0
+      },
+      {
+        "name": "get_IsGroupSupportCard",
+        "params": 0
+      },
+      {
+        "name": "get_IsCharaSupportCard",
+        "params": 0
+      },
+      {
+        "name": "GetBestTraining",
+        "params": 0
+      },
+      {
+        "name": "IsAvailable",
+        "params": 1
+      },
+      {
+        "name": "GetMasterSupportCardGroupList",
+        "params": 0
+      },
+      {
+        "name": "GetGroupCharaIdList",
+        "params": 0
+      },
+      {
+        "name": "ContainsGroupSupportCard",
+        "params": 1
+      },
+      {
+        "name": "GetCharaIdList",
+        "params": 0
+      },
+      {
+        "name": "GetRestrictScenarioIdList",
+        "params": 0
+      },
+      {
+        "name": "CanUseScenario",
+        "params": 1
+      },
+      {
+        "name": "CanJoinDeckGroupSupportCard",
+        "params": 1
+      },
+      {
+        "name": "<CanJoinDeckGroupSupportCard>b__45_1",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "MasterSupportCardData",
+    "methods": [
+      {
+        "name": "get_dictionary",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Get",
+        "params": 1
+      },
+      {
+        "name": "_SelectOne",
+        "params": 1
+      },
+      {
+        "name": "GetWithCharaIdOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "_SelectWithCharaIdOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "GetListWithCharaIdOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "MaybeListWithCharaIdOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "_ListSelectWithCharaIdOrderByIdAsc",
+        "params": 1
+      },
+      {
+        "name": "_CreateOrmByQueryResultWithCharaIdOrderByIdAsc",
+        "params": 2
+      },
+      {
+        "name": "Unload",
+        "params": 0
+      },
+      {
+        "name": "_ForcePreloadAllEntries",
+        "params": 0
+      },
+      {
+        "name": "GetName",
+        "params": 1
+      },
+      {
+        "name": "GetDictInTerm",
+        "params": 1
+      },
+      {
+        "name": "GetListWithCharaIdInTerm",
+        "params": 2
+      },
+      {
+        "name": "GetListWithCharaIdInTermInGroup",
+        "params": 2
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "SupportCardData",
+    "methods": [
+      {
+        "name": "GetMasterSupportCard",
+        "params": 0
+      },
+      {
+        "name": "GetMasterChara",
+        "params": 0
+      },
+      {
+        "name": "GetMasterSupportCardLimit",
+        "params": 0
+      },
+      {
+        "name": "GetMasterSupportCardLevel",
+        "params": 0
+      },
+      {
+        "name": "GetMasterSupportCardEffectList",
+        "params": 0
+      },
+      {
+        "name": "GetMasterUniqueEffect",
+        "params": 0
+      },
+      {
+        "name": "GetSupportCardId",
+        "params": 0
+      },
+      {
+        "name": "GetTitleName",
+        "params": 0
+      },
+      {
+        "name": "GetSupportName",
+        "params": 0
+      },
+      {
+        "name": "GetStory",
+        "params": 0
+      },
+      {
+        "name": "GetRarity",
+        "params": 0
+      },
+      {
+        "name": "GetCommandType",
+        "params": 0
+      },
+      {
+        "name": "GetCommandId",
+        "params": 0
+      },
+      {
+        "name": "GetCharaName",
+        "params": 0
+      },
+      {
+        "name": "GetCharaFurigana",
+        "params": 0
+      },
+      {
+        "name": "GetCharaId",
+        "params": 0
+      },
+      {
+        "name": "get_SupportCardId",
+        "params": 0
+      },
+      {
+        "name": "get_Level",
+        "params": 0
+      },
+      {
+        "name": "get_LimitBreakCount",
+        "params": 0
+      },
+      {
+        "name": "get_MaxLevel",
+        "params": 0
+      },
+      {
+        "name": "get_CreateTime",
+        "params": 0
+      },
+      {
+        "name": "get_Exp",
+        "params": 0
+      },
+      {
+        "name": "get_Stock",
+        "params": 0
+      },
+      {
+        "name": "get_IsFavoriteLock",
+        "params": 0
+      },
+      {
+        "name": "set_IsFavoriteLock",
+        "params": 1
+      },
+      {
+        "name": "get_BestTraining",
+        "params": 0
+      },
+      {
+        "name": "get_SkillTriggerTagArray",
+        "params": 0
+      },
+      {
+        "name": "set_SkillTriggerTagArray",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": "Update",
+        "params": 1
+      },
+      {
+        "name": "Setup",
+        "params": 6
+      },
+      {
+        "name": "ClearMasterData",
+        "params": 0
+      },
+      {
+        "name": "SetUpStock",
+        "params": 1
+      },
+      {
+        "name": "SetupParams",
+        "params": 0
+      },
+      {
+        "name": "SetMasterData",
+        "params": 0
+      },
+      {
+        "name": "ToDefaultParameter",
+        "params": 0
+      },
+      {
+        "name": "ToMaxParameter",
+        "params": 0
+      },
+      {
+        "name": "SetMasterSupportCardLevel",
+        "params": 0
+      },
+      {
+        "name": "SetExp",
+        "params": 1
+      },
+      {
+        "name": "SetLevelForce",
+        "params": 1
+      },
+      {
+        "name": "SetLimitBreak",
+        "params": 1
+      },
+      {
+        "name": "IsLimitBreakMax",
+        "params": 0
+      },
+      {
+        "name": "GetCanLimitBreakNum",
+        "params": 0
+      },
+      {
+        "name": "IsLevelMax",
+        "params": 0
+      },
+      {
+        "name": "IsNextLevelMax",
+        "params": 1
+      },
+      {
+        "name": "CalcMaxLevel",
+        "params": 1
+      },
+      {
+        "name": "GetMaxStrengthLevelMyItem",
+        "params": 2
+      },
+      {
+        "name": "GetCurrentLevelExp",
+        "params": 0
+      },
+      {
+        "name": "GetNextLevelTotalExp",
+        "params": 0
+      },
+      {
+        "name": "GetTargetLevelTotalExp",
+        "params": 1
+      },
+      {
+        "name": "IsHaveUniqueEffect",
+        "params": 0
+      },
+      {
+        "name": "CanLimitBreakAtLeastOne",
+        "params": 0
+      },
+      {
+        "name": "CanLevelUpAtLeastOne",
+        "params": 0
+      },
+      {
+        "name": "<ToMaxParameter>b__63_0",
+        "params": 1
+      },
+      {
+        "name": "<GetNextLevelTotalExp>b__75_0",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop",
+    "name": "WorkSupportCardData",
+    "methods": [
+      {
+        "name": "UpdateAll",
+        "params": 1
+      },
+      {
+        "name": "AddSupportCardList",
+        "params": 1
+      },
+      {
+        "name": "AddSupportCardData",
+        "params": 1
+      },
+      {
+        "name": "UpdateSupportCardData",
+        "params": 1
+      },
+      {
+        "name": "GetSupportCardData",
+        "params": 1
+      },
+      {
+        "name": "GetSupportCardList",
+        "params": 0
+      },
+      {
+        "name": "GetCharaIdList",
+        "params": 0
+      },
+      {
+        "name": "HasSupportCard",
+        "params": 1
+      },
+      {
+        "name": "GetSupportCardListByCharaId",
+        "params": 1
+      },
+      {
+        "name": "GetSupportCardListByCharaIdInGroup",
+        "params": 1
+      },
+      {
+        "name": "HasSupportCardByCharaId",
+        "params": 1
+      },
+      {
+        "name": "HasLimitBreakEnableSupportCard",
+        "params": 0
+      },
+      {
+        "name": "HasLevelUpEnableSupportCard",
+        "params": 0
+      },
+      {
+        "name": "RegisterDownloadAssets",
+        "params": 2
+      },
+      {
+        "name": "ListUpSupportCardAssetbundlePath",
+        "params": 1
+      },
+      {
+        "name": "get_BackableStateStack",
+        "params": 0
+      },
+      {
+        "name": "StackCardHaveViewForBack",
+        "params": 1
+      },
+      {
+        "name": "BackCardHaveViewUsingStack",
+        "params": 0
+      },
+      {
+        "name": "ClearCardHaveViewBackStack",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "SupportCardData",
+    "methods": [
+      {
+        "name": "get_Position",
+        "params": 0
+      },
+      {
+        "name": "set_Position",
+        "params": 1
+      },
+      {
+        "name": "get_SupportCardId",
+        "params": 0
+      },
+      {
+        "name": "set_SupportCardId",
+        "params": 1
+      },
+      {
+        "name": "get_LimitBreakCount",
+        "params": 0
+      },
+      {
+        "name": "set_LimitBreakCount",
+        "params": 1
+      },
+      {
+        "name": "get_Exp",
+        "params": 0
+      },
+      {
+        "name": "set_Exp",
+        "params": 1
+      },
+      {
+        "name": "get_MasterSupportCardData",
+        "params": 0
+      },
+      {
+        "name": "get_Level",
+        "params": 0
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 1
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "",
+    "name": "SupportCardDataForAutoSelect",
+    "methods": [
+      {
+        "name": ".ctor",
+        "params": 3
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop.CutIn.Cutt",
+    "name": "TimelineSupportCardData",
+    "methods": [
+      {
+        "name": "get_Keys",
+        "params": 0
+      },
+      {
+        "name": "IsExistKey",
+        "params": 1
+      },
+      {
+        "name": "AlterUpdate",
+        "params": 5
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop.CutIn.Cutt",
+    "name": "TimelineKeySupportCardDataList",
+    "methods": [
+      {
+        "name": "AlterUpdate",
+        "params": 5
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  },
+  {
+    "assembly": "umamusume.dll",
+    "namespace": "Gallop.CutIn.Cutt",
+    "name": "TimelineKeySupportCardData",
+    "methods": [
+      {
+        "name": "get_dataType",
+        "params": 0
+      },
+      {
+        "name": "OnLoad",
+        "params": 1
+      },
+      {
+        "name": ".ctor",
+        "params": 0
+      }
+    ]
+  }
+]
