@@ -141,6 +141,30 @@ describe('useTournamentFlow — uma-draft format', () => {
         }))
     })
 
+    it('registration → draft: calls secureUpdate with draft status and structure', async () => {
+        const tournament = ref(makeTournament({ format: 'uma-draft', status: 'registration' }))
+        const { advancePhase } = useTournamentFlow(tournament, secureUpdate)
+
+        await advancePhase()
+
+        expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            status: 'draft',
+            draft: { order: ['team-1', 'team-2', 'team-2', 'team-1'], currentIdx: 0 },
+        }))
+    })
+
+    it('draft → ban: sets status to ban and records banTimerStart', async () => {
+        const tournament = ref(makeTournament({ format: 'uma-draft', status: 'draft' }))
+        const { advancePhase } = useTournamentFlow(tournament, secureUpdate)
+
+        await advancePhase()
+
+        expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            status: 'ban',
+            banTimerStart: expect.any(String),
+        }))
+    })
+
     it('pick → active: transitions to active', async () => {
         const tournament = ref(makeTournament({ format: 'uma-draft', status: 'pick' }))
         const { advancePhase } = useTournamentFlow(tournament, secureUpdate)
@@ -148,6 +172,29 @@ describe('useTournamentFlow — uma-draft format', () => {
         await advancePhase()
 
         expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: 'active' }))
+    })
+
+    it('pick → active: sets stage to finals for small tournament', async () => {
+        const tournament = ref(makeTournament({ format: 'uma-draft', status: 'pick' }))
+        const { advancePhase } = useTournamentFlow(tournament, secureUpdate)
+
+        await advancePhase()
+
+        expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            stage: 'finals',
+        }))
+    })
+
+    it('active → completed: sets status to completed', async () => {
+        const tournament = ref(makeTournament({ format: 'uma-draft', status: 'active' }))
+        const { advancePhase } = useTournamentFlow(tournament, secureUpdate)
+
+        await advancePhase()
+
+        expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            status: 'completed',
+            completedAt: expect.any(String),
+        }))
     })
 })
 
@@ -191,6 +238,32 @@ describe('useTournamentFlow — guards', () => {
     it('reopenTournament does nothing when status is not completed', async () => {
         const secureUpdate = vi.fn()
         const tournament = ref(makeTournament({ status: 'active' }))
+        const { reopenTournament } = useTournamentFlow(tournament, secureUpdate)
+
+        await reopenTournament()
+
+        expect(secureUpdate).not.toHaveBeenCalled()
+    })
+
+    it('reopenTournament handles secureUpdate errors gracefully', async () => {
+        const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+        const alertMock = vi.fn()
+        vi.stubGlobal('alert', alertMock)
+        const failingUpdate = vi.fn().mockRejectedValueOnce(new Error('network'))
+        const tournament = ref(makeTournament({ status: 'completed' }))
+        const { reopenTournament } = useTournamentFlow(tournament, failingUpdate)
+
+        await reopenTournament()
+
+        expect(consoleError).toHaveBeenCalled()
+        expect(alertMock).toHaveBeenCalled()
+        consoleError.mockRestore()
+        vi.unstubAllGlobals()
+    })
+
+    it('reopenTournament does nothing when tournament is null', async () => {
+        const secureUpdate = vi.fn()
+        const tournament = ref<Tournament | null>(null)
         const { reopenTournament } = useTournamentFlow(tournament, secureUpdate)
 
         await reopenTournament()

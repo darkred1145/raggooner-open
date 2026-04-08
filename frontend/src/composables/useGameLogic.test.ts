@@ -651,6 +651,43 @@ describe('useGameLogic', () => {
             expect(updated.adjustments).toHaveLength(1);
             expect(updated.adjustments[0].id).toBe('adj2');
         });
+
+        it('removeTeamAdjustment passes through teams that do not match (return t branch)', async () => {
+            const teams: Team[] = [
+                {
+                    ...makeTeam('t1', 'c1'),
+                    adjustments: [{ id: 'adj1', amount: -10, reason: 'Penalty', stage: 'groups' }],
+                },
+                makeTeam('t2', 'c2'), // no adjustments — hits return t
+            ];
+            const { removeTeamAdjustment } = useGameLogic(ref(makeTournament({ teams })), secureUpdate);
+            await removeTeamAdjustment('t1', 'adj1');
+            const call = secureUpdate.mock.calls[0]![0] as any;
+            expect(call.teams).toHaveLength(2);
+        });
+
+        it('addTeamAdjustment logs error when secureUpdate throws', async () => {
+            const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+            secureUpdate.mockRejectedValueOnce(new Error('network'));
+            const tournament = ref(makeTournament({ teams: [...baseTeams] }));
+            const { addTeamAdjustment } = useGameLogic(tournament, secureUpdate);
+            await addTeamAdjustment('t1', -5, 'Late');
+            expect(consoleError).toHaveBeenCalled();
+            consoleError.mockRestore();
+        });
+
+        it('removeTeamAdjustment logs error when secureUpdate throws', async () => {
+            const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+            secureUpdate.mockRejectedValueOnce(new Error('network'));
+            const teams: Team[] = [{
+                ...makeTeam('t1', 'c1'),
+                adjustments: [{ id: 'adj1', amount: -10, reason: 'Penalty', stage: 'groups' }],
+            }];
+            const { removeTeamAdjustment } = useGameLogic(ref(makeTournament({ teams })), secureUpdate);
+            await removeTeamAdjustment('t1', 'adj1');
+            expect(consoleError).toHaveBeenCalled();
+            consoleError.mockRestore();
+        });
     });
 
     // ── Tap-to-rank ────────────────────────────────────────────────────────────
@@ -736,6 +773,34 @@ describe('useGameLogic', () => {
             expect(call['races.groups-A-1'].placements['p2']).toBe(2);
             expect(Object.keys(entryMap.value)).toHaveLength(0);
         });
+
+        it('updateRacePlacement logs error when secureUpdate throws', async () => {
+            const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+            secureUpdate.mockRejectedValueOnce(new Error('network'));
+            const teams = [makeTeam('t1', 'p1', 'A')];
+            const players = { p1: makePlayer('p1', 'A', true) };
+            const { updateRacePlacement } = useGameLogic(ref(makeTournament({ teams, players })), secureUpdate);
+            await updateRacePlacement('A', 1, 1, 'p1');
+            expect(consoleError).toHaveBeenCalled();
+            consoleError.mockRestore();
+        });
+
+        it('saveTapResults logs error and restores state when secureUpdate throws', async () => {
+            const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+            vi.stubGlobal('alert', vi.fn());
+            secureUpdate.mockRejectedValueOnce(new Error('network'));
+            const teams = [makeTeam('t1', 'p1', 'A')];
+            const players = { p1: makePlayer('p1', 'A', true) };
+            const { handleTapToRank, saveTapResults, entryMap } =
+                useGameLogic(ref(makeTournament({ teams, players })), secureUpdate);
+            handleTapToRank('p1');
+            await saveTapResults('A', 1);
+            expect(consoleError).toHaveBeenCalled();
+            expect(window.alert).toHaveBeenCalled();
+            expect(entryMap.value[1]).toBe('p1'); // entryMap restored
+            consoleError.mockRestore();
+            vi.unstubAllGlobals();
+        });
     });
 
     // ── Winning teams & visual rank ───────────────────────────────────────────
@@ -779,6 +844,153 @@ describe('useGameLogic', () => {
             const { getVisualRankIndex } = useGameLogic(ref(makeTournament({ teams, usePlacementTiebreaker: false })), secureUpdate);
             expect(getVisualRankIndex(1, teams)).toBe(0); // tied → inherits rank 0
             expect(getVisualRankIndex(2, teams)).toBe(2); // not tied → rank 2
+        });
+    });
+
+    // ── Null-tournament early-return guards ───────────────────────────────────
+
+    describe('Null tournament guards', () => {
+        it('all exported functions/computeds return early/default when tournament is null', async () => {
+            const nullTournament = ref<any>(null);
+            const {
+                getRaceCount, getRoundPoints, getTotalPoints, getGroupWildcards,
+                sortedPlayers, sortedTeamsA, sortedTeamsB, sortedTeamsC, sortedFinalsTeams,
+                sortedRaces, canAdvanceToFinals, canEndTournament,
+                projectedProgression, activeStagePlayers, toggleBan, addTeamAdjustment,
+                removeTeamAdjustment, winningTeams, toggleEditRace, updateRacePlacement, saveTapResults
+            } = useGameLogic(nullTournament, secureUpdate);
+
+            expect(getRaceCount('A')).toBe(0);
+            expect(getRoundPoints('p1')).toBe(0);
+            expect(getTotalPoints('p1')).toBe(0);
+            expect(getGroupWildcards('A')).toEqual([]);
+            expect(sortedPlayers.value).toEqual([]);
+            expect(sortedTeamsA.value).toEqual([]);
+            expect(sortedTeamsB.value).toEqual([]);
+            expect(sortedTeamsC.value).toEqual([]);
+            expect(sortedFinalsTeams.value).toEqual([]);
+            expect(sortedRaces.value).toEqual([]);
+            expect(canAdvanceToFinals.value).toBe(false);
+            expect(canEndTournament.value).toBe(false);
+            expect(projectedProgression.value).toEqual({ tied: [], safe: [], needed: 0 });
+            expect(winningTeams.value).toEqual([]);
+            expect(activeStagePlayers('A')).toEqual([]);
+            await toggleBan('uma');
+            await addTeamAdjustment('t1', 0, 'r');
+            await removeTeamAdjustment('t1', 'id');
+            toggleEditRace('groups', 'A', 1);
+            await updateRacePlacement('A', 1, 1, 'p1');
+            await saveTapResults('A', 1);
+            expect(secureUpdate).not.toHaveBeenCalled();
+        });
+    });
+
+    // ── canAdvanceToFinals for small tournaments ──────────────────────────────
+
+    describe('canAdvanceToFinals small tournament', () => {
+        it('returns false when team count is less than 6 (line 130)', () => {
+            const { canAdvanceToFinals } = useGameLogic(
+                ref(makeTournament({ teams: baseTeams, stage: 'groups' })), secureUpdate
+            );
+            expect(canAdvanceToFinals.value).toBe(false);
+        });
+    });
+
+    // ── activeStagePlayers small tournament + wildcards ───────────────────────
+
+    describe('activeStagePlayers wildcards and small tournament', () => {
+        it('uses all-teams sort for small tournament and includes wildcards (lines 519, 531-533)', () => {
+            const teams = [
+                makeTeam('t1', 'c1', 'A', 50),
+                makeTeam('t2', 'c2', 'A', 30),
+            ];
+            const players = {
+                c1: makePlayer('c1', 'Cap 1', true),
+                c2: makePlayer('c2', 'Cap 2', true),
+                wc1: makePlayer('wc1', 'Wildcard 1'),
+            };
+            const wildcards = [{ playerId: 'wc1', group: 'A', points: 10 }] as any;
+            const { activeStagePlayers } = useGameLogic(
+                ref(makeTournament({ teams, players, wildcards })), secureUpdate
+            );
+            const ids = activeStagePlayers('A').map((p: any) => p.id);
+            expect(ids).toContain('c1');
+            expect(ids).toContain('c2');
+            expect(ids).toContain('wc1');
+        });
+    });
+
+    // ── saveTapResults saving guard ───────────────────────────────────────────
+
+    describe('saveTapResults saving guard', () => {
+        it('returns early when saving is already in progress (line 759)', async () => {
+            const teams = [makeTeam('t1', 'p1', 'A', 0)];
+            const players = { p1: makePlayer('p1', 'Player 1') };
+            const fastUpdate = vi.fn().mockResolvedValue(undefined);
+            const { updateRacePlacement, saveTapResults } = useGameLogic(
+                ref(makeTournament({ teams, players })), fastUpdate
+            );
+
+            // Start updateRacePlacement without awaiting (sets saving.value = true synchronously before first await)
+            const pendingUpdate = updateRacePlacement('A', 1, 1, 'p1');
+
+            // saveTapResults should find saving.value === true and return early (line 759)
+            await saveTapResults('A', 1);
+            expect(fastUpdate).toHaveBeenCalledTimes(1); // only from updateRacePlacement
+
+            // Let the pending update complete to restore saving.value = false
+            await pendingUpdate;
+        });
+    });
+
+    // ── projectedProgression 6-team tie scenarios ─────────────────────────────
+
+    describe('projectedProgression 6-team tie scenarios', () => {
+        it('covers group B top tie (lines 307-317) and safer-team path in TIE BOUNDARY (lines 344-348)', () => {
+            // Group A: clear winner (tA1=100), runner tA2=25, third tA3=0
+            // Group B: all-tie at 0pts → top tie detected (lines 307-317)
+            // wildCardPool gets tA2(25) + tB1/tB2/tB3(0)
+            // At TIE BOUNDARY, tA2 is safer than the tied group B teams (lines 344-348)
+            const teams = [
+                makeTeam('tA1', 'pA1', 'A', 100),
+                makeTeam('tA2', 'pA2', 'A', 25),
+                makeTeam('tA3', 'pA3', 'A', 0),
+                makeTeam('tB1', 'pB1', 'B', 0),
+                makeTeam('tB2', 'pB2', 'B', 0),
+                makeTeam('tB3', 'pB3', 'B', 0),
+            ];
+            const { projectedProgression } = useGameLogic(ref(makeTournament({ teams })), secureUpdate);
+            const result = projectedProgression.value;
+            expect(result.safe).toContain('tA1'); // group A winner
+            expect(result.safe).toContain('tA2'); // safer than tie boundary → promoted to safe
+            expect(result.tied.map((t: any) => t.id)).toContain('tB1');
+            expect(result.tied.map((t: any) => t.id)).toContain('tB2');
+            expect(result.needed).toBe(1);
+        });
+
+        it('covers group A top tie (lines 280-290) and CLEAR BOUNDARY with delete (lines 357-365)', () => {
+            // Group A: tA1 and tA2 tied at 50pts → lines 280-290 covered
+            // Group B: clear winner tB1=100, runner tB2=30
+            // wildCardPool = [tA1(50), tA2(50), tB2(30)]
+            // slotsAvailable = 1 (from group A tie) + 1 (wildcard) = 2
+            // Sorted pool: [tA1(50), tA2(50), tB2(30)]
+            // lastQualifier=tA2(50), firstLoser=tB2(30) → CLEAR BOUNDARY
+            // Loop runs with tA1/tA2 in tiedSet → delete from tiedSet (line 360 body)
+            const teams = [
+                makeTeam('tA1', 'pA1', 'A', 50),
+                makeTeam('tA2', 'pA2', 'A', 50),
+                makeTeam('tA3', 'pA3', 'A', 0),
+                makeTeam('tB1', 'pB1', 'B', 100),
+                makeTeam('tB2', 'pB2', 'B', 30),
+                makeTeam('tB3', 'pB3', 'B', 0),
+            ];
+            const { projectedProgression } = useGameLogic(ref(makeTournament({ teams })), secureUpdate);
+            const result = projectedProgression.value;
+            expect(result.safe).toContain('tA1');
+            expect(result.safe).toContain('tA2');
+            expect(result.safe).toContain('tB1');
+            expect(result.tied).toHaveLength(0); // clear boundary → no ties
+            expect(result.needed).toBe(0);
         });
     });
 });

@@ -180,14 +180,97 @@ describe('useDiagrams', () => {
       { tournamentId: 't1', placements: { p1: 1, p2: 2 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' } },
       { tournamentId: 't2', placements: { p2: 1, p3: 2 }, umaMapping: { p2: 'Silence Suzuka', p3: 'Special Week' } }
     ] as any);
-    
+
     const { playerTimelineData, diagramSelectedPlayerIds, diagramMode } = useDiagrams(
       players, filteredTournaments, mixedRaces, playerRankings, activeTab, ref('total' as any)
     );
-    
+
     diagramSelectedPlayerIds.value = ['p1', 'p2'];
     diagramMode.value = 'cumulative';
-    
+
     expect(playerTimelineData.value.datasets.find(d => d.label === 'Alice')?.points).toEqual([100, null]);
+  });
+
+  it('handles cumulative avg-points mode for UMA timeline', () => {
+    const { diagramSelectedUmaNames, diagramMode, diagramMetric, umaTimelineData } = useDiagrams(
+      players, filteredTournaments, filteredRaces, playerRankings, activeTab, ref('total' as any)
+    );
+
+    diagramSelectedUmaNames.value = ['Special Week'];
+    diagramMetric.value = 'avg-points';
+    diagramMode.value = 'cumulative';
+
+    // T1: p1 (Special Week) 1st → 25pts, T2: p1 (Special Week) 2nd → 18pts
+    // Cumulative T1: 25/1 = 25, T2: (25+18)/2 = 21.5
+    const points = umaTimelineData.value.datasets[0].points;
+    expect(points[0]).toBe(25);
+    expect(points[1]).toBe(21.5);
+  });
+
+  it('handles cumulative dominance mode for UMA timeline', () => {
+    const { diagramSelectedUmaNames, diagramMode, umaTimelineData } = useDiagrams(
+      players, filteredTournaments, filteredRaces, playerRankings, activeTab, ref('total' as any)
+    );
+
+    diagramSelectedUmaNames.value = ['Special Week'];
+    diagramMode.value = 'cumulative';
+
+    // T1: p1 (Special Week) 1st of 2 → faced=1, beaten=1 → 100
+    // T2: p1 (Special Week) 2nd of 2 → cumFaced=2, cumBeaten=1 → 50
+    const points = umaTimelineData.value.datasets[0].points;
+    expect(points[0]).toBe(100);
+    expect(points[1]).toBe(50);
+  });
+
+  it('returns null for player in cumulative avg-points when stage filter removes all races', () => {
+    // stageView='finals' + hasGroups=true means only finals races count.
+    // T1 has groups race for p1 → after filter, tRaces=[] → raceCount=0 → null
+    // T2 has finals race for p1 → tRaces=[race] → normal cumulative
+    const multiGroupTournaments2 = ref([
+      { id: 't1', name: 'T1', createdAt: '2024-01-01', teams: [{ id: 'a', group: 'A' }, { id: 'b', group: 'B' }] },
+      { id: 't2', name: 'T2', createdAt: '2024-02-01', teams: [{ id: 'c', group: 'A' }, { id: 'd', group: 'B' }] },
+    ] as any);
+    const stagedPlayerRaces = ref([
+      { tournamentId: 't1', stage: 'groups', placements: { p1: 1, p2: 2 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' } },
+      { tournamentId: 't2', stage: 'finals', placements: { p1: 1, p2: 2 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' } },
+    ] as any);
+
+    const { playerTimelineData, diagramSelectedPlayerIds, diagramMode, diagramMetric } = useDiagrams(
+      players, multiGroupTournaments2, stagedPlayerRaces, playerRankings, activeTab, ref('finals' as any)
+    );
+
+    diagramSelectedPlayerIds.value = ['p1'];
+    diagramMetric.value = 'avg-points';
+    diagramMode.value = 'cumulative';
+
+    // T1: p1 has groups race but stageView='finals' → tRaces=[] → raceCount=0 → null
+    // T2: p1 has finals race → 1st = 25pts → cumulative = 25
+    const points = playerTimelineData.value.datasets[0].points;
+    expect(points[0]).toBeNull();
+    expect(points[1]).toBe(25);
+  });
+
+  it('filters races by stage view in UMA timeline', () => {
+    // Tournaments with teams in 2 groups so hasGroups=true
+    const multiGroupTournaments = ref([
+      { id: 't1', name: 'T1', createdAt: '2024-01-01', teams: [{ id: 'a', group: 'A' }, { id: 'b', group: 'B' }] },
+      { id: 't2', name: 'T2', createdAt: '2024-02-01', teams: [{ id: 'c', group: 'A' }, { id: 'd', group: 'B' }] },
+    ] as any);
+    const stagedRaces = ref([
+      { tournamentId: 't1', stage: 'groups', placements: { p1: 1, p2: 2 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' } },
+      { tournamentId: 't2', stage: 'finals', placements: { p1: 2, p2: 1 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' } },
+    ] as any);
+
+    const { diagramSelectedUmaNames, umaTimelineData } = useDiagrams(
+      players, multiGroupTournaments, stagedRaces, playerRankings, activeTab, ref('finals' as any)
+    );
+
+    diagramSelectedUmaNames.value = ['Special Week'];
+    // stageView='finals': only finals-stage races count
+    // T1 has a groups race → excluded → null
+    // T2 has a finals race with p1 2nd of 2 → dominance = 0
+    const points = umaTimelineData.value.datasets[0].points;
+    expect(points[0]).toBeNull();
+    expect(points[1]).toBe(0);
   });
 });

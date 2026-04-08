@@ -161,6 +161,65 @@ describe('useUmaDraft', () => {
         });
     });
 
+    describe('computed: remainingPicks', () => {
+        it('returns empty array when no draft', () => {
+            const tournament = ref(makeTournament({ draft: undefined }));
+            const { remainingPicks } = useUmaDraft(tournament, secureUpdate, isAdmin);
+            expect(remainingPicks.value).toEqual([]);
+        });
+
+        it('returns picks from currentIdx onward with correct shape', () => {
+            const tournament = ref(makeTournament({
+                draft: { order: ['team1', 'team2', 'team2', 'team1'], currentIdx: 1 }
+            }));
+            const { remainingPicks } = useUmaDraft(tournament, secureUpdate, isAdmin);
+
+            expect(remainingPicks.value).toHaveLength(3);
+            expect(remainingPicks.value[0]).toMatchObject({
+                teamName: 'Team 2',
+                color: '#00ff00',
+                isCurrent: true,
+            });
+            expect(remainingPicks.value[1]?.isCurrent).toBe(false);
+        });
+
+        it('falls back to Unknown and default color for missing team', () => {
+            const tournament = ref(makeTournament({
+                draft: { order: ['ghost-team'], currentIdx: 0 }
+            }));
+            const { remainingPicks } = useUmaDraft(tournament, secureUpdate, isAdmin);
+
+            expect(remainingPicks.value[0]).toMatchObject({
+                teamName: 'Unknown',
+                color: '#94a3b8',
+            });
+        });
+    });
+
+    describe('computed: isDraftComplete', () => {
+        it('returns false when no draft', () => {
+            const tournament = ref(makeTournament({ draft: undefined }));
+            const { isDraftComplete } = useUmaDraft(tournament, secureUpdate, isAdmin);
+            expect(isDraftComplete.value).toBe(false);
+        });
+
+        it('returns false when currentIdx < order.length', () => {
+            const tournament = ref(makeTournament({
+                draft: { order: ['team1', 'team2'], currentIdx: 1 }
+            }));
+            const { isDraftComplete } = useUmaDraft(tournament, secureUpdate, isAdmin);
+            expect(isDraftComplete.value).toBe(false);
+        });
+
+        it('returns true when currentIdx >= order.length', () => {
+            const tournament = ref(makeTournament({
+                draft: { order: ['team1', 'team2'], currentIdx: 2 }
+            }));
+            const { isDraftComplete } = useUmaDraft(tournament, secureUpdate, isAdmin);
+            expect(isDraftComplete.value).toBe(true);
+        });
+    });
+
     describe('error cases', () => {
         it('pickUma does nothing if team not found', async () => {
             const tournament = ref(makeTournament({

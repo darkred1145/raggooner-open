@@ -208,4 +208,179 @@ describe('usePlayerRankings', () => {
     togglePlayerTournamentSort('totalPoints');
     expect(expandedPlayerTournaments.value[0].tournamentId).toBe('t1');
   });
+
+  it('handles player with no team and no wildcards (hasGroups=false path)', () => {
+    const noTeamTournaments = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2024-01-01',
+      teams: [], races: {}, players: { p1: { id: 'p1' } }
+    }] as any);
+    const noTeamParts = ref([
+      { playerId: 'p1', tournamentId: 't1', totalPoints: 50, teamId: undefined }
+    ] as any);
+
+    const { togglePlayerExpand, expandedPlayerTournaments } = usePlayerRankings(
+      players, noTeamTournaments, noTeamParts, filteredRaces, minTournaments, tierCriterion
+    );
+    togglePlayerExpand('p1');
+    const rows = expandedPlayerTournaments.value;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].finalsStatus).toBe('-');
+  });
+
+  it('handles player with no team and no wildcards (hasGroups=true path, covers lines 521-522)', () => {
+    // Multi-group tournament so hasGroups=true, but p1 has no team → hits lines 521-522
+    const multiGroupNoTeam = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2024-01-01',
+      teams: [{ id: 'team1', captainId: 'p2', memberIds: [], group: 'A' }, { id: 'team2', captainId: 'p3', memberIds: [], group: 'B' }],
+      races: {}, players: { p1: { id: 'p1' }, p2: { id: 'p2' }, p3: { id: 'p3' } }
+    }] as any);
+    const noTeamParts2 = ref([
+      { playerId: 'p1', tournamentId: 't1', totalPoints: 50, teamId: undefined }
+    ] as any);
+
+    const { togglePlayerExpand, expandedPlayerTournaments } = usePlayerRankings(
+      players, multiGroupNoTeam, noTeamParts2, filteredRaces, minTournaments, tierCriterion
+    );
+    togglePlayerExpand('p1');
+    const rows = expandedPlayerTournaments.value;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].finalsStatus).toBe('-');
+  });
+
+  it('accesses expandedPlayerRaces computed and exercises all sort branches', () => {
+    // Two races for p1 to trigger sort comparisons
+    const multiRaceTournaments = ref([
+      { id: 't1', name: 'B Tournament', status: 'completed', createdAt: '2024-01-01', teams: [], races: {}, players: { p1: { id: 'p1' }, p2: { id: 'p2' } } },
+      { id: 't2', name: 'A Tournament', status: 'completed', createdAt: '2024-02-01', teams: [], races: {}, players: { p1: { id: 'p1' }, p2: { id: 'p2' } } },
+    ] as any);
+    const multiRaceParts = ref([
+      { playerId: 'p1', tournamentId: 't1', totalPoints: 25, teamId: 'team1' },
+      { playerId: 'p1', tournamentId: 't2', totalPoints: 18, teamId: 'team2' },
+    ] as any);
+    const multiRaces = ref([
+      { tournamentId: 't1', stage: 'groups', group: 'A', raceNumber: 1, placements: { p1: 1, p2: 2 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' } },
+      { tournamentId: 't2', stage: 'finals', group: 'A', raceNumber: 1, placements: { p1: 2, p2: 1 }, umaMapping: { p1: 'Silence Suzuka', p2: 'Special Week' } },
+    ] as any);
+
+    const { togglePlayerExpand, expandedPlayerRaces, togglePlayerRaceSort } = usePlayerRankings(
+      players, multiRaceTournaments, multiRaceParts, multiRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    togglePlayerExpand('p1');
+    expect(expandedPlayerRaces.value).toHaveLength(2);
+
+    // Sort by string key (tournamentName) → hits string branch (lines 579-580)
+    togglePlayerRaceSort('tournamentName');
+    expect(expandedPlayerRaces.value[0].tournamentName).toBe('B Tournament'); // desc: Z first
+
+    // Sort by numeric key (points, valA > valB path)
+    togglePlayerRaceSort('points'); // desc first
+    expect(expandedPlayerRaces.value[0].points).toBe(25);
+
+    // Flip to asc (valA < valB → -1)
+    togglePlayerRaceSort('points');
+    expect(expandedPlayerRaces.value[0].points).toBe(18);
+
+    // Sort by stage (string key, 'finals' vs 'groups')
+    togglePlayerRaceSort('stage');
+    expect(expandedPlayerRaces.value.length).toBe(2);
+  });
+
+  it('expandedPlayerTournaments and expandedPlayerRaces return [] when no player expanded (lines 394, 544)', () => {
+    const { expandedPlayerTournaments, expandedPlayerRaces } = usePlayerRankings(
+      players, filteredTournaments, filteredParticipations, filteredRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    expect(expandedPlayerTournaments.value).toEqual([]);
+    expect(expandedPlayerRaces.value).toEqual([]);
+  });
+
+  it('covers group race stats in playerRankings and expandedPlayerUmas (lines 221-226, 253-258, 353-357, 368-369, 381-387)', () => {
+    const twoUmaTournaments = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2024-01-01',
+      teams: [
+        { id: 'team1', captainId: 'p1', memberIds: [], group: 'A' },
+        { id: 'team2', captainId: 'p2', memberIds: [], group: 'B' }
+      ],
+      players: { p1: { id: 'p1' }, p2: { id: 'p2' } },
+      races: {}
+    }] as any);
+    const twoUmaParts = ref([
+      { playerId: 'p1', tournamentId: 't1', totalPoints: 25, teamId: 'team1' }
+    ] as any);
+    const twoUmaRaces = ref([
+      // Groups-stage race in multi-group tournament → isFinalsRace=false → covers lines 221-226, 253-258
+      { tournamentId: 't1', stage: 'groups', group: 'A', raceNumber: 1, placements: { p1: 1, p2: 2 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' } },
+      // Second UMA for p1 (Silence Suzuka) in groups race
+      { tournamentId: 't1', stage: 'groups', group: 'A', raceNumber: 2, placements: { p1: 2, p2: 1 }, umaMapping: { p1: 'Silence Suzuka', p2: 'Special Week' } },
+      // 1-player race → covers line 353 in expandedPlayerUmas
+      { tournamentId: 't1', stage: 'groups', group: 'A', raceNumber: 3, placements: { p1: 1 }, umaMapping: { p1: 'Special Week' } },
+      // 2-player race where p1 NOT in placements → covers line 355
+      { tournamentId: 't1', stage: 'groups', group: 'B', raceNumber: 1, placements: { p2: 1, p3: 2 }, umaMapping: { p2: 'Silence Suzuka' } },
+      // p1 in placements but no umaMapping entry → covers line 357
+      { tournamentId: 't1', stage: 'groups', group: 'A', raceNumber: 4, placements: { p1: 2, p2: 1 }, umaMapping: { p2: 'Special Week' } },
+    ] as any);
+
+    const { playerRankings, togglePlayerExpand, expandedPlayerUmas, playerUmaSortKey } = usePlayerRankings(
+      players, twoUmaTournaments, twoUmaParts, twoUmaRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+
+    // Verify group race stats in playerRankings (races 1, 2, and 5 all count as groups races)
+    const alice = playerRankings.value.find(p => p.player.id === 'p1');
+    expect(alice?.groupRaces).toBe(3);
+    expect(alice?.groupWins).toBe(1);
+
+    // Access expandedPlayerUmas (covers lines 368-369 for group dominance stats)
+    togglePlayerExpand('p1');
+    expect(expandedPlayerUmas.value).toHaveLength(2);
+
+    // Sort with 2 UMAs (covers lines 381-387)
+    playerUmaSortKey.value = 'racesPlayed';
+    expect(expandedPlayerUmas.value).toHaveLength(2);
+  });
+
+  it('wildcard path in expandedPlayerTournaments (lines 511-514)', () => {
+    const wildcardTournament = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2024-01-01',
+      teams: [{ id: 'team2', captainId: 'p2', memberIds: [], group: 'A' }],
+      wildcards: [{ playerId: 'p1', group: 'A', points: 10 }],
+      races: {},
+      players: { p1: { id: 'p1' }, p2: { id: 'p2' } }
+    }] as any);
+    const wildcardPart = ref([
+      { playerId: 'p1', tournamentId: 't1', totalPoints: 10, teamId: undefined }
+    ] as any);
+
+    const { togglePlayerExpand, expandedPlayerTournaments } = usePlayerRankings(
+      players, wildcardTournament, wildcardPart, ref([]), minTournaments, tierCriterion, ref('total' as any)
+    );
+    togglePlayerExpand('p1');
+    expect(expandedPlayerTournaments.value).toHaveLength(1);
+    expect(expandedPlayerTournaments.value[0].isWildcard).toBe(true);
+  });
+
+  it('expandedPlayerRaces sort returns 0 for equal values and covers race guards (lines 551, 553, 587)', () => {
+    const eqTournaments = ref([
+      { id: 't1', name: 'T1', status: 'completed', createdAt: '2024-01-01', teams: [], races: {}, players: { p1: { id: 'p1' } } },
+      { id: 't2', name: 'T2', status: 'completed', createdAt: '2024-02-01', teams: [], races: {}, players: { p1: { id: 'p1' } } },
+    ] as any);
+    const eqParts = ref([
+      { playerId: 'p1', tournamentId: 't1', totalPoints: 18, teamId: 'team1' },
+      { playerId: 'p1', tournamentId: 't2', totalPoints: 18, teamId: 'team2' },
+    ] as any);
+    const eqRaces = ref([
+      { tournamentId: 't1', stage: 'finals', group: 'A', raceNumber: 1, placements: { p1: 2, p2: 1 }, umaMapping: { p1: 'Special Week' } },
+      { tournamentId: 't2', stage: 'finals', group: 'A', raceNumber: 1, placements: { p1: 2, p2: 1 }, umaMapping: { p1: 'Special Week' } },
+      // p1 not in placements → covers line 551
+      { tournamentId: 't1', stage: 'finals', group: 'A', raceNumber: 2, placements: { p2: 1, p3: 2 }, umaMapping: { p2: 'Silence Suzuka' } },
+      // 1-player race → covers line 553
+      { tournamentId: 't1', stage: 'finals', group: 'A', raceNumber: 3, placements: { p1: 1 }, umaMapping: { p1: 'Special Week' } },
+    ] as any);
+
+    const { togglePlayerExpand, expandedPlayerRaces, playerRaceSortKey } = usePlayerRankings(
+      players, eqTournaments, eqParts, eqRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    togglePlayerExpand('p1');
+    playerRaceSortKey.value = 'points';
+    // Both races have points=18 → sort returns 0 for the comparison (line 587)
+    expect(expandedPlayerRaces.value).toHaveLength(2);
+  });
 });

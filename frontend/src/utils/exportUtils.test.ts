@@ -86,6 +86,53 @@ describe('exportUtils', () => {
         expect(messages[1]).toContain('Finals');
     });
 
+    it('generates a shortened report (truncates names)', () => {
+        const report = generateDiscordReport(tournament, true);
+        expect(report).toContain('TEST CUP');
+        // shortened path uses padEnd(12) on name
+        expect(report).toContain('Alice');
+    });
+
+    it('includes wildcards in the report', () => {
+        const tWithWildcards: Tournament = {
+            ...tournament,
+            wildcards: [{ playerId: 'p2', group: 'A', points: 10 }],
+        };
+        const report = generateDiscordReport(tWithWildcards);
+        expect(report).toContain('👻');
+        expect(report).toContain('Bob');
+    });
+
+    it('includes point adjustments in the report', () => {
+        const tWithAdj: Tournament = {
+            ...tournament,
+            teams: [
+                {
+                    ...tournament.teams[0]!,
+                    adjustments: [{ amount: 5, reason: 'bonus', stage: 'groups' }]
+                },
+                tournament.teams[1]!
+            ],
+        };
+        const report = generateDiscordReport(tWithAdj);
+        expect(report).toContain('+5 bonus');
+    });
+
+    it('includes bans in split report (generateDiscordReportSplit)', () => {
+        const tWithBansAndFinals: Tournament = {
+            ...tournament,
+            bans: ['Gold Ship', 'Rice Shower'],
+            races: {
+                ...tournament.races,
+                'finals-A-1': makeRace('rf', { p1: 1, p2: 2 }, 'finals', 'A'),
+            },
+            teams: tournament.teams.map(t => ({ ...t, inFinals: true, finalsPoints: t.id === 't1' ? 25 : 18 })),
+        };
+        const messages = generateDiscordReportSplit(tWithBansAndFinals);
+        expect(messages[1]).toContain('🚫');
+        expect(messages[1]).toContain('Gold Ship');
+    });
+
     it('generates a split report (3 parts)', () => {
         const tWithComplex: Tournament = {
             ...tournament,

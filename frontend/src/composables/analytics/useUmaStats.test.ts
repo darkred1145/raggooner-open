@@ -170,4 +170,170 @@ describe('useUmaStats', () => {
     toggleUmaTournamentSort('tournamentName');
     expect(expandedUmaTournaments.value[0].tournamentId).toBe('t1');
   });
+
+  it('accesses umaTierList computed', () => {
+    const { umaTierList } = useUmaStats(
+      players, filteredTournaments, filteredParticipations, filteredRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    expect(Array.isArray(umaTierList.value)).toBe(true);
+    for (const tier of umaTierList.value) {
+      expect(tier).toHaveProperty('tier');
+      expect(tier).toHaveProperty('entries');
+    }
+  });
+
+  it('expandedUmaPlayers tracks group-stage races for multi-group tournament', () => {
+    const multiGroupTournaments = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2026-01-01',
+      teams: [{ id: 'team1', group: 'A' }, { id: 'team2', group: 'B' }]
+    }] as any);
+    const multiGroupRaces = ref([{
+      tournamentId: 't1', stage: 'groups', group: 'A', raceNumber: 1,
+      placements: { p1: 1, p2: 2 }, umaMapping: { p1: 'Special Week', p2: 'Silence Suzuka' }
+    }] as any);
+    const multiGroupParts = ref([
+      { playerId: 'p1', tournamentId: 't1', teamId: 'team1', uma: 'Special Week' }
+    ] as any);
+    const { toggleUmaExpand, expandedUmaPlayers } = useUmaStats(
+      players, multiGroupTournaments, multiGroupParts, multiGroupRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    toggleUmaExpand('Special Week');
+    expect(expandedUmaPlayers.value).toHaveLength(1);
+    expect(expandedUmaPlayers.value[0].groupRaces).toBe(1);
+    expect(expandedUmaPlayers.value[0].groupWins).toBe(1);
+  });
+
+  it('expandedUmaTournaments covers no-groups finalsStatus path (line 363)', () => {
+    // Single-group tournament. p1 is on team1 (NOT the winner) → finalsStatus='no-groups'
+    // Must have a race so recalculateTournamentScores gives team2 more points than team1
+    const singleGroupTournaments = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2026-01-01',
+      teams: [
+        { id: 'team1', captainId: 'p1', memberIds: [], group: 'A' },
+        { id: 'team2', captainId: 'p2', memberIds: [], group: 'A' }, // p2 wins
+      ],
+      races: {
+        'r1': { stage: 'groups', group: 'A', raceNumber: 1, placements: { p2: 1, p1: 2 } }
+      },
+      players: { p1: { id: 'p1', uma: 'Special Week', totalPoints: 0, groupPoints: 0, finalsPoints: 0 }, p2: { id: 'p2', uma: 'Silence Suzuka', totalPoints: 0, groupPoints: 0, finalsPoints: 0 } }
+    }] as any);
+    const singleGroupParts = ref([
+      { playerId: 'p1', tournamentId: 't1', teamId: 'team1', uma: 'Special Week' }
+    ] as any);
+    const { toggleUmaExpand, expandedUmaTournaments } = useUmaStats(
+      players, singleGroupTournaments, singleGroupParts, filteredRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    toggleUmaExpand('Special Week');
+    expect(expandedUmaTournaments.value).toHaveLength(1);
+    expect(expandedUmaTournaments.value[0].finalsStatus).toBe('no-groups');
+  });
+
+  it('expandedUmaTournaments covers wildcard player path (lines 366-368)', () => {
+    // Player p1 is a wildcard (not on a team) in t1 → hits lines 366-368
+    const wildcardTournaments = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2026-01-01',
+      teams: [{ id: 'team2', captainId: 'p2', memberIds: [], group: 'A', points: 25, finalsPoints: 0 }],
+      wildcards: [{ playerId: 'p1', group: 'A', points: 10 }],
+      races: {},
+      players: { p1: { id: 'p1', uma: 'Special Week', totalPoints: 0, groupPoints: 0, finalsPoints: 0 }, p2: { id: 'p2', uma: 'Silence Suzuka', totalPoints: 25, groupPoints: 25, finalsPoints: 0 } }
+    }] as any);
+    const wildcardParts = ref([
+      { playerId: 'p1', tournamentId: 't1', teamId: undefined, uma: 'Special Week' }
+    ] as any);
+    const { toggleUmaExpand, expandedUmaTournaments } = useUmaStats(
+      players, wildcardTournaments, wildcardParts, filteredRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    toggleUmaExpand('Special Week');
+    expect(expandedUmaTournaments.value).toHaveLength(1);
+    expect(expandedUmaTournaments.value[0].isWildcard).toBe(true);
+  });
+
+  it('expandedUmaTournaments sort handles equal values (return 0 path, line 402)', () => {
+    // Two players both with Special Week and equal stats → sort return 0
+    const twoTournamentSameStats = ref([
+      { id: 't1', name: 'T1', status: 'completed', createdAt: '2026-01-01', teams: [] },
+      { id: 't2', name: 'T2', status: 'completed', createdAt: '2026-02-01', teams: [] },
+    ] as any);
+    const sameParts = ref([
+      { playerId: 'p1', tournamentId: 't1', teamId: undefined, uma: 'Special Week' },
+      { playerId: 'p2', tournamentId: 't2', teamId: undefined, uma: 'Special Week' },
+    ] as any);
+    const { toggleUmaExpand, expandedUmaTournaments, umaTournamentSortKey } = useUmaStats(
+      players, twoTournamentSameStats, sameParts, ref([]), minTournaments, tierCriterion, ref('total' as any)
+    );
+    toggleUmaExpand('Special Week');
+    umaTournamentSortKey.value = 'races'; // both have 0 races → equal → return 0
+    expect(expandedUmaTournaments.value).toHaveLength(2);
+  });
+
+  it('expandedUmaTournaments covers finals finalsStatus and teamRank (lines 349-351)', () => {
+    // Multi-group: p1 on team1 (inFinals=true, not winner), team2 (inFinals=true, wins finals race)
+    const finalsTournaments = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2026-01-01',
+      teams: [
+        { id: 'team1', captainId: 'p1', memberIds: [], group: 'A', inFinals: true },
+        { id: 'team2', captainId: 'p2', memberIds: [], group: 'B', inFinals: true },
+      ],
+      races: { 'r1': { stage: 'finals', group: 'A', raceNumber: 1, placements: { p2: 1, p1: 2 } } },
+      players: {
+        p1: { id: 'p1', uma: 'Special Week', totalPoints: 0, finalsPoints: 0, groupPoints: 0 },
+        p2: { id: 'p2', uma: 'Silence Suzuka', totalPoints: 0, finalsPoints: 0, groupPoints: 0 }
+      }
+    }] as any);
+    const finalsParts = ref([
+      { playerId: 'p1', tournamentId: 't1', teamId: 'team1', uma: 'Special Week' }
+    ] as any);
+    const { toggleUmaExpand, expandedUmaTournaments } = useUmaStats(
+      players, finalsTournaments, finalsParts, ref([]), minTournaments, tierCriterion, ref('total' as any)
+    );
+    toggleUmaExpand('Special Week');
+    expect(expandedUmaTournaments.value[0].finalsStatus).toBe('finals');
+    expect(expandedUmaTournaments.value[0].teamRank).toBe(2);
+  });
+
+  it('expandedUmaTournaments covers eliminated finalsStatus and teamRank (lines 353-355)', () => {
+    // Multi-group: p1 on team1 (group A, inFinals=false), team2 (group B, inFinals=true, wins)
+    const elimTournaments = ref([{
+      id: 't1', name: 'T1', status: 'completed', createdAt: '2026-01-01',
+      teams: [
+        { id: 'team1', captainId: 'p1', memberIds: [], group: 'A', inFinals: false },
+        { id: 'team2', captainId: 'p2', memberIds: [], group: 'B', inFinals: true },
+      ],
+      races: { 'r1': { stage: 'finals', group: 'B', raceNumber: 1, placements: { p2: 1, p1: 2 } } },
+      players: {
+        p1: { id: 'p1', uma: 'Special Week', totalPoints: 0, finalsPoints: 0, groupPoints: 0 },
+        p2: { id: 'p2', uma: 'Silence Suzuka', totalPoints: 0, finalsPoints: 0, groupPoints: 0 }
+      }
+    }] as any);
+    const elimParts = ref([
+      { playerId: 'p1', tournamentId: 't1', teamId: 'team1', uma: 'Special Week' }
+    ] as any);
+    const { toggleUmaExpand, expandedUmaTournaments } = useUmaStats(
+      players, elimTournaments, elimParts, ref([]), minTournaments, tierCriterion, ref('total' as any)
+    );
+    toggleUmaExpand('Special Week');
+    expect(expandedUmaTournaments.value[0].finalsStatus).toBe('eliminated');
+    expect(expandedUmaTournaments.value[0].teamRank).toBe(1);
+  });
+
+  it('sort comparator handles equal values in expandedUmaPlayers (return 0 path)', () => {
+    const twoTournaments = ref([
+      { id: 't1', name: 'T1', status: 'completed', createdAt: '2026-01-01' },
+      { id: 't2', name: 'T2', status: 'completed', createdAt: '2026-02-01' },
+    ] as any);
+    const twoParts = ref([
+      { playerId: 'p1', tournamentId: 't1', uma: 'Special Week', teamId: 'team1' },
+      { playerId: 'p2', tournamentId: 't2', uma: 'Special Week', teamId: 'team2' },
+    ] as any);
+    const twoRaces = ref([
+      { tournamentId: 't1', placements: { p1: 1, p3: 2 }, umaMapping: { p1: 'Special Week' } },
+      { tournamentId: 't2', placements: { p2: 1, p3: 2 }, umaMapping: { p2: 'Special Week' } },
+    ] as any);
+    const { toggleUmaExpand, expandedUmaPlayers, umaPlayerSortKey } = useUmaStats(
+      players, twoTournaments, twoParts, twoRaces, minTournaments, tierCriterion, ref('total' as any)
+    );
+    toggleUmaExpand('Special Week');
+    umaPlayerSortKey.value = 'races'; // both players have 1 race → equal → return 0
+    expect(expandedUmaPlayers.value).toHaveLength(2);
+  });
 });

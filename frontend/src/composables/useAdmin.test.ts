@@ -203,6 +203,60 @@ describe('useAdmin', () => {
       expect(localAdminPassword.value).toBe('SUPERADMIN');
       expect(localStorage.getItem('admin_pwd_t1')).toBe('SUPERADMIN');
     });
+
+    it('logs error when setDoc throws during auto-login', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockIsSuperAdmin.value = true;
+      (setDoc as any).mockRejectedValueOnce(new Error('permission denied'));
+      const tournament = ref(makeTournament({ id: 't1' }));
+      const { autoLoginIfSuperAdmin, localAdminPassword } = useAdmin(tournament, secureUpdate, fetchPublicTournaments, appId);
+      await autoLoginIfSuperAdmin();
+      expect(consoleError).toHaveBeenCalled();
+      expect(localAdminPassword.value).toBe('');
+      consoleError.mockRestore();
+    });
+  });
+
+  // ── revalidateAdminSlip ──────────────────────────────────────────────────────
+
+  describe('revalidateAdminSlip', () => {
+    it('returns false when tournament is null', async () => {
+      const { revalidateAdminSlip } = useAdmin(ref(null), secureUpdate, fetchPublicTournaments, appId);
+      expect(await revalidateAdminSlip()).toBe(false);
+    });
+
+    it('returns false when no auth user', async () => {
+      (auth as any).currentUser = null;
+      const { revalidateAdminSlip } = useAdmin(ref(makeTournament()), secureUpdate, fetchPublicTournaments, appId);
+      expect(await revalidateAdminSlip()).toBe(false);
+    });
+
+    it('returns false when no local password is stored', async () => {
+      const { revalidateAdminSlip } = useAdmin(ref(makeTournament()), secureUpdate, fetchPublicTournaments, appId);
+      expect(await revalidateAdminSlip()).toBe(false);
+    });
+
+    it('returns true when setDoc succeeds with a stored password', async () => {
+      (setDoc as any).mockResolvedValue(undefined);
+      const tournament = ref(makeTournament({ isSecured: true, id: 't1' }));
+      const { adminPasswordInput, loginAsAdmin, revalidateAdminSlip } = useAdmin(tournament, secureUpdate, fetchPublicTournaments, appId);
+      adminPasswordInput.value = 'TEST';
+      await loginAsAdmin();
+      (setDoc as any).mockResolvedValue(undefined);
+      const result = await revalidateAdminSlip();
+      expect(result).toBe(true);
+    });
+
+    it('returns false when setDoc throws', async () => {
+      (setDoc as any).mockResolvedValue(undefined);
+      const tournament = ref(makeTournament({ isSecured: true, id: 't1' }));
+      const { adminPasswordInput, loginAsAdmin, revalidateAdminSlip } = useAdmin(tournament, secureUpdate, fetchPublicTournaments, appId);
+      adminPasswordInput.value = 'TEST';
+      await loginAsAdmin();
+      (setDoc as any).mockRejectedValueOnce(new Error('permission denied'));
+      const result = await revalidateAdminSlip();
+      expect(result).toBe(false);
+    });
   });
 
   // ── copyPassword ─────────────────────────────────────────────────────────────
