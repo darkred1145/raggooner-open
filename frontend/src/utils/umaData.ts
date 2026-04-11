@@ -20,6 +20,9 @@ export const UMA_DICT: Record<string, UmaData> = {
     },
     'Mejiro Bright': {
         id: 'mejiro-bright', name: 'Mejiro Bright', stars: 3, releaseDate: '2026-03-26T22:00:00.000Z', characterId: 107401,
+        gametoraId: 107401,
+        statBonus: 'STA +14% / GUT +8% / WIT +8%',
+        skills: [100741], // Brunissage Line unique skill
         aptitudes: {
             surface: { turf: 'A', dirt: 'G' },
             distance: { sprint: 'F', mile: 'C', medium: 'A', long: 'A' },
@@ -28,6 +31,8 @@ export const UMA_DICT: Record<string, UmaData> = {
     },
     'Satono Diamond': {
         id: 'satono-diamond', name: 'Satono Diamond', stars: 3, releaseDate: '2026-03-22T22:00:00.000Z', characterId: 106701,
+        gametoraId: 106701,
+        statBonus: 'STA +15% / WIT +15%',
         aptitudes: {
             surface: { turf: 'A', dirt: 'G' },
             distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'A' },
@@ -396,6 +401,8 @@ export const UMA_DICT: Record<string, UmaData> = {
     },
     'Special Week': {
         id: 'special-week', name: 'Special Week', stars: 3, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 100101,
+        gametoraId: 100101,
+        statBonus: 'STA +20% / WIT +10%',
         aptitudes: {
             surface: { turf: 'A', dirt: 'G' },
             distance: { sprint: 'F', mile: 'C', medium: 'A', long: 'A' },

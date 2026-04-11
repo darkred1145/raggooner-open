@@ -255,7 +255,10 @@ export interface StyleAptitude {
 export interface UmaData {
     id: string;           // A URL/DB safe slug (e.g., 'special-week')
     name: string;         // The display name you currently use
+    gametoraId?: number;  // Gametora Card ID (e.g. 107401)
     releaseDate: string;  // ISO string 'YYYY-MM-DD'
+    statBonus?: string;   // Stat bonus e.g. 'STA +14% / GUT +8%'
+    skills?: number[];    // Unique Skill IDs from Gametora
     aptitudes: {
         surface: SurfaceAptitude;
         distance: DistanceAptitude;
