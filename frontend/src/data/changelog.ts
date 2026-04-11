@@ -9,9 +9,31 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '3.3.0'; // Update this manually when you deploy
+export const APP_VERSION = '4.0.1'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '4.0.1',
+        date: '2026-04-11',
+        title: 'Fork Launch & Infrastructure Overhaul',
+        changes: [
+            { type: 'new', text: 'Created independent fork hosted on raggooner-uma-2026.web.app' },
+            { type: 'new', text: 'Custom Discord OAuth via Vercel serverless (no paid Blaze plan required)' },
+            { type: 'new', text: 'Data sync scripts to pull latest data from original site' },
+            { type: 'new', text: 'Player profile avatar display from Discord session in header' },
+            { type: 'new', text: 'Footer credits updated to "Original by Sumpfranze | Fork by Kenesu"' },
+            { type: 'new', text: 'One-command sync script to pull latest data from original site' },
+            { type: 'improvement', text: 'Replaced hardcoded "default-app" with centralized APP_ID config' },
+            { type: 'improvement', text: 'Updated Firestore rules to use dynamic app ID' },
+            { type: 'improvement', text: 'Updated CI/CD workflows for fork deployment' },
+            { type: 'improvement', text: 'Updated uma images to use outfit-specific artwork from gametora.com' },
+            { type: 'fix', text: 'Fixed "Invalid Date" errors by storing dates as strings' },
+            { type: 'fix', text: 'Fixed Discord login session persistence across page reloads' },
+            { type: 'fix', text: 'Fixed superadmin role lookup by Discord ID instead of Firebase UID' },
+            { type: 'fix', text: 'Removed debug console.log statements from production code' },
+            { type: 'fix', text: 'Fixed vite build config (Migrate.vue exclusion)' },
+        ]
+    },
     {
         version: '3.3.0',
         date: '2026-03-30',
