@@ -4,6 +4,7 @@ import { db } from '../../firebase.ts';
 import {collection, doc, getDocs, orderBy, query, setDoc, updateDoc, writeBatch} from 'firebase/firestore';
 import type {Season, Tournament, Race} from "../../types.ts";
 import { claimAndSyncMetadata, claimAndUnsyncMetadata } from '../../utils/metadataSync.ts';
+import { APP_ID } from '../../config';
 
 defineProps<{ isOpen: boolean }>();
 const emit = defineEmits(['close']);
@@ -22,7 +23,7 @@ const editingSeason = ref<Season | null>(null);
 // Fetch all seasons
 const fetchSeasons = async () => {
   try {
-    const seasonsRef = collection(db, 'artifacts', 'default-app', 'public', 'data', 'seasons');
+    const seasonsRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'seasons');
     const q = query(seasonsRef, orderBy('startDate', 'desc'));
     const snap = await getDocs(q);
     seasons.value = snap.docs.map(d => d.data() as Season);
@@ -53,7 +54,7 @@ const saveSeasonUpdate = async () => {
 
   isActionLoading.value = true;
   try {
-    const seasonRef = doc(db, 'artifacts', 'default-app', 'public', 'data', 'seasons', editingSeason.value.id);
+    const seasonRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'seasons', editingSeason.value.id);
 
     await updateDoc(seasonRef, {
       name: editingSeason.value.name,
@@ -101,8 +102,7 @@ const createNewSeason = async () => {
       tournamentIds: [],
     };
 
-    // Replace 'default-app' with your actual APP_ID variable if needed
-    const seasonRef = doc(db, 'artifacts', 'default-app', 'public', 'data', 'seasons', id);
+    const seasonRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'seasons', id);
     await setDoc(seasonRef, seasonData);
 
     alert(`Success: ${name} created!`);
@@ -150,16 +150,14 @@ const executeRename = async () => {
   if (!confirm(confirmMsg)) return;
 
   isRenaming.value = true;
-  const appId = 'default-app';
-
   try {
-    const tournamentsRef = collection(db, 'artifacts', appId, 'public', 'data', 'tournaments');
+    const tournamentsRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'tournaments');
     const tournamentsSnap = await getDocs(tournamentsRef);
 
     const batch = writeBatch(db);
 
     // 1. Update global player doc: set new name, add old name to aliases
-    const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', renameTarget.value.id);
+    const playerRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'players', renameTarget.value.id);
     const aliases = [...(renameTarget.value.aliases || [])];
     if (!aliases.includes(oldName)) {
       aliases.push(oldName);
@@ -222,7 +220,7 @@ const duplicate = ref<any | null>(null);
 const isMerging = ref(false);
 
 const fetchPlayers = async () => {
-  const playersRef = collection(db, 'artifacts', 'default-app', 'public', 'data', 'players');
+  const playersRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'players');
   const snap = await getDocs(query(playersRef, orderBy('name', 'asc')));
   allPlayers.value = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
@@ -265,8 +263,6 @@ const executeSwitchCaptain = async () => {
   if (!confirm(`Make "${newName}" the captain instead of "${oldName}"?\n\nThis cannot be undone.`)) return;
 
   isSwitching.value = true;
-  const appId = 'default-app';
-
   try {
     const updates: Record<string, any> = {};
 
@@ -308,7 +304,7 @@ const executeSwitchCaptain = async () => {
       updates['draft.order'] = t.draft.order.map(id => id === oldId ? newId : id);
     }
 
-    const tRef = doc(db, 'artifacts', appId, 'public', 'data', 'tournaments', t.id);
+    const tRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'tournaments', t.id);
     await updateDoc(tRef, updates);
 
     alert(`Done! "${newName}" is now the captain of Team ${newName}.`);
@@ -370,14 +366,12 @@ const executeSwap = async () => {
   if (!confirm(confirmMsg)) return;
 
   isSwapping.value = true;
-  const appId = 'default-app';
-
   try {
     const wasSynced = !!t.metadataSynced;
 
     // 1. If metadata was synced, unsync first (decrements old player stats)
     if (wasSynced) {
-      await claimAndUnsyncMetadata(t, appId);
+      await claimAndUnsyncMetadata(t, APP_ID);
     }
 
     // 2. Build the update payload
@@ -443,7 +437,7 @@ const executeSwap = async () => {
     }
 
     // 3. Write to Firestore
-    const tournamentRef = doc(db, 'artifacts', appId, 'public', 'data', 'tournaments', t.id);
+    const tournamentRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'tournaments', t.id);
     await updateDoc(tournamentRef, updates);
 
     // 4. If was synced, resync with post-swap tournament data (increments new player stats)
@@ -458,7 +452,7 @@ const executeSwap = async () => {
         wildcards: updates.wildcards || t.wildcards,
         metadataSynced: false, // unsync set this to false
       };
-      await claimAndSyncMetadata(swappedTournament, appId);
+      await claimAndSyncMetadata(swappedTournament, APP_ID);
     }
 
     alert(`Swap Complete!\n"${oldName}" → "${newName}"`);
@@ -486,10 +480,8 @@ const executeMerge = async () => {
   if (!confirm(confirmMsg)) return;
 
   isMerging.value = true;
-  const appId = 'default-app';
-
   try {
-    const tournamentsRef = collection(db, 'artifacts', appId, 'public', 'data', 'tournaments');
+    const tournamentsRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'tournaments');
     const tournamentsSnap = await getDocs(tournamentsRef);
 
     const batch = writeBatch(db);
@@ -588,8 +580,8 @@ const executeMerge = async () => {
     });
 
     // 2. Update Keeper Metadata & Aliases
-    const keeperRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', keepId);
-    const dupRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', dupId);
+    const keeperRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'players', keepId);
+    const dupRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'players', dupId);
 
     const km = keeper.value.metadata || {};
     const dm = duplicate.value.metadata || {};

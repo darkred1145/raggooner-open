@@ -1,10 +1,11 @@
 import { computed, type Ref } from 'vue';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
+import { APP_ID } from '../config';
 import { useAuth } from './useAuth';
 import type { Team, Tournament } from '../types';
 
-export function useCaptainActions(tournament: Ref<Tournament | null>, appId: string = 'default-app') {
+export function useCaptainActions(tournament: Ref<Tournament | null>, appId: string = APP_ID) {
     const { linkedPlayer } = useAuth();
 
     // The team captained by the currently logged-in Discord user (null if not a captain).

@@ -20,9 +20,9 @@ This is the monorepo for **Raccoon Open**, a tournament management web app for t
 
 ## Firebase Project
 
-- Project ID: `raggooneropen`
+- Project ID: `raggooner-uma-2026`
 - Firestore, Firebase Auth (Discord OIDC via `oidc.discord.com`), Cloud Functions, Cloud Storage
-- All Firestore data lives under `artifacts/default-app/public/data/{collection}/{docId}`
+- All Firestore data lives under `artifacts/{APP_ID}/public/data/{collection}/{docId}` where `APP_ID` defaults to `raggooner-uma-2026` (configurable via `VITE_APP_ID` in `frontend/.env`)
 
 ## Git
 

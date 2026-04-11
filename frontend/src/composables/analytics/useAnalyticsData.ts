@@ -6,8 +6,8 @@ import { migrateRaces, migratePlayers } from "../../utils/utils.ts";
 import { getCached, setCache } from "../../utils/cache.ts";
 import { deriveFromTournaments, type TierCriterion } from '../../utils/analyticsUtils';
 import { TRACK_DICT } from '../../utils/trackData';
+import { APP_ID } from '../../config';
 
-const APP_ID = 'default-app';
 const CACHE_KEY = 'analytics';
 
 const findTrackById = (trackId: string) =>

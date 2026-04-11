@@ -5,6 +5,7 @@ import type { Tournament, FirestoreUpdate, Team } from '../../types.ts';
 import { useGameLogic } from '../../composables/useGameLogic.ts';
 import { useTournamentFlow } from '../../composables/useTournamentFlow.ts';
 import { useRoster } from '../../composables/useRoster.ts';
+import { APP_ID } from '../../config';
 import {
   getRankColor,
   getPlayerName,
@@ -31,7 +32,7 @@ const props = withDefaults(defineProps<{
   onCaptainSaveTap?: (group: string, raceNumber: number, placements: Record<string, number>) => Promise<void>;
   onCaptainUpdatePlacement?: (group: string, raceNumber: number, position: number, playerId: string) => Promise<void>;
 }>(), {
-  appId: 'default-app'
+  appId: APP_ID
 });
 
 // Create Refs for composables
@@ -272,7 +273,6 @@ const openAdjustmentModal = (team: Team) => {
 };
 
 const submitAdjustment = async () => {
-  console.debug(selectedTeamId.value + ' ' + adjAmount.value);
   if (!selectedTeamId.value || adjAmount.value === 0) return;
 
   await addTeamAdjustment(selectedTeamId.value, adjAmount.value, adjReason.value);

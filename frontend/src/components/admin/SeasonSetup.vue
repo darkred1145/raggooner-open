@@ -3,8 +3,7 @@ import { ref } from 'vue';
 import { collection, getDocs, writeBatch, doc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase.ts';
 import type { Season } from '../../types.ts';
-
-const APP_ID = 'default-app'; // TODO: Adjust to your app ID
+import { APP_ID } from '../../config';
 
 const processing = ref(false);
 const logs = ref<string[]>([]);

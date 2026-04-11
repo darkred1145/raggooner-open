@@ -1,13 +1,14 @@
 import {ref, type Ref} from "vue";
 import type {FirestoreUpdate, Tournament} from "../types";
 import { generateDraftStructure, generateUmaDraftOrder } from "../utils/draftUtils";
+import { APP_ID } from "../config";
 
 type SecureUpdateFn = (data: FirestoreUpdate<Tournament> | Record<string, any>) => Promise<void>;
 
 export function useTournamentFlow(
     tournament: Ref<Tournament | null>,
     secureUpdate: SecureUpdateFn,
-    _appId: string = 'default-app'
+    _appId: string = APP_ID
 ) {
 
     const isAdvancing = ref(false);

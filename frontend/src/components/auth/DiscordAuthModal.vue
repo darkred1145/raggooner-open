@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { APP_ID } from '../../config';
 import type { GlobalPlayer } from '../../types';
 import PlayerSelector from '../PlayerSelector.vue';
 import { useAuth } from '../../composables/useAuth';
@@ -11,7 +12,7 @@ const isFetchingPlayers = ref(true);
 
 onMounted(async () => {
   try {
-    const playersRef = collection(db, 'artifacts', 'default-app', 'public', 'data', 'players');
+    const playersRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'players');
     const snap = await getDocs(playersRef);
     globalPlayers.value = snap.docs.map(d => ({ id: d.id, ...d.data() } as GlobalPlayer));
   } catch (e) {
@@ -124,9 +125,9 @@ const submitCreate = async () => {
             <p class="text-sm text-slate-400 mb-6">Type your player name to find and link your account.</p>
           </div>
 
-          <PlayerSelector 
-            app-id="default-app" 
-            :players="globalPlayers" 
+          <PlayerSelector
+            :app-id="APP_ID"
+            :players="globalPlayers"
             @select="handleSelectExisting"
             placeholder="Search for your name..."
           />

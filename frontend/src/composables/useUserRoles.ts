@@ -2,10 +2,11 @@ import { ref, computed } from 'vue';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, deleteDoc, deleteField, collection, getDocs, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { APP_ID } from '../config';
 import type { UserRole, GlobalPlayer } from '../types';
 import { hasPermission, type Permission } from '../utils/constants';
 
-const appId = 'default-app';
+const appId = APP_ID;
 
 // Module-level singleton
 const currentUid = ref<string | null>(null);

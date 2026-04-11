@@ -7,6 +7,7 @@ import type {FirestoreUpdate, Tournament} from "../../types.ts";
 import {useGameLogic} from "../../composables/useGameLogic.ts";
 import {getRaceWinnerGif} from "../../utils/umaGifs.ts";
 import {useRoster} from "../../composables/useRoster.ts";
+import { APP_ID } from '../../config';
 
 const raceInputMode = ref<'tap' | 'dropdown'>('tap');
 
@@ -16,7 +17,7 @@ const props = withDefaults(defineProps<{
   appId?: string;
   secureUpdate: (data: FirestoreUpdate<Tournament> | Record<string, any>) => Promise<void>;
 }>(), {
-  appId: 'default-app'
+  appId: APP_ID
 });
 
 const tournament = toRef(props, 'tournamentProp');

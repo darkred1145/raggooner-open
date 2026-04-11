@@ -1,11 +1,12 @@
 import { ref } from 'vue';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { APP_ID } from '../config';
 import type { GlobalSettings } from '../types';
 import { POINTS_SYSTEM } from '../utils/constants';
 import { DEFAULT_ANNOUNCEMENT_RULES } from '../utils/announcementUtils';
 
-const appId = 'default-app';
+const appId = APP_ID;
 
 export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
     pointsSystem: { ...POINTS_SYSTEM },

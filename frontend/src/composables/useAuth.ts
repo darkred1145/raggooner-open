@@ -20,9 +20,10 @@ import {
     setDoc
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { APP_ID } from '../config';
 import type { GlobalPlayer } from '../types';
 
-const appId = 'default-app';
+const appId = APP_ID;
 
 const user = ref<User | null>(null);
 const linkedPlayer = ref<GlobalPlayer | null>(null);

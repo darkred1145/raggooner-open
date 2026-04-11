@@ -3,6 +3,7 @@ import {computed, ref, toRef} from 'vue';
 import type { FirestoreUpdate, Tournament, Team } from '../../types';
 import { useGameLogic } from '../../composables/useGameLogic';
 import { useRoster } from '../../composables/useRoster';
+import { APP_ID } from '../../config';
 import RaceStage from './RaceStage.vue';
 
 const props = withDefaults(defineProps<{
@@ -14,7 +15,7 @@ const props = withDefaults(defineProps<{
   onCaptainSaveTap?: (group: string, raceNumber: number, placements: Record<string, number>) => Promise<void>;
   onCaptainUpdatePlacement?: (group: string, raceNumber: number, position: number, playerId: string) => Promise<void>;
 }>(), {
-  appId: 'default-app'
+  appId: APP_ID
 });
 
 const tournament = toRef(props, 'tournamentProp');

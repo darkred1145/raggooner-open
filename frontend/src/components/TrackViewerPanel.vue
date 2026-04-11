@@ -2,6 +2,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
+import { APP_ID } from '../config';
 import type { Tournament } from '../types';
 import { useUserRoles } from '../composables/useUserRoles';
 import { TRACK_DICT } from '../utils/trackData';
@@ -61,7 +62,7 @@ const postToDiscord = async () => {
       reader.readAsDataURL(blob);
     });
     await postDiscordAnnouncementFn({
-      appId: props.appId ?? 'default-app',
+      appId: props.appId ?? APP_ID,
       content,
       imageBase64: base64,
       imageFileName: `${track.value.id}.png`,

@@ -1,6 +1,28 @@
 # IntelliJ IDEA
 .idea/
 
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.qwen/
+
+# Node
+node_modules/
+**/node_modules/
+**/dist/
+**/dist-ssr/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+*.local
+
 # Compiled class file
 *.class
 
@@ -25,8 +47,15 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
-/frontend/scripts/serviceAccountKey.json
 
 # Local database backups and gitleaks reports — never commit these
 /backups/
 report.json
+*-database-backup.json
+
+# Emulator data
+emulator-data/
+firestore-debug.log
+
+# Service account keys
+**/serviceAccountKey.json

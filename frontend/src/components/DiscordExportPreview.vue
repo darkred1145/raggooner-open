@@ -147,6 +147,7 @@
 import { ref, computed } from 'vue';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase';
+import { APP_ID } from '../config';
 import type { Tournament } from '../types';
 import { generateDiscordReport, generateDiscordReportSplit, generateDiscordReportSplit3 } from '../utils/exportUtils';
 import { useUserRoles } from '../composables/useUserRoles';
@@ -171,7 +172,7 @@ const postToDiscord = async (messages: string[]) => {
   if (isPosting.value) return;
   isPosting.value = true;
   try {
-    await postDiscordResultsFn({ appId: 'default-app', messages });
+    await postDiscordResultsFn({ appId: APP_ID, messages });
     showPostSuccess.value = true;
     setTimeout(() => { showPostSuccess.value = false; }, 3000);
   } catch (e) {

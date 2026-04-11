@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { collection, doc, getDocs, orderBy, query, where, writeBatch, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { APP_ID } from '../config';
 import type { Tournament, Season, TournamentCreator } from '../types';
 import { TOURNAMENT_FORMATS } from "../utils/constants.ts";
 import { getStatusColor } from "../utils/utils.ts";
@@ -14,7 +15,7 @@ import SiteNav from '../components/shared/SiteNav.vue';
 
 
 const router = useRouter();
-const appId = 'default-app';
+const appId = APP_ID;
 
 const { isOfficialCreator } = useUserRoles();
 const { linkedPlayer } = useAuth();

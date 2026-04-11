@@ -3,6 +3,7 @@ import {ref, computed, watch, onUnmounted, onMounted, inject, type Ref} from 'vu
 import { useRoute, useRouter } from 'vue-router';
 import { doc, onSnapshot, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { APP_ID } from '../config';
 import type { FirestoreUpdate, Tournament, GlobalPlayer, Season } from '../types';
 import { recalculateTournamentScores, migrateRaces, migratePlayers } from "../utils/utils.ts";
 import { POINTS_SYSTEM } from "../utils/constants.ts";
@@ -26,7 +27,7 @@ const hasNewUpdates = inject<Ref<boolean>>('hasNewUpdates')!;
 
 const route = useRoute();
 const router = useRouter();
-const appId = 'default-app';
+const appId = APP_ID;
 
 const tournament = ref<Tournament | null>(null);
 const activeTournament = inject<Ref<Tournament | null>>('activeTournament')!;
