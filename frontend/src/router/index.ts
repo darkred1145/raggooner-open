@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { watch } from 'vue'
 import HomeView from '../views/HomeView.vue'
+import AuthCallback from '../views/AuthCallback.vue'
 import { useUserRoles } from '../composables/useUserRoles'
 
 const router = createRouter({
@@ -10,6 +11,11 @@ const router = createRouter({
             path: '/',
             name: 'home',
             component: HomeView
+        },
+        {
+            path: '/auth/callback',
+            name: 'auth-callback',
+            component: AuthCallback
         },
         {
             path: '/t/:id',

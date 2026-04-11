@@ -1,12 +1,8 @@
 import { ref, computed } from 'vue';
 import {
     onAuthStateChanged,
-    signInWithPopup,
     signInAnonymously,
     signOut,
-    OAuthProvider,
-    getAdditionalUserInfo,
-    updateProfile,
     type User
 } from 'firebase/auth';
 import {
@@ -68,49 +64,58 @@ onAuthStateChanged(auth, async (u) => {
 
 export function useAuth() {
     const isDiscordUser = computed(() => {
-        return user.value?.providerData.some(p => p.providerId.includes('discord'));
+        return user.value?.providerData.some(p => p.providerId === 'custom') ||
+            !!(user.value && user.value.metadata?.creationTime);
     });
 
     const loginWithDiscord = async () => {
         loginError.value = null;
-        const provider = new OAuthProvider('oidc.discord.com');
-        provider.addScope('identify');
 
-        const attemptSignIn = async () => {
-            const result = await signInWithPopup(auth, provider);
-            const profile = getAdditionalUserInfo(result)?.profile as Record<string, any> | null;
-            const avatarUrl: string | null = profile?.picture ?? null;
-            if (avatarUrl) {
-                await updateProfile(result.user, { photoURL: avatarUrl });
-                user.value = auth.currentUser;
-                if (linkedPlayer.value) {
-                    const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
-                    await updateDoc(playerRef, { avatarUrl });
-                    linkedPlayer.value = { ...linkedPlayer.value, avatarUrl };
-                }
-            }
-        };
+        // Get the Discord login URL (emulator vs production)
+        const isLocalhost = window.location.hostname === 'localhost';
+        const loginUrl = isLocalhost
+            ? 'http://127.0.0.1:5001/raggooner-uma-2026/us-central1/discordLogin?action=start'
+            : 'https://us-central1-raggooner-uma-2026.cloudfunctions.net/discordLogin?action=start';
 
-        try {
-            await attemptSignIn();
-        } catch (e: any) {
-            // 503 / service-unavailable: retry once after a short delay
-            if (e?.code === 'auth/the-service-is-currently-unavailable' || e?.code === 'auth/network-request-failed') {
-                try {
-                    await new Promise(r => setTimeout(r, 1500));
-                    await attemptSignIn();
-                    return;
-                } catch (retryErr) {
-                    console.error('Discord login retry failed:', retryErr);
-                    loginError.value = 'Login failed. Please try again.';
-                    return;
-                }
-            }
-            // User closed the popup — not an error worth surfacing
-            if (e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') return;
-            console.error('Discord login failed:', e);
-            loginError.value = 'Login failed. Please try again.';
+        const state = Math.random().toString(36).substring(2);
+        const fullUrl = `${loginUrl}&state=${state}`;
+
+        const width = 500;
+        const height = 700;
+        const left = (window.innerWidth - width) / 2;
+        const top = (window.innerHeight - height) / 2;
+
+        const popup = window.open(
+            fullUrl,
+            'discord-login',
+            `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no`
+        );
+
+        if (!popup) {
+            loginError.value = 'Popup blocked. Please allow popups for this site.';
+            return;
         }
+
+        // Poll for the popup to close, then check if auth state changed
+        const pollInterval = setInterval(() => {
+            try {
+                if (popup?.closed) {
+                    clearInterval(pollInterval);
+                    // Auth state change will handle it
+                }
+            } catch {
+                // Cross-origin, can't check — just keep polling
+            }
+        }, 500);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+            clearInterval(pollInterval);
+            if (popup && !popup.closed) {
+                popup.close();
+                loginError.value = 'Login timed out. Please try again.';
+            }
+        }, 5 * 60 * 1000);
     };
 
     const logout = async () => {

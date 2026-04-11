@@ -1,6 +1,9 @@
 import { beforeUserCreated } from "firebase-functions/v2/identity";
 import * as logger from "firebase-functions/logger";
+import { defineString } from "firebase-functions/params";
 import { db } from "../db";
+
+const appId = defineString("APP_ID").value() || "default-app";
 
 // ---------------------------------------------------------------------------
 // assignDefaultRole
@@ -15,7 +18,6 @@ export const assignDefaultRole = beforeUserCreated(async (event) => {
   const isDiscord = user.providerData?.some((p) => p.providerId.includes("discord"));
   if (!isDiscord) return;
 
-  const appId = "default-app";
   const roleRef = db
     .collection("artifacts").doc(appId)
     .collection("public").doc("data")

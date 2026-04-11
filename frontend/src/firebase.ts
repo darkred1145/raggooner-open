@@ -15,13 +15,18 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+const isEmulator = location.hostname === "localhost";
+
 const db = initializeFirestore(app, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    localCache: isEmulator
+        ? undefined  // Emulator: no persistent cache
+        : persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
 const auth = getAuth(app);
 const functions = getFunctions(app);
 
-if (location.hostname === "localhost") {
+if (isEmulator) {
     console.log("🔧 connecting to emulators...");
     connectFirestoreEmulator(db, '127.0.0.1', 8080);
     connectFunctionsEmulator(functions, '127.0.0.1', 5001);
