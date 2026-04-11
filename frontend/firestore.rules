@@ -25,7 +25,7 @@ service cloud.firestore {
 
       // 1. PLAYERS
       match /players/{playerId} {
-        allow read, create: if request.auth != null;
+        allow read, list, create: if request.auth != null;
         allow update: if isAdmin(appId) ||
           (request.auth != null && resource.data.firebaseUid == request.auth.uid) ||
           (request.auth != null && !('firebaseUid' in resource.data) && request.resource.data.firebaseUid == request.auth.uid);
@@ -34,15 +34,14 @@ service cloud.firestore {
 
       // 2. SEASONS
       match /seasons/{seasonId} {
-        allow read: if request.auth != null;
+        allow read, list: if request.auth != null;
         allow write: if isSuperAdmin(appId) || request.auth != null;
       }
 
       // 3. TOURNAMENTS
       match /tournaments/{tournamentId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null &&
-          (!('isOfficial' in request.resource.data) || !request.resource.data.isOfficial || isOfficialCreator(appId));
+        allow read, list: if request.auth != null;
+        allow create: if request.auth != null;
         allow update, delete: if isSuperAdmin(appId) ||
           (request.auth != null && exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(tournamentId + '_' + request.auth.uid)));
       }
@@ -66,7 +65,7 @@ service cloud.firestore {
       // 6. GLOBAL SETTINGS
       match /settings/{docId} {
         allow read: if request.auth != null;
-        allow write: if isOfficialCreator(appId);
+        allow write: if request.auth != null;
       }
 
       // 8. USAGE (analytics tracking)
@@ -77,12 +76,9 @@ service cloud.firestore {
 
       // 9. USER ROLES
       match /userRoles/{uid} {
-        allow get: if request.auth != null && (request.auth.uid == uid || isAdmin(appId));
-        allow list: if isAdmin(appId);
-        allow create, update: if isSuperAdmin(appId) ||
-          (isAdmin(appId) && request.resource.data.role != 'superadmin');
-        allow delete: if isSuperAdmin(appId) ||
-          (isAdmin(appId) && resource.data.role != 'superadmin');
+        allow read, list, create: if request.auth != null;
+        allow update: if isSuperAdmin(appId);
+        allow delete: if isSuperAdmin(appId);
       }
     }
   }

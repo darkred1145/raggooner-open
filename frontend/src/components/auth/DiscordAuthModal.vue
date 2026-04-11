@@ -11,12 +11,15 @@ const globalPlayers = ref<GlobalPlayer[]>([]);
 const isFetchingPlayers = ref(true);
 
 onMounted(async () => {
+  console.log('📥 DiscordAuthModal: fetching players from', APP_ID);
   try {
     const playersRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'players');
     const snap = await getDocs(playersRef);
+    console.log('📥 Players fetched:', snap.size);
     globalPlayers.value = snap.docs.map(d => ({ id: d.id, ...d.data() } as GlobalPlayer));
-  } catch (e) {
+  } catch (e: any) {
     console.error('Failed to fetch players:', e);
+    globalPlayers.value = [];
   } finally {
     isFetchingPlayers.value = false;
   }

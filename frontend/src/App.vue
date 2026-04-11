@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, provide } from 'vue';
+import { onMounted, ref, provide, watch } from 'vue';
 import type { Tournament } from './types';
 import { signInAnonymously, signInWithCustomToken } from 'firebase/auth';
 import { auth } from './firebase';
@@ -7,13 +7,22 @@ import { APP_VERSION } from './data/changelog';
 import ChangelogModal from './components/ChangelogModal.vue';
 import SuperAdminPanel from "./components/admin/SuperAdminPanel.vue";
 import DiscordAuthModal from "./components/auth/DiscordAuthModal.vue";
-import { useAuth } from './composables/useAuth';
+import { useAuth, checkDiscordSession } from './composables/useAuth';
 import { useUserRoles } from './composables/useUserRoles';
+
+// Load Discord session BEFORE useAuth so it's available when auth state fires
+checkDiscordSession();
 
 const { user, linkedPlayer, loading: authLoading, isDiscordUser } = useAuth();
 const { isSuperAdmin } = useUserRoles();
-// import SeasonSetup from "./components/SeasonSetup.vue";
-// import Migrate from "./components/Migrate.vue";
+
+// Debug: log modal visibility condition
+watch([authLoading, user, isDiscordUser, linkedPlayer], ([la, u, du, lp]) => {
+    console.log('🔍 DiscordAuthModal:', {
+        loading: la, user: !!u, discord: du, linked: !!lp,
+        show: !la && !!u && du && !lp
+    });
+}, { immediate: true });
 
 const showChangelog = ref(false);
 const hasNewUpdates = ref(false);
@@ -22,15 +31,16 @@ const previousVersion = ref('0.0.0');
 const isPanelOpen = ref(false);
 
 const init = async () => {
-  // Wait for Firebase to restore the persisted auth session before deciding
-  // whether to sign in anonymously. Without this, auth.currentUser is always
-  // null on page load (session restore is async), causing a new anonymous user
-  // to be created on every refresh and overwriting any existing Discord session.
   await auth.authStateReady();
 
-  const initialToken = (window as any).__initial_auth_token;
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialToken = urlParams.get('token') || (window as any).__initial_auth_token;
+
   if (initialToken) {
     await signInWithCustomToken(auth, initialToken);
+    // Clean URL
+    urlParams.delete('token');
+    window.history.replaceState({}, '', window.location.pathname);
   } else if (!auth.currentUser) {
     await signInAnonymously(auth);
   }
@@ -115,5 +125,9 @@ onMounted(() => {
     </Transition>
 
     <DiscordAuthModal v-if="!authLoading && user && isDiscordUser && !linkedPlayer" />
+    <!-- Debug: visible indicator when modal should show -->
+    <div v-if="!authLoading && user && isDiscordUser && !linkedPlayer" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-[9999] text-sm font-bold">
+      Discord Login Detected - Link Player!
+    </div>
   </div>
 </template>

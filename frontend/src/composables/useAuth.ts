@@ -19,23 +19,71 @@ import { auth, db } from '../firebase';
 import { APP_ID } from '../config';
 import type { GlobalPlayer } from '../types';
 
+interface DiscordSession {
+    uid: string;
+    discordId: string;
+    displayName?: string;
+    photoURL?: string;
+    timestamp: number;
+}
+
 const appId = APP_ID;
+const DISCORD_SESSION_KEY = 'discord_session';
 
 const user = ref<User | null>(null);
 const linkedPlayer = ref<GlobalPlayer | null>(null);
 const loading = ref(true);
 const loginError = ref<string | null>(null);
+const discordSession = ref<DiscordSession | null>(null);
+
+function getStoredSession(): DiscordSession | null {
+    try {
+        const raw = localStorage.getItem(DISCORD_SESSION_KEY);
+        if (!raw) return null;
+        const session = JSON.parse(raw) as DiscordSession;
+        if (Date.now() - session.timestamp < 30 * 24 * 60 * 60 * 1000) {
+            discordSession.value = session;
+            console.log('🔑 Discord session loaded:', session.discordId);
+            return session;
+        }
+        localStorage.removeItem(DISCORD_SESSION_KEY);
+    } catch (e) { console.error('Session parse error:', e); }
+    return null;
+}
+
+function saveSession(session: DiscordSession | null) {
+    discordSession.value = session;
+    if (session) {
+        localStorage.setItem(DISCORD_SESSION_KEY, JSON.stringify(session));
+    } else {
+        localStorage.removeItem(DISCORD_SESSION_KEY);
+    }
+}
+
+// Re-export for App.vue to call on each page load
+export { getStoredSession as checkDiscordSession };
 
 const fetchLinkedPlayerInternal = async (uid: string) => {
     try {
+        console.log('🔍 Fetching linked player, uid:', uid, 'discordSession:', discordSession.value?.discordId);
         const playersRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
-        const q = query(playersRef, where('firebaseUid', '==', uid));
+        let q: ReturnType<typeof query>;
+
+        if (discordSession.value?.discordId) {
+            q = query(playersRef, where('discordId', '==', discordSession.value.discordId));
+            console.log('  Querying by discordId:', discordSession.value.discordId);
+        } else {
+            q = query(playersRef, where('firebaseUid', '==', uid));
+            console.log('  Querying by firebaseUid:', uid);
+        }
+
         const snap = await getDocs(q);
+        console.log('  Query results:', snap.size);
 
         if (!snap.empty) {
-            const docSnap = snap.docs[0];
-            if (docSnap) {
-                linkedPlayer.value = { id: docSnap.id, ...docSnap.data() } as GlobalPlayer;
+            const d = snap.docs[0];
+            if (d) {
+                linkedPlayer.value = { id: d.id, ...d.data() as Record<string, unknown> } as GlobalPlayer;
             }
         } else {
             linkedPlayer.value = null;
@@ -47,10 +95,11 @@ const fetchLinkedPlayerInternal = async (uid: string) => {
 };
 
 onAuthStateChanged(auth, async (u) => {
+    console.log('🔄 Auth state changed:', u ? `uid=${u.uid} anon=${u.isAnonymous}` : 'null');
     user.value = u;
     if (u) {
         await fetchLinkedPlayerInternal(u.uid);
-        // Sync avatar if Firebase Auth has a newer URL than what's stored in Firestore
+        // Sync avatar from auth -> player
         if (u.photoURL && linkedPlayer.value && linkedPlayer.value.avatarUrl !== u.photoURL) {
             const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
             await updateDoc(playerRef, { avatarUrl: u.photoURL });
@@ -63,64 +112,22 @@ onAuthStateChanged(auth, async (u) => {
 });
 
 export function useAuth() {
-    const isDiscordUser = computed(() => {
-        return user.value?.providerData.some(p => p.providerId === 'custom') ||
-            !!(user.value && user.value.metadata?.creationTime);
-    });
+    const isDiscordUser = computed(() => !!discordSession.value);
 
     const loginWithDiscord = async () => {
         loginError.value = null;
-
-        // Get the Discord login URL (emulator vs production)
-        const isLocalhost = window.location.hostname === 'localhost';
-        const loginUrl = isLocalhost
-            ? 'http://127.0.0.1:5001/raggooner-uma-2026/us-central1/discordLogin?action=start'
-            : 'https://us-central1-raggooner-uma-2026.cloudfunctions.net/discordLogin?action=start';
+        // Discord OAuth via Vercel (free tier)
+        const vercelUrl = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-oauth.vercel.app';
+        const loginUrl = `${vercelUrl}/api/discord-login?action=start`;
 
         const state = Math.random().toString(36).substring(2);
-        const fullUrl = `${loginUrl}&state=${state}`;
-
-        const width = 500;
-        const height = 700;
-        const left = (window.innerWidth - width) / 2;
-        const top = (window.innerHeight - height) / 2;
-
-        const popup = window.open(
-            fullUrl,
-            'discord-login',
-            `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no`
-        );
-
-        if (!popup) {
-            loginError.value = 'Popup blocked. Please allow popups for this site.';
-            return;
-        }
-
-        // Poll for the popup to close, then check if auth state changed
-        const pollInterval = setInterval(() => {
-            try {
-                if (popup?.closed) {
-                    clearInterval(pollInterval);
-                    // Auth state change will handle it
-                }
-            } catch {
-                // Cross-origin, can't check — just keep polling
-            }
-        }, 500);
-
-        // Timeout after 5 minutes
-        setTimeout(() => {
-            clearInterval(pollInterval);
-            if (popup && !popup.closed) {
-                popup.close();
-                loginError.value = 'Login timed out. Please try again.';
-            }
-        }, 5 * 60 * 1000);
+        window.location.href = `${loginUrl}&state=${state}`;
     };
 
     const logout = async () => {
         try {
             await signOut(auth);
+            saveSession(null);
             await signInAnonymously(auth);
         } catch (e) {
             console.error('Logout failed:', e);
@@ -128,25 +135,28 @@ export function useAuth() {
     };
 
     const linkToPlayer = async (globalPlayer: GlobalPlayer) => {
-        if (!user.value) throw new Error('Must be logged in to link a player');
-        
-        const discordProfile = user.value.providerData.find(p => p.providerId.includes('discord'));
-        const discordId = discordProfile?.uid;
+        if (!user.value && !discordSession.value) throw new Error('Must be logged in to link a player');
+
+        const session = discordSession.value;
+        const sessionDiscordId = session?.discordId;
 
         try {
             const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', globalPlayer.id);
             const updateData: Partial<GlobalPlayer> = {
-                firebaseUid: user.value.uid,
-                discordId: discordId || undefined,
-                avatarUrl: user.value.photoURL || undefined,
+                firebaseUid: user.value?.uid || session?.uid,
+                discordId: sessionDiscordId || globalPlayer.discordId,
+                avatarUrl: user.value?.photoURL || session?.photoURL || globalPlayer.avatarUrl,
             };
 
             await updateDoc(playerRef, updateData);
-            
-            linkedPlayer.value = { 
-                ...globalPlayer, 
-                ...updateData 
-            };
+
+            // Update the Discord session
+            if (session) {
+                saveSession({ ...session, ...updateData } as DiscordSession);
+            }
+
+            // Re-fetch the player so we have the latest data from Firestore
+            await fetchLinkedPlayerInternal(user.value?.uid || session?.uid || '');
         } catch (e) {
             console.error('Failed to link player:', e);
             throw e;
@@ -154,19 +164,19 @@ export function useAuth() {
     };
 
     const createAndLinkPlayer = async (name: string) => {
-        if (!user.value) throw new Error('Must be logged in to create a player');
-        
-        const discordProfile = user.value.providerData.find(p => p.providerId.includes('discord'));
-        const discordId = discordProfile?.uid;
+        if (!user.value && !discordSession.value) throw new Error('Must be logged in to create a player');
+
+        const session = discordSession.value;
+        const sessionDiscordId = session?.discordId;
         const playerId = crypto.randomUUID();
 
         const newPlayer: GlobalPlayer = {
             id: playerId,
             name,
             createdAt: new Date().toISOString(),
-            firebaseUid: user.value.uid,
-            discordId: discordId || undefined,
-            avatarUrl: user.value.photoURL || undefined,
+            firebaseUid: user.value?.uid || session?.uid,
+            discordId: sessionDiscordId,
+            avatarUrl: user.value?.photoURL || session?.photoURL,
             metadata: {
                 totalTournaments: 0,
                 totalRaces: 0
@@ -177,6 +187,12 @@ export function useAuth() {
             const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId);
             await setDoc(playerRef, newPlayer);
             linkedPlayer.value = newPlayer;
+
+            // Update the Discord session
+            if (session) {
+                saveSession({ ...session, uid: user.value?.uid || session.uid } as DiscordSession);
+            }
+
             return newPlayer;
         } catch (e) {
             console.error('Failed to create and link player:', e);
@@ -193,6 +209,7 @@ export function useAuth() {
             avatarUrl: deleteField(),
         });
         linkedPlayer.value = null;
+        saveSession(null);
     };
 
     const updatePlayerProfile = async (fields: Partial<Pick<GlobalPlayer, 'roster' | 'supportCards'>>) => {

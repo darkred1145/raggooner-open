@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { signInWithCustomToken, updateProfile } from 'firebase/auth';
-import { auth, db } from '../firebase';
-import { APP_ID } from '../config';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 const error = ref<string | null>(null);
 const loading = ref(true);
@@ -12,51 +8,31 @@ onMounted(async () => {
   try {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
+    const uid = params.get('uid');
+    const discordId = params.get('discordId');
+    const displayName = params.get('displayName');
+    const photoURL = params.get('photoURL') || undefined;
 
-    if (!token) {
-      error.value = 'No login token received.';
-      loading.value = false;
+    if (token) {
+      // Production: sign in with custom token from Cloud Function
+      const { signInWithCustomToken, setPersistence, browserLocalPersistence } = await import('firebase/auth');
+      const { auth } = await import('../firebase');
+      await setPersistence(auth, browserLocalPersistence);
+      await signInWithCustomToken(auth, token);
+      window.location.href = '/';
       return;
     }
 
-    // Sign in with the custom token from our Cloud Function
-    const cred = await signInWithCustomToken(auth, token);
-    const uid = cred.user.uid;
-
-    // Extract Discord info from custom claims
-    const claims = await cred.user.getIdTokenResult();
-    const discordId = claims.claims.discordId as string | undefined;
-    const displayName = claims.claims.displayName as string | undefined;
-    const photoURL = cred.user.photoURL || claims.claims.photoURL as string | undefined;
-
-    if (discordId) {
-      // Find or link player with this Discord ID
-      const playersRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'players');
-      const q = query(playersRef, where('discordId', '==', discordId));
-      const snap = await getDocs(q);
-
-      if (!snap.empty) {
-        // Link player to this Firebase account
-        const playerDoc = snap.docs[0];
-        if (playerDoc) {
-          await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'players', playerDoc.id), {
-            firebaseUid: uid,
-            ...(photoURL ? { avatarUrl: photoURL } : {}),
-          });
-        }
-      } else {
-        // No player exists yet - user needs to create one via the modal
-        // Just update the user profile
-        if (displayName) {
-          await updateProfile(auth.currentUser!, {
-            displayName,
-            ...(photoURL ? { photoURL } : {}),
-          });
-        }
-      }
+    if (!uid || !discordId) {
+      throw new Error('No login info received.');
     }
 
-    // Redirect to home
+    // Dev mode: store Discord session in localStorage (persistent)
+    const session = { uid, discordId, displayName, photoURL, timestamp: Date.now() };
+    localStorage.setItem('discord_session', JSON.stringify(session));
+
+    // Redirect to home — the app will pick up the session
+    // and show the DiscordAuthModal to link/create a player
     window.location.href = '/';
   } catch (e: any) {
     console.error('Auth callback error:', e);

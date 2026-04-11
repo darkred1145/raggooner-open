@@ -13,16 +13,45 @@ const currentUid = ref<string | null>(null);
 const currentUserRole = ref<UserRole | null>(null);
 const roleLoading = ref(true);
 
+async function fetchRoleForUid(uid: string): Promise<UserRole> {
+    try {
+        const roleRef = doc(db, 'artifacts', appId, 'public', 'data', 'userRoles', uid);
+        const snap = await getDoc(roleRef);
+        if (snap.exists()) return snap.data().role as UserRole;
+    } catch {}
+    return 'player';
+}
+
+async function fetchRoleByDiscordId(discordId: string): Promise<UserRole> {
+    try {
+        const roleRef = doc(db, 'artifacts', appId, 'public', 'data', 'userRoles', discordId);
+        const snap = await getDoc(roleRef);
+        if (snap.exists()) return snap.data().role as UserRole;
+    } catch {}
+    return 'player';
+}
+
 onAuthStateChanged(auth, async (u) => {
     currentUid.value = u?.uid ?? null;
     if (u) {
-        try {
-            const roleRef = doc(db, 'artifacts', appId, 'public', 'data', 'userRoles', u.uid);
-            const snap = await getDoc(roleRef);
-            currentUserRole.value = snap.exists() ? (snap.data().role as UserRole) : 'player';
-        } catch {
-            currentUserRole.value = 'player';
+        // Check role by UID first
+        let role = await fetchRoleForUid(u.uid);
+
+        // If player role, also check by Discord ID from localStorage (dev mode)
+        if (role === 'player') {
+            try {
+                const raw = localStorage.getItem('discord_session');
+                if (raw) {
+                    const session = JSON.parse(raw);
+                    if (session?.discordId) {
+                        const discordRole = await fetchRoleByDiscordId(session.discordId);
+                        if (discordRole !== 'player') role = discordRole;
+                    }
+                }
+            } catch {}
         }
+
+        currentUserRole.value = role;
     } else {
         currentUserRole.value = null;
     }

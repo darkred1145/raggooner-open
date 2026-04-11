@@ -17,11 +17,19 @@ node_modules/
 .env.local
 .env.*.local
 
+# Vercel backend
+vercel-backend/.env
+vercel-backend/.vercel
+
 # Firebase
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
 *.local
+
+# Service account keys (NEVER commit)
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
 
 # Compiled class file
 *.class
@@ -57,5 +65,5 @@ report.json
 emulator-data/
 firestore-debug.log
 
-# Service account keys
-**/serviceAccountKey.json
+# Scripts (one-time use, kept for reference)
+scripts/*.json

@@ -76,15 +76,14 @@ export const discordLogin = onRequest(
 
         const discordUser = await userResponse.json();
         const discordId = discordUser.id;
-        const username = discordUser.username;
+        const globalName = discordUser.global_name || discordUser.username;
         const avatarHash = discordUser.avatar as string | null;
         const photoURL = avatarHash
           ? `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.${avatarHash.startsWith("a_") ? "gif" : "png"}?size=128`
           : null;
 
-        // Find or create Firebase user with this Discord ID
+        // Find or create Firebase user
         let uid: string;
-
         const appId = "raggooner-uma-2026";
         const playersSnap = await admin
           .firestore()
@@ -97,35 +96,15 @@ export const discordLogin = onRequest(
 
         if (!playersSnap.empty) {
           const playerData = playersSnap.docs[0].data();
-          if (playerData.firebaseUid) {
-            uid = playerData.firebaseUid;
-          } else {
-            uid = `discord_${discordId}`;
-            await playersSnap.docs[0].ref.update({ firebaseUid: uid });
-          }
+          uid = playerData.firebaseUid || `discord_${discordId}`;
         } else {
-          const userRecord = await admin.auth().createUser({
-            displayName: username,
-            photoURL: photoURL || undefined,
-          });
-          uid = userRecord.uid;
-
-          await admin.auth().setCustomUserClaims(uid, {
-            discordId,
-            provider: "discord",
-          });
+          // Create a simple deterministic UID from Discord ID
+          uid = `discord_${discordId}`;
         }
 
-        // Mint custom Firebase token
-        const customToken = await admin.auth().createCustomToken(uid, {
-          discordId,
-          displayName: username,
-          photoURL,
-        });
-
-        // Redirect to frontend
-        const frontendUrl = process.env.NODE_ENV === 'production' ? FRONTEND_URL_PROD : FRONTEND_URL;
-        const redirectUrl = `${frontendUrl}/auth/callback?token=${encodeURIComponent(customToken)}&state=${state || ""}`;
+        // Always use the same redirect: pass user info in URL
+        const frontendUrl = isEmulator ? FRONTEND_URL : (process.env.NODE_ENV === 'production' ? FRONTEND_URL_PROD : FRONTEND_URL);
+        const redirectUrl = `${frontendUrl}/auth/callback?uid=${encodeURIComponent(uid)}&discordId=${encodeURIComponent(discordId)}&displayName=${encodeURIComponent(globalName)}&photoURL=${encodeURIComponent(photoURL || '')}&state=${state || ""}`;
         res.redirect(redirectUrl);
         return;
 

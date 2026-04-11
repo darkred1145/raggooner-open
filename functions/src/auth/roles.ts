@@ -1,9 +1,9 @@
 import { beforeUserCreated } from "firebase-functions/v2/identity";
 import * as logger from "firebase-functions/logger";
-import { defineString } from "firebase-functions/params";
 import { db } from "../db";
 
-const appId = defineString("APP_ID").value() || "default-app";
+// App ID is set at deploy time via firebase functions:config:set
+const APP_ID = process.env.APP_ID || "raggooner-uma-2026";
 
 // ---------------------------------------------------------------------------
 // assignDefaultRole
@@ -19,7 +19,7 @@ export const assignDefaultRole = beforeUserCreated(async (event) => {
   if (!isDiscord) return;
 
   const roleRef = db
-    .collection("artifacts").doc(appId)
+    .collection("artifacts").doc(APP_ID)
     .collection("public").doc("data")
     .collection("userRoles").doc(user.uid);
 
