@@ -5,7 +5,7 @@ export const UMA_DICT: Record<string, UmaData> = {
     'Ballroom Fuji Kiseki': {
         id: 'ballroom-fuji-kiseki', name: 'Ballroom Fuji Kiseki', stars: 3, releaseDate: '2026-04-05T22:00:00.000Z', characterId: 100502,
         gametoraId: 100502,
-        skills: [100502],
+        skills: [100502], // Ravissant
         aptitudes: {
             surface: { turf: 'A', dirt: 'F' },
             distance: { sprint: 'B', mile: 'A', medium: 'B', long: 'E' },
@@ -260,7 +260,7 @@ export const UMA_DICT: Record<string, UmaData> = {
     'Summer Maruzensky': {
         id: 'summer-maruzensky', name: 'Summer Maruzensky', stars: 3, releaseDate: '2025-10-14T22:00:00.000Z', characterId: 100402,
         gametoraId: 100402,
-        skills: [110041],
+        skills: [110041], // A Kiss for Courage
         aptitudes: {
             surface: { turf: 'A', dirt: 'D' },
             distance: { sprint: 'B', mile: 'B', medium: 'A', long: 'C' },
@@ -409,6 +409,7 @@ export const UMA_DICT: Record<string, UmaData> = {
         id: 'special-week', name: 'Special Week', stars: 3, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 100101,
         gametoraId: 100101,
         statBonus: 'STA +20% / WIT +10%',
+        skills: [100011],
         aptitudes: {
             surface: { turf: 'A', dirt: 'G' },
             distance: { sprint: 'F', mile: 'C', medium: 'A', long: 'A' },
@@ -437,7 +438,7 @@ export const UMA_DICT: Record<string, UmaData> = {
         id: 'maruzensky', name: 'Maruzensky', stars: 3, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 100401,
         gametoraId: 100401,
         statBonus: 'SPD +20% / WIT +10%',
-        skills: [100041],
+        skills: [100041], // Red Shift/LP1211-M
         aptitudes: {
             surface: { turf: 'A', dirt: 'D' },
             distance: { sprint: 'B', mile: 'A', medium: 'B', long: 'C' },
@@ -464,7 +465,7 @@ export const UMA_DICT: Record<string, UmaData> = {
         id: 'vodka', name: 'Vodka', stars: 2, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 100801,
         gametoraId: 100801,
         statBonus: 'SPD +20% / POW +10%',
-        skills: [100081],
+        skills: [100081], // Cut and Drive!
         aptitudes: {
             surface: { turf: 'A', dirt: 'G' },
             distance: { sprint: 'F', mile: 'A', medium: 'A', long: 'F' },
