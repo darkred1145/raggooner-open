@@ -90,14 +90,28 @@ const fetchLinkedPlayerInternal = async (uid: string) => {
 };
 
 onAuthStateChanged(auth, async (u) => {
-    user.value = u;
-    if (u) {
-        await fetchLinkedPlayerInternal(u.uid);
-        // Sync avatar from auth -> player
-        if (u.photoURL && linkedPlayer.value && linkedPlayer.value.avatarUrl !== u.photoURL) {
-            const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
-            await updateDoc(playerRef, { avatarUrl: u.photoURL });
-            linkedPlayer.value = { ...linkedPlayer.value, avatarUrl: u.photoURL };
+    // If we have a Discord session (custom OAuth), merge its profile info into the user object
+    // because the Firebase Auth user might be anonymous (no name/pic).
+    let mergedUser = u;
+    if (discordSession.value) {
+        mergedUser = {
+            ...u,
+            displayName: discordSession.value.displayName || u?.displayName,
+            photoURL: discordSession.value.photoURL || u?.photoURL,
+        } as User;
+    }
+
+    user.value = mergedUser;
+    if (mergedUser) {
+        await fetchLinkedPlayerInternal(mergedUser.uid);
+        // Sync avatar from session/auth -> player
+        const currentPhoto = mergedUser.photoURL;
+        if (currentPhoto && linkedPlayer.value && linkedPlayer.value.avatarUrl !== currentPhoto) {
+            try {
+                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
+                await updateDoc(playerRef, { avatarUrl: currentPhoto });
+                linkedPlayer.value = { ...linkedPlayer.value, avatarUrl: currentPhoto };
+            } catch {}
         }
     } else {
         linkedPlayer.value = null;
