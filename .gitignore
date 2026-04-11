@@ -67,3 +67,4 @@ report.json
 # Emulator data
 emulator-data/
 firestore-debug.log
+"frontend/.firebase/"  
