@@ -419,7 +419,7 @@ export const UMA_DICT: Record<string, UmaData> = {
     'Silence Suzuka': {
         id: 'silence-suzuka', name: 'Silence Suzuka', stars: 3, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 100201,
         gametoraId: 100201,
-        statBonus: 'SPD +20% / WIT +10%',
+        statBonus: 'SPD +20% / GUT +10%',
         aptitudes: {
             surface: { turf: 'A', dirt: 'G' },
             distance: { sprint: 'D', mile: 'A', medium: 'A', long: 'E' },
@@ -437,7 +437,7 @@ export const UMA_DICT: Record<string, UmaData> = {
     'Maruzensky': {
         id: 'maruzensky', name: 'Maruzensky', stars: 3, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 100401,
         gametoraId: 100401,
-        statBonus: 'SPD +20% / WIT +10%',
+        statBonus: 'SPD +10% / WIT +20%',
         skills: [100041], // Red Shift/LP1211-M
         aptitudes: {
             surface: { turf: 'A', dirt: 'D' },
@@ -464,7 +464,7 @@ export const UMA_DICT: Record<string, UmaData> = {
     'Vodka': {
         id: 'vodka', name: 'Vodka', stars: 2, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 100801,
         gametoraId: 100801,
-        statBonus: 'SPD +20% / POW +10%',
+        statBonus: 'SPD +10% / POW +20%',
         skills: [100081], // Cut and Drive!
         aptitudes: {
             surface: { turf: 'A', dirt: 'G' },
