@@ -268,9 +268,6 @@ const formatTournamentStatus = (t: Tournament): string => {
 onMounted(() => {
   fetchSeasons();
   fetchActiveTournaments();
-  auth.onAuthStateChanged(user => {
-    if (user) console.log('[Auth] Your UID:', user.uid);
-  });
 });
 </script>
 

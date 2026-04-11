@@ -43,11 +43,10 @@ function getStoredSession(): DiscordSession | null {
         const session = JSON.parse(raw) as DiscordSession;
         if (Date.now() - session.timestamp < 30 * 24 * 60 * 60 * 1000) {
             discordSession.value = session;
-            console.log('🔑 Discord session loaded:', session.discordId);
             return session;
         }
         localStorage.removeItem(DISCORD_SESSION_KEY);
-    } catch (e) { console.error('Session parse error:', e); }
+    } catch {}
     return null;
 }
 
@@ -65,20 +64,16 @@ export { getStoredSession as checkDiscordSession };
 
 const fetchLinkedPlayerInternal = async (uid: string) => {
     try {
-        console.log('🔍 Fetching linked player, uid:', uid, 'discordSession:', discordSession.value?.discordId);
         const playersRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
         let q: ReturnType<typeof query>;
 
         if (discordSession.value?.discordId) {
             q = query(playersRef, where('discordId', '==', discordSession.value.discordId));
-            console.log('  Querying by discordId:', discordSession.value.discordId);
         } else {
             q = query(playersRef, where('firebaseUid', '==', uid));
-            console.log('  Querying by firebaseUid:', uid);
         }
 
         const snap = await getDocs(q);
-        console.log('  Query results:', snap.size);
 
         if (!snap.empty) {
             const d = snap.docs[0];
@@ -95,7 +90,6 @@ const fetchLinkedPlayerInternal = async (uid: string) => {
 };
 
 onAuthStateChanged(auth, async (u) => {
-    console.log('🔄 Auth state changed:', u ? `uid=${u.uid} anon=${u.isAnonymous}` : 'null');
     user.value = u;
     if (u) {
         await fetchLinkedPlayerInternal(u.uid);

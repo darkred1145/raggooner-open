@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, provide, watch } from 'vue';
+import { onMounted, ref, provide } from 'vue';
 import type { Tournament } from './types';
 import { signInAnonymously, signInWithCustomToken } from 'firebase/auth';
 import { auth } from './firebase';
@@ -15,14 +15,6 @@ checkDiscordSession();
 
 const { user, linkedPlayer, loading: authLoading, isDiscordUser } = useAuth();
 const { isSuperAdmin } = useUserRoles();
-
-// Debug: log modal visibility condition
-watch([authLoading, user, isDiscordUser, linkedPlayer], ([la, u, du, lp]) => {
-    console.log('🔍 DiscordAuthModal:', {
-        loading: la, user: !!u, discord: du, linked: !!lp,
-        show: !la && !!u && du && !lp
-    });
-}, { immediate: true });
 
 const showChangelog = ref(false);
 const hasNewUpdates = ref(false);
@@ -100,22 +92,31 @@ onMounted(() => {
 
     <footer class="border-t border-slate-800 bg-slate-900/50 py-8 mt-auto backdrop-blur-sm">
       <div class="max-w-[1800px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="text-xs font-mono text-slate-600 flex items-center gap-3">
-          <i class="ph-bold ph-code"></i>
+        <div class="text-xs font-mono text-slate-600 flex items-center gap-3 flex-wrap">
           <span>
             Powered by <span class="text-emerald-500 font-bold">Vue</span> & <span class="text-amber-500 font-bold">Firebase</span>
           </span>
-          <a href="https://github.com/jacobfreise/raggooner-open" target="_blank" rel="noopener noreferrer"
+          <span class="text-slate-700">|</span>
+          <a href="https://github.com/darkred1145/raggooner-open" target="_blank" rel="noopener noreferrer"
              class="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors">
             <i class="ph-fill ph-github-logo text-base"></i>
             <span>Source</span>
           </a>
         </div>
-        <div class="text-sm text-slate-400 flex items-center gap-2">
-          <span>Created with <i class="ph-fill ph-heart text-rose-500 inline-block animate-pulse"></i> by</span>
-          <a href="https://discord.com/users/131446525585784832" target="_blank" rel="noopener noreferrer" class="font-bold text-indigo-400 hover:text-white transition-colors flex items-center gap-1.5 group">
-            Sumpfranze <i class="ph-fill ph-discord-logo text-lg group-hover:scale-110 transition-transform"></i>
-          </a>
+        <div class="text-sm text-slate-400 flex items-center gap-4 flex-wrap">
+          <span class="flex items-center gap-1.5">
+            Original by
+            <a href="https://discord.com/users/131446525585784832" target="_blank" rel="noopener noreferrer" class="font-bold text-indigo-400 hover:text-white transition-colors flex items-center gap-1.5 group">
+              Sumpfranze <i class="ph-fill ph-discord-logo text-lg group-hover:scale-110 transition-transform"></i>
+            </a>
+          </span>
+          <span class="text-slate-700">|</span>
+          <span class="flex items-center gap-1.5">
+            Fork by
+            <a href="https://discord.com/users/925673287974027324" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-400 hover:text-white transition-colors flex items-center gap-1.5 group">
+              Kenesu <i class="ph-fill ph-discord-logo text-lg group-hover:scale-110 transition-transform"></i>
+            </a>
+          </span>
         </div>
       </div>
     </footer>
@@ -125,9 +126,5 @@ onMounted(() => {
     </Transition>
 
     <DiscordAuthModal v-if="!authLoading && user && isDiscordUser && !linkedPlayer" />
-    <!-- Debug: visible indicator when modal should show -->
-    <div v-if="!authLoading && user && isDiscordUser && !linkedPlayer" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-[9999] text-sm font-bold">
-      Discord Login Detected - Link Player!
-    </div>
   </div>
 </template>
