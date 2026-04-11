@@ -11,12 +11,16 @@ const path = require('path');
 
 // Find the service account key file
 const saFiles = fs.readdirSync(__dirname).filter(f => f.startsWith('raggooner-uma-2026') && f.endsWith('.json'));
-if (!saFiles.length) {
+const saFilesParent = fs.readdirSync(path.join(__dirname, '..')).filter(f => f.startsWith('raggooner-uma-2026') && f.endsWith('.json'));
+const saFilesAll = [...saFilesParent, ...saFiles];
+
+if (!saFilesAll.length) {
   console.log('❌ No service account key found. Download from Firebase Console → Settings → Service Accounts.');
   process.exit(1);
 }
-const SA_KEY = JSON.parse(fs.readFileSync(path.join(__dirname, saFiles[0]), 'utf8'));
-console.log(`📂 Using service account: ${saFiles[0]}`);
+const SA_KEY_PATH = path.join(saFilesParent.length ? path.join(__dirname, '..') : __dirname, saFilesAll[0]);
+const SA_KEY = JSON.parse(fs.readFileSync(SA_KEY_PATH, 'utf8'));
+console.log(`📂 Using service account: ${saFilesAll[0]}`);
 
 const PROJECT_ID = 'raggooner-uma-2026';
 const APP_ID = 'raggooner-uma-2026';
@@ -55,7 +59,7 @@ function packFields(obj) {
 function packValue(val) {
   if (val === null || val === undefined) return { nullValue: null };
   if (typeof val === 'string') {
-    if (/^\d{4}-\d{2}-\d{2}T/.test(val)) return { timestampValue: val };
+    // Store all strings (including dates) as stringValue to ensure new Date(val) works in frontend
     return { stringValue: val };
   }
   if (typeof val === 'number') return Number.isInteger(val) ? { integerValue: val.toString() } : { doubleValue: val };
