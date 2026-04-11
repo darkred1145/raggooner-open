@@ -31,6 +31,9 @@ firebase-debug.*.log
 *-firebase-adminsdk-*.json
 serviceAccountKey.json
 
+# Export data files (generated, large, regenerable)
+scripts/raggooner-export-*.json
+
 # Compiled class file
 *.class
 
@@ -64,6 +67,3 @@ report.json
 # Emulator data
 emulator-data/
 firestore-debug.log
-
-# Scripts (one-time use, kept for reference)
-scripts/*.json
