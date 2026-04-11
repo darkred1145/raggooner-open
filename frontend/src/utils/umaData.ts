@@ -608,7 +608,10 @@ export const getUmaImagePath = (name: string): string => {
         // Fallback for characters not in UMA_DICT (legacy slug-based filenames)
         return `/assets/uma/${name.toLowerCase().replace(/\s+/g, '_')}.png`;
     }
-    return `/assets/uma/${data.characterId}.png`;
+    
+    // Use gametora.com URL with full outfit ID for proper outfit-specific images
+    const baseId = Math.floor(data.characterId / 100);
+    return `https://gametora.com/images/umamusume/characters/chara_stand_${baseId}_${data.characterId}.png`;
 };
 
 // Helpful array export for your <select> loops (e.g., v-for="uma in UMA_LIST")
