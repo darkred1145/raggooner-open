@@ -21,9 +21,9 @@ export const discordLogin = onRequest(
     }
 
     const isEmulator = !!process.env.FUNCTIONS_EMULATOR;
-    const callbackUrl = isEmulator
-      ? "http://127.0.0.1:5001/raggooner-uma-2026/us-central1/discordLogin"
-      : "https://us-central1-raggooner-uma-2026.cloudfunctions.net/discordLogin";
+    const callbackUrl = isEmulator ?
+      "http://127.0.0.1:5001/raggooner-uma-2026/us-central1/discordLogin" :
+      "https://us-central1-raggooner-uma-2026.cloudfunctions.net/discordLogin";
 
     const { action, code, state } = req.query;
 
@@ -33,8 +33,8 @@ export const discordLogin = onRequest(
       const discordAuthUrl = `${DISCORD_API}/oauth2/authorize?` +
         `client_id=${clientId}` +
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        `&response_type=code` +
-        `&scope=identify`;
+        "&response_type=code" +
+        "&scope=identify";
       res.redirect(discordAuthUrl);
       return;
     }
@@ -78,9 +78,10 @@ export const discordLogin = onRequest(
         const discordId = discordUser.id;
         const globalName = discordUser.global_name || discordUser.username;
         const avatarHash = discordUser.avatar as string | null;
-        const photoURL = avatarHash
-          ? `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.${avatarHash.startsWith("a_") ? "gif" : "png"}?size=128`
-          : null;
+        const ext = avatarHash?.startsWith("a_") ? "gif" : "png";
+        const photoURL = avatarHash ?
+          `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.${ext}?size=128` :
+          null;
 
         // Find or create Firebase user
         let uid: string;
@@ -103,11 +104,19 @@ export const discordLogin = onRequest(
         }
 
         // Always use the same redirect: pass user info in URL
-        const frontendUrl = isEmulator ? FRONTEND_URL : (process.env.NODE_ENV === 'production' ? FRONTEND_URL_PROD : FRONTEND_URL);
-        const redirectUrl = `${frontendUrl}/auth/callback?uid=${encodeURIComponent(uid)}&discordId=${encodeURIComponent(discordId)}&displayName=${encodeURIComponent(globalName)}&photoURL=${encodeURIComponent(photoURL || '')}&state=${state || ""}`;
+        const isProd = process.env.NODE_ENV === "production";
+        const baseUrl = isProd ? FRONTEND_URL_PROD : FRONTEND_URL;
+        const frontendUrl = isEmulator ? FRONTEND_URL : baseUrl;
+        const params = new URLSearchParams({
+          uid,
+          discordId,
+          displayName: globalName,
+          photoURL: photoURL || "",
+          state: state || "",
+        });
+        const redirectUrl = `${frontendUrl}/auth/callback?${params.toString()}`;
         res.redirect(redirectUrl);
         return;
-
       } catch (error: any) {
         console.error("Discord OAuth error:", error);
         res.status(500).send(`Login failed: ${error.message}`);
