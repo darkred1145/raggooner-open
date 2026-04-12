@@ -24,11 +24,11 @@ const stars = computed(() => umaData.value?.stars || 1);
 function getAptitudeGrade(aptKey: string): string {
   if (!umaData.value) return '?';
   const { surface, distance, style } = umaData.value.aptitudes;
-  
+
   if (aptKey in surface) return surface[aptKey as keyof typeof surface];
   if (aptKey in distance) return distance[aptKey as keyof typeof distance];
   if (aptKey in style) return style[aptKey as keyof typeof style];
-  
+
   return '?';
 }
 
@@ -39,6 +39,16 @@ function gradeColor(grade: string): string {
   return 'bg-red-500 text-white';
 }
 
+function growthColor(label: string): string {
+  switch (label) {
+    case 'SPD': return 'text-amber-400';
+    case 'STA': return 'text-sky-400';
+    case 'POW': return 'text-red-400';
+    case 'GUT': return 'text-emerald-400';
+    case 'WIT': return 'text-indigo-400';
+    default: return 'text-slate-400';
+  }
+}
 
 const highlightedGrade = computed(() => {
   if (!props.highlightAptitude) return null;
@@ -65,6 +75,19 @@ const trackAptitudes = computed(() => {
   return apts;
 });
 
+const growthRates = computed(() => {
+  if (!umaData.value?.statBonus) return [];
+  return umaData.value.statBonus.split('/').map(rate => {
+    const trimmed = rate.trim();
+    // Matches "SPD +15%" or "SPD+15%"
+    const match = trimmed.match(/^(\w{3})\s*(\+?\d+%)$/);
+    if (match) {
+      return { label: match[1], value: match[2] };
+    }
+    return null;
+  }).filter(Boolean) as { label: string, value: string }[];
+});
+
 // Determine status text
 const statusLabel = computed(() => {
     if (props.isBanned) return 'BANNED';
@@ -77,17 +100,17 @@ const statusLabel = computed(() => {
 <template>
   <div class="relative group rounded-xl transition-all duration-300 overflow-hidden border-2 h-full flex flex-col items-center text-center"
        :class="[
-         isBanned 
-           ? 'bg-red-950/20 border-red-500/40 grayscale-[0.5] opacity-80' 
-           : ownerTeam 
-             ? 'bg-slate-900 border-slate-700 opacity-90' 
+         isBanned
+           ? 'bg-red-950/20 border-red-500/40 grayscale-[0.5] opacity-80'
+           : ownerTeam
+             ? 'bg-slate-900 border-slate-700 opacity-90'
              : 'bg-slate-800 border-slate-700 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-1',
          disabled && !ownerTeam && !isBanned ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
        ]"
        :style="ownerTeam ? { borderColor: ownerTeam.color + '60', boxShadow: `0 4px 20px -5px ${ownerTeam.color}30` } : {}">
-    
+
     <!-- Status Overlay/Ribbon -->
-    <div v-if="statusLabel" 
+    <div v-if="statusLabel"
          class="absolute top-0 right-0 z-20 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-bl-lg shadow-sm max-w-full truncate"
          :class="isBanned ? 'bg-red-600 text-white' : ''"
          :style="ownerTeam ? { backgroundColor: ownerTeam.color, color: '#fff' } : {}">
@@ -101,13 +124,13 @@ const statusLabel = computed(() => {
     <div class="p-3 flex flex-col items-center gap-2 relative z-10 w-full">
       <!-- Image Container -->
       <div class="relative">
-        <img :src="imagePath" 
-             :alt="umaName" 
+        <img :src="imagePath"
+             :alt="umaName"
              class="w-16 h-16 rounded-full object-cover border-2 border-slate-700 bg-slate-900 group-hover:border-indigo-400 transition-colors"
              :class="{ 'border-red-500/50': isBanned }"/>
-        
+
         <!-- Action Icon (Floating on top right of image) -->
-        <div v-if="!ownerTeam && !isBanned" 
+        <div v-if="!ownerTeam && !isBanned"
              class="absolute -top-1 -right-1 w-6 h-6 rounded-full border-2 border-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 text-white shadow-lg z-30"
              :class="actionType === 'ban' ? 'bg-red-600' : 'bg-indigo-600'">
           <i class="ph-bold text-xs" :class="actionType === 'ban' ? 'ph-prohibit' : 'ph-plus'"></i>
@@ -119,7 +142,7 @@ const statusLabel = computed(() => {
         </div>
 
         <!-- Highlighted Aptitude Grade -->
-        <div v-if="highlightedGrade" 
+        <div v-if="highlightedGrade"
              class="absolute -top-1 -left-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-slate-900 shadow-md z-20"
              :class="gradeColor(highlightedGrade)">
           {{ highlightedGrade }}
@@ -144,6 +167,15 @@ const statusLabel = computed(() => {
            ]">
         {{ umaName }}
       </div>
+      
+      <!-- Growth Rates -->
+      <div v-if="growthRates.length > 0" class="flex gap-2 justify-center flex-wrap">
+        <div v-for="rate in growthRates" :key="rate.label" class="flex flex-col items-center">
+          <span class="text-[9px] font-black uppercase" :class="growthColor(rate.label)">{{ rate.label }}</span>
+          <span class="text-[9px] font-bold text-slate-300">{{ rate.value }}</span>
+        </div>
+      </div>
+
     </div>
 
   </div>
