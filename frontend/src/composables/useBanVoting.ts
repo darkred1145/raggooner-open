@@ -92,8 +92,21 @@ export function useBanVoting(tournament: Ref<Tournament | null>) {
 
     // --- Actions (call Vercel serverless API) ---
 
+    const getAuthParams = () => {
+        const authToken = user.value?.uid || '';
+        // Also send discordId for dev-mode auth lookup
+        let discordId = '';
+        try {
+            const session = JSON.parse(localStorage.getItem('discord_session') || '{}');
+            discordId = session.discordId || '';
+        } catch {}
+        return { authToken, discordId };
+    };
+
     const captainProposeBan = async (umaId: string): Promise<void> => {
-        if (!tournament.value || !user.value) return;
+        if (!tournament.value) throw new Error('No tournament');
+        const { authToken, discordId } = getAuthParams();
+        if (!authToken && !discordId) throw new Error('Not logged in');
         const res = await fetch(`${VERCEL_API_URL}/api/ban-vote`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -101,7 +114,8 @@ export function useBanVoting(tournament: Ref<Tournament | null>) {
                 action: 'propose',
                 tournamentId: tournament.value.id,
                 umaId,
-                authToken: user.value.uid,
+                authToken,
+                discordId,
             }),
         });
         const data = await res.json();
@@ -109,7 +123,9 @@ export function useBanVoting(tournament: Ref<Tournament | null>) {
     };
 
     const playerVoteOnBan = async (umaId: string, vote: boolean): Promise<void> => {
-        if (!tournament.value || !user.value) return;
+        if (!tournament.value) throw new Error('No tournament');
+        const { authToken, discordId } = getAuthParams();
+        if (!authToken && !discordId) throw new Error('Not logged in');
         const res = await fetch(`${VERCEL_API_URL}/api/ban-vote`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -118,7 +134,8 @@ export function useBanVoting(tournament: Ref<Tournament | null>) {
                 tournamentId: tournament.value.id,
                 umaId,
                 vote,
-                authToken: user.value.uid,
+                authToken,
+                discordId,
             }),
         });
         const data = await res.json();

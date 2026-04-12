@@ -167,6 +167,10 @@ const copySuccessMessage = ref('');
 const isPosting = ref(false);
 const showPostSuccess = ref(false);
 
+const getDiscordId = (): string => {
+  try { return JSON.parse(localStorage.getItem('discord_session') || '{}').discordId || ''; } catch { return ''; }
+};
+
 const postToDiscord = async (messages: string[]) => {
   if (isPosting.value) return;
   isPosting.value = true;
@@ -174,7 +178,7 @@ const postToDiscord = async (messages: string[]) => {
     const res = await fetch(`${VERCEL_API_URL}/api/discord-post`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'results', authToken: user.value?.uid, messages }),
+      body: JSON.stringify({ action: 'results', authToken: user.value?.uid, discordId: getDiscordId(), messages }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Discord post failed');

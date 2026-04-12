@@ -35,25 +35,23 @@ function getTournamentRef(db, tournamentId) {
     .collection('tournaments').doc(tournamentId);
 }
 
-async function getPlayerId(db, uid) {
-  const snap = await db
-    .collection('artifacts').doc(APP_ID)
-    .collection('public').doc('data')
-    .collection('players')
-    .where('firebaseUid', '==', uid)
-    .limit(1)
-    .get();
-  if (snap.empty) return null;
-  return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+async function getPlayerId(db, uid, discordId) {
+  let snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
+  if (!snap.empty) return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+  if (discordId) {
+    snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('discordId', '==', discordId).limit(1).get();
+    if (!snap.empty) return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
 // Action handlers
 // ---------------------------------------------------------------------------
 
-async function handleSelfSignup(db, { uid, tournamentId }) {
-  const playerInfo = await getPlayerId(db, uid);
-  if (!playerInfo) throw { code: 404, message: 'No player linked to your account.' };
+async function handleSelfSignup(db, { uid, tournamentId, discordId }) {
+  const playerInfo = await getPlayerId(db, uid, discordId);
+  if (!playerInfo) throw { code: 401, message: 'Not authenticated' };
   const { playerId, playerData } = playerInfo;
 
   const tournamentRef = getTournamentRef(db, tournamentId);
@@ -81,9 +79,9 @@ async function handleSelfSignup(db, { uid, tournamentId }) {
   return { success: true };
 }
 
-async function handleSelfLeave(db, { uid, tournamentId }) {
-  const playerInfo = await getPlayerId(db, uid);
-  if (!playerInfo) throw { code: 404, message: 'No player linked to your account.' };
+async function handleSelfLeave(db, { uid, tournamentId, discordId }) {
+  const playerInfo = await getPlayerId(db, uid, discordId);
+  if (!playerInfo) throw { code: 401, message: 'Not authenticated' };
   const { playerId } = playerInfo;
 
   const tournamentRef = getTournamentRef(db, tournamentId);
@@ -114,16 +112,16 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
 
-  const { action, tournamentId, authToken } = req.body;
+  const { action, tournamentId, authToken, discordId } = req.body;
   if (!tournamentId) { res.status(400).json({ error: 'tournamentId is required' }); return; }
-  if (!authToken) { res.status(401).json({ error: 'Not authenticated' }); return; }
+  if (!authToken && !discordId) { res.status(401).json({ error: 'Not authenticated' }); return; }
   if (!action) { res.status(400).json({ error: 'action is required' }); return; }
 
   try {
     const db = await getDb();
     const handlers = {
-      signup: () => handleSelfSignup(db, { uid: authToken, tournamentId }),
-      leave: () => handleSelfLeave(db, { uid: authToken, tournamentId }),
+      signup: () => handleSelfSignup(db, { uid: authToken, tournamentId, discordId }),
+      leave: () => handleSelfLeave(db, { uid: authToken, tournamentId, discordId }),
     };
 
     const fn = handlers[action];

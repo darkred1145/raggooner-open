@@ -45,12 +45,20 @@ export function useCaptainActions(tournament: Ref<Tournament | null>) {
 
     // --- Helper to call Vercel captain API ---
 
+    const getDiscordId = (): string => {
+        try {
+            const session = JSON.parse(localStorage.getItem('discord_session') || '{}');
+            return session.discordId || '';
+        } catch { return ''; }
+    };
+
     const callCaptainApi = async (action: string, body: Record<string, any>): Promise<void> => {
         if (!tournament.value || !user.value) return;
+        const discordId = getDiscordId();
         const res = await fetch(`${VERCEL_API_URL}/api/captain`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, tournamentId: tournament.value.id, authToken: user.value.uid, ...body }),
+            body: JSON.stringify({ action, tournamentId: tournament.value.id, authToken: user.value.uid, discordId, ...body }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `Failed to call ${action}`);

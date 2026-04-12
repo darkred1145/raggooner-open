@@ -49,6 +49,10 @@ const showCopyImageSuccess = ref(false);
 const showPostSuccess = ref(false);
 const isPosting = ref(false);
 
+const getDiscordId = (): string => {
+  try { return JSON.parse(localStorage.getItem('discord_session') || '{}').discordId || ''; } catch { return ''; }
+};
+
 const postToDiscord = async () => {
   if (!track.value || isPosting.value) return;
   isPosting.value = true;
@@ -63,7 +67,7 @@ const postToDiscord = async () => {
     const res = await fetch(`${VERCEL_API_URL}/api/discord-post`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'announcement', authToken: user.value?.uid, content, imageBase64: base64, imageFileName: `${track.value.id}.png` }),
+      body: JSON.stringify({ action: 'announcement', authToken: user.value?.uid, discordId: getDiscordId(), content, imageBase64: base64, imageFileName: `${track.value.id}.png` }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Discord post failed');

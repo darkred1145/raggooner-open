@@ -137,6 +137,10 @@ const showScheduleCopyImageSuccess = ref(false);
 const showSchedulePostSuccess = ref(false);
 const isSchedulePosting = ref(false);
 
+const getDiscordId = (): string => {
+  try { return JSON.parse(localStorage.getItem('discord_session') || '{}').discordId || ''; } catch { return ''; }
+};
+
 const postToDiscord = async () => {
   if (isSchedulePosting.value) return;
   isSchedulePosting.value = true;
@@ -156,7 +160,7 @@ const postToDiscord = async () => {
     const res = await fetch(`${VERCEL_API_URL}/api/discord-post`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'announcement', authToken: user.value?.uid, content, imageBase64, imageFileName }),
+      body: JSON.stringify({ action: 'announcement', authToken: user.value?.uid, discordId: getDiscordId(), content, imageBase64, imageFileName }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Discord post failed');
@@ -333,7 +337,7 @@ const selfSignup = async () => {
     const res = await fetch(`${VERCEL_API_URL}/api/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'signup', tournamentId: props.tournament.id, authToken: user.value?.uid }),
+      body: JSON.stringify({ action: 'signup', tournamentId: props.tournament.id, authToken: user.value?.uid, discordId: getDiscordId() }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Sign-up failed');
@@ -349,7 +353,7 @@ const selfLeave = async () => {
     const res = await fetch(`${VERCEL_API_URL}/api/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'leave', tournamentId: props.tournament.id, authToken: user.value?.uid }),
+      body: JSON.stringify({ action: 'leave', tournamentId: props.tournament.id, authToken: user.value?.uid, discordId: getDiscordId() }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Leave failed');

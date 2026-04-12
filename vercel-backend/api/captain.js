@@ -40,21 +40,19 @@ function getTournamentRef(db, tournamentId) {
 // Shared helpers
 // ---------------------------------------------------------------------------
 
-async function getPlayerId(db, uid) {
-  const snap = await db
-    .collection('artifacts').doc(APP_ID)
-    .collection('public').doc('data')
-    .collection('players')
-    .where('firebaseUid', '==', uid)
-    .limit(1)
-    .get();
-  if (snap.empty) return null;
-  return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+async function getPlayerId(db, uid, discordId) {
+  let snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
+  if (!snap.empty) return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+  if (discordId) {
+    snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('discordId', '==', discordId).limit(1).get();
+    if (!snap.empty) return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+  }
+  return null;
 }
 
-async function resolveCaptainTeam(db, uid, tournamentId) {
-  const playerInfo = await getPlayerId(db, uid);
-  if (!playerInfo) throw { code: 404, message: 'No player linked to your account.' };
+async function resolveCaptainTeam(db, uid, tournamentId, discordId) {
+  const playerInfo = await getPlayerId(db, uid, discordId);
+  if (!playerInfo) throw { code: 401, message: 'Not authenticated' };
   const { playerId, playerData } = playerInfo;
 
   const tournamentRef = getTournamentRef(db, tournamentId);
@@ -119,9 +117,9 @@ function recalculateTeams(tournament) {
 // Action handlers
 // ---------------------------------------------------------------------------
 
-async function handleDraftPlayer(db, { uid, tournamentId, targetPlayerId }) {
+async function handleDraftPlayer(db, { uid, tournamentId, discordId, targetPlayerId }) {
   const { team, tournament, tournamentRef } =
-    await resolveCaptainTeam(db, uid, tournamentId);
+    await resolveCaptainTeam(db, uid, tournamentId, discordId);
 
   if (tournament.status !== 'draft') {
     throw { code: 400, message: 'Tournament is not in draft phase.' };
@@ -157,9 +155,9 @@ async function handleDraftPlayer(db, { uid, tournamentId, targetPlayerId }) {
   return { success: true };
 }
 
-async function handlePickUma(db, { uid, tournamentId, umaId }) {
+async function handlePickUma(db, { uid, tournamentId, discordId, umaId }) {
   const { team, tournament, tournamentRef } =
-    await resolveCaptainTeam(db, uid, tournamentId);
+    await resolveCaptainTeam(db, uid, tournamentId, discordId);
 
   if (tournament.status !== 'pick') {
     throw { code: 400, message: 'Tournament is not in uma pick phase.' };
@@ -196,9 +194,9 @@ async function handlePickUma(db, { uid, tournamentId, umaId }) {
   return { success: true };
 }
 
-async function handleSubmitUma(db, { uid, tournamentId, playerId: targetPlayerId, umaId }) {
+async function handleSubmitUma(db, { uid, tournamentId, discordId, playerId: targetPlayerId, umaId }) {
   const { team, tournament, tournamentRef } =
-    await resolveCaptainTeam(db, uid, tournamentId);
+    await resolveCaptainTeam(db, uid, tournamentId, discordId);
 
   if (tournament.status !== 'active') {
     throw { code: 400, message: 'Tournament is not active.' };
@@ -227,9 +225,9 @@ async function handleSubmitUma(db, { uid, tournamentId, playerId: targetPlayerId
   return { success: true };
 }
 
-async function handleSaveTapResults(db, { uid, tournamentId, group, raceNumber, placements }) {
+async function handleSaveTapResults(db, { uid, tournamentId, discordId, group, raceNumber, placements }) {
   const { team, tournament, tournamentRef } =
-    await resolveCaptainTeam(db, uid, tournamentId);
+    await resolveCaptainTeam(db, uid, tournamentId, discordId);
 
   if (tournament.status !== 'active') {
     throw { code: 400, message: 'Tournament is not active.' };
@@ -266,9 +264,9 @@ async function handleSaveTapResults(db, { uid, tournamentId, group, raceNumber, 
   return { success: true };
 }
 
-async function handleUpdateRacePlacement(db, { uid, tournamentId, group, raceNumber, position, playerId: targetPlayerId }) {
+async function handleUpdateRacePlacement(db, { uid, tournamentId, discordId, group, raceNumber, position, playerId: targetPlayerId }) {
   const { team, tournament, tournamentRef } =
-    await resolveCaptainTeam(db, uid, tournamentId);
+    await resolveCaptainTeam(db, uid, tournamentId, discordId);
 
   if (tournament.status !== 'active') {
     throw { code: 400, message: 'Tournament is not active.' };
@@ -328,19 +326,19 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
 
-  const { action, tournamentId, authToken, ...rest } = req.body;
+  const { action, tournamentId, authToken, discordId, ...rest } = req.body;
   if (!tournamentId) { res.status(400).json({ error: 'tournamentId is required' }); return; }
-  if (!authToken) { res.status(401).json({ error: 'Not authenticated' }); return; }
+  if (!authToken && !discordId) { res.status(401).json({ error: 'Not authenticated' }); return; }
   if (!action) { res.status(400).json({ error: 'action is required' }); return; }
 
   try {
     const db = await getDb();
     const handlers = {
-      draftPlayer: () => handleDraftPlayer(db, { uid: authToken, tournamentId, ...rest }),
-      pickUma: () => handlePickUma(db, { uid: authToken, tournamentId, ...rest }),
-      submitUma: () => handleSubmitUma(db, { uid: authToken, tournamentId, ...rest }),
-      saveTap: () => handleSaveTapResults(db, { uid: authToken, tournamentId, ...rest }),
-      updatePlacement: () => handleUpdateRacePlacement(db, { uid: authToken, tournamentId, ...rest }),
+      draftPlayer: () => handleDraftPlayer(db, { uid: authToken, tournamentId, discordId, ...rest }),
+      pickUma: () => handlePickUma(db, { uid: authToken, tournamentId, discordId, ...rest }),
+      submitUma: () => handleSubmitUma(db, { uid: authToken, tournamentId, discordId, ...rest }),
+      saveTap: () => handleSaveTapResults(db, { uid: authToken, tournamentId, discordId, ...rest }),
+      updatePlacement: () => handleUpdateRacePlacement(db, { uid: authToken, tournamentId, discordId, ...rest }),
     };
 
     const fn = handlers[action];

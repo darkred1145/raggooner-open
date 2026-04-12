@@ -30,12 +30,17 @@ async function getDb() {
   return admin.firestore();
 }
 
-async function checkAdminRole(db, uid) {
-  const roleSnap = await db
-    .collection('artifacts').doc(APP_ID)
-    .collection('public').doc('data')
-    .collection('userRoles').doc(uid)
-    .get();
+async function checkAdminRole(db, uid, discordId) {
+  // Find player by either uid or discordId
+  let snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
+  if (snap.empty && discordId) {
+    snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('discordId', '==', discordId).limit(1).get();
+  }
+  if (snap.empty) return false;
+  const playerData = snap.docs[0].data();
+  // Check role from userRoles collection using the player's firebaseUid
+  const roleUid = playerData.firebaseUid || uid;
+  const roleSnap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('userRoles').doc(roleUid).get();
   const role = roleSnap.exists ? roleSnap.data()?.role : null;
   return role === 'tournament_creator' || role === 'superadmin' || role === 'admin';
 }
@@ -44,9 +49,8 @@ async function checkAdminRole(db, uid) {
 // Action handlers
 // ---------------------------------------------------------------------------
 
-async function handleAnnouncement({ authToken, content, imageBase64, imageFileName }) {
-  const db = await getDb();
-  const isAuthorized = await checkAdminRole(db, authToken);
+async function handleAnnouncement(db, { authToken, discordId, content, imageBase64, imageFileName }) {
+  const isAuthorized = await checkAdminRole(db, authToken, discordId);
   if (!isAuthorized) throw { code: 403, message: 'Not authorized to post announcements.' };
   if (!WEBHOOK_URL) throw { code: 500, message: 'Discord webhook URL is not configured.' };
   if (!content) throw { code: 400, message: 'content is required.' };
@@ -74,9 +78,8 @@ async function handleAnnouncement({ authToken, content, imageBase64, imageFileNa
   return { success: true };
 }
 
-async function handleResults({ authToken, messages }) {
-  const db = await getDb();
-  const isAuthorized = await checkAdminRole(db, authToken);
+async function handleResults(db, { authToken, discordId, messages }) {
+  const isAuthorized = await checkAdminRole(db, authToken, discordId);
   if (!isAuthorized) throw { code: 403, message: 'Not authorized to post results.' };
   if (!WEBHOOK_URL) throw { code: 500, message: 'Discord webhook URL is not configured.' };
   if (!Array.isArray(messages) || messages.length === 0) {
@@ -112,14 +115,15 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
 
-  const { action, authToken, ...rest } = req.body;
-  if (!authToken) { res.status(401).json({ error: 'Not authenticated' }); return; }
+  const { action, authToken, discordId, ...rest } = req.body;
+  if (!authToken && !discordId) { res.status(401).json({ error: 'Not authenticated' }); return; }
   if (!action) { res.status(400).json({ error: 'action is required' }); return; }
 
   try {
+    const db = await getDb();
     const handlers = {
-      announcement: () => handleAnnouncement({ authToken, ...rest }),
-      results: () => handleResults({ authToken, ...rest }),
+      announcement: () => handleAnnouncement(db, { authToken, discordId, ...rest }),
+      results: () => handleResults(db, { authToken, discordId, ...rest }),
     };
 
     const fn = handlers[action];
