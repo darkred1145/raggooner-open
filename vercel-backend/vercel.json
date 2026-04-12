@@ -2,9 +2,11 @@
   "version": 2,
   "name": "raggooner-discord-oauth",
   "builds": [
-    { "src": "api/discord-login.js", "use": "@vercel/node" }
+    { "src": "api/discord-login.js", "use": "@vercel/node" },
+    { "src": "api/ban-vote.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/discord-login.js" }
+    { "src": "/api/discord-login", "dest": "/api/discord-login.js" },
+    { "src": "/api/ban-vote", "dest": "/api/ban-vote.js" }
   ]
 }

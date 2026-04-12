@@ -1,16 +1,11 @@
 import { computed, type Ref } from 'vue';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
-import { APP_ID } from '../config';
 import { useAuth } from './useAuth';
 import type { Tournament } from '../types';
 
-export function useBanVoting(tournament: Ref<Tournament | null>, appId: string = APP_ID) {
-    const { linkedPlayer } = useAuth();
+const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
 
-    // Cloud function references
-    const proposeBanFn = httpsCallable(functions, 'captainProposeBan');
-    const voteOnBanFn = httpsCallable(functions, 'playerVoteOnBan');
+export function useBanVoting(tournament: Ref<Tournament | null>) {
+    const { linkedPlayer, user } = useAuth();
 
     // Check if current user is a captain
     const isCaptain = computed(() => {
@@ -45,8 +40,8 @@ export function useBanVoting(tournament: Ref<Tournament | null>, appId: string =
             const yesVotes = Object.values(umaVotes).filter((v) => v === true).length;
             const noVotes = Object.values(umaVotes).filter((v) => v === false).length;
             const totalVotes = yesVotes + noVotes;
-            const banPassed = yesVotes / playerIds.length > threshold;
-            const allVoted = playerIds.every((pid) => umaVotes[pid] !== undefined);
+            const banPassed = playerIds.length > 0 && yesVotes / playerIds.length > threshold;
+            const allVoted = playerIds.length > 0 && playerIds.every((pid) => umaVotes[pid] !== undefined);
 
             return {
                 umaId: umaId as string,
@@ -95,16 +90,39 @@ export function useBanVoting(tournament: Ref<Tournament | null>, appId: string =
         return tournament.value?.banPhaseStatus ?? 'captain-voting';
     });
 
-    // --- Actions ---
+    // --- Actions (call Vercel serverless API) ---
 
     const captainProposeBan = async (umaId: string): Promise<void> => {
-        if (!tournament.value) return;
-        await proposeBanFn({ tournamentId: tournament.value.id, appId, umaId });
+        if (!tournament.value || !user.value) return;
+        const res = await fetch(`${VERCEL_API_URL}/api/ban-vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'propose',
+                tournamentId: tournament.value.id,
+                umaId,
+                authToken: user.value.uid,
+            }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to propose ban');
     };
 
     const playerVoteOnBan = async (umaId: string, vote: boolean): Promise<void> => {
-        if (!tournament.value) return;
-        await voteOnBanFn({ tournamentId: tournament.value.id, appId, umaId, vote });
+        if (!tournament.value || !user.value) return;
+        const res = await fetch(`${VERCEL_API_URL}/api/ban-vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'vote',
+                tournamentId: tournament.value.id,
+                umaId,
+                vote,
+                authToken: user.value.uid,
+            }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to vote on ban');
     };
 
     return {
