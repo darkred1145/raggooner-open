@@ -14,7 +14,7 @@ const props = defineProps<{
 const emit = defineEmits<{ close: [] }>();
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
-const activeTab = ref<'umas' | 'cards' | 'history'>('umas');
+const activeTab = ref<'umas' | 'cards' | 'power' | 'history'>('umas');
 
 // ── Uma filters ───────────────────────────────────────────────────────────────
 const umaFilter = ref('');
@@ -64,6 +64,40 @@ const ALL_TYPES: SupportCardType[] = ['speed', 'stamina', 'power', 'guts', 'wit'
 const toggleTypeFilter = (type: SupportCardType) => {
     cardTypeFilter.value = cardTypeFilter.value === type ? null : type;
 };
+
+// ── Power Stats ───────────────────────────────────────────────────────────────
+const powerStats = computed(() => {
+    const cards = props.globalPlayer?.supportCards ?? [];
+    const typeStats: Record<string, { totalPower: number; maxPower: number; count: number; avgLb: number }> = {};
+    
+    for (const type of ALL_TYPES) {
+        typeStats[type] = { totalPower: 0, maxPower: 0, count: 0, avgLb: 0 };
+    }
+    
+    for (const entry of cards) {
+        const card = SUPPORT_CARD_DICT[entry.cardId];
+        if (!card) continue;
+        const stats = typeStats[card.type];
+        if (!stats) continue;
+        
+        const cardPower = card.power + (card.maxPower - card.power) * (entry.limitBreak / 4);
+        stats.totalPower += cardPower;
+        stats.maxPower = Math.max(stats.maxPower, cardPower);
+        stats.count += 1;
+        stats.avgLb += entry.limitBreak;
+    }
+    
+    for (const type of ALL_TYPES) {
+        const s = typeStats[type];
+        if (s && s.count > 0) s.avgLb /= s.count;
+    }
+    
+    const totalAllPower = Object.values(typeStats).reduce((sum, s) => sum + s.totalPower, 0);
+    const totalCards = cards.length;
+    const overallAvgLb = totalCards > 0 ? cards.reduce((sum, c) => sum + c.limitBreak, 0) / totalCards : 0;
+    
+    return { typeStats, totalAllPower, totalCards, overallAvgLb };
+});
 
 // ── History helpers ───────────────────────────────────────────────────────────
 const recentResults = computed<RecentResult[]>(() =>
@@ -163,8 +197,16 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                         ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/5'
                                         : 'text-slate-500 hover:text-slate-300'">
                                 <i class="ph-fill ph-cards"></i>
-                                Support Cards
+                                Cards
                                 <span class="text-[10px] opacity-70">({{ globalPlayer?.supportCards?.length ?? 0 }})</span>
+                            </button>
+                            <button @click="activeTab = 'power'"
+                                    class="flex-1 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                                    :class="activeTab === 'power'
+                                        ? 'text-indigo-400 border-b-2 border-indigo-500 bg-indigo-500/5'
+                                        : 'text-slate-500 hover:text-slate-300'">
+                                <i class="ph-fill ph-lightning"></i>
+                                Power
                             </button>
                             <button @click="activeTab = 'history'"
                                     class="flex-1 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
@@ -276,6 +318,75 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                 </div>
                             </div>
                         </div>
+
+                        <!-- ── Power Stats Tab ── -->
+                        <div v-if="activeTab === 'power'" class="flex-1 flex flex-col overflow-hidden">
+                            <div v-if="globalPlayer?.supportCards?.length === 0"
+                                 class="flex-1 flex flex-col items-center justify-center py-12 text-slate-600">
+                                <i class="ph-bold ph-lightning text-4xl mb-3"></i>
+                                <p class="text-sm">No support cards to calculate power.</p>
+                            </div>
+
+                            <div v-else class="flex-1 overflow-y-auto p-4 space-y-4">
+                                <!-- Overall summary -->
+                                <div class="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                            <i class="ph-fill ph-lightning text-yellow-400"></i>
+                                            Total Power
+                                        </h3>
+                                        <div class="text-2xl font-black text-yellow-400">{{ powerStats.totalAllPower.toFixed(0) }}</div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 text-center">
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Cards</div>
+                                            <div class="text-sm font-bold text-white">{{ powerStats.totalCards }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Avg LB</div>
+                                            <div class="text-sm font-bold text-indigo-400">{{ powerStats.overallAvgLb.toFixed(1) }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/60 rounded-lg px-2 py-2">
+                                            <div class="text-[10px] text-slate-500 mb-0.5">Best Card</div>
+                                            <div class="text-sm font-bold text-amber-400">{{ Math.max(...Object.values(powerStats.typeStats).map(s => s.maxPower)).toFixed(0) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Per-type breakdown -->
+                                <div class="space-y-2">
+                                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Power by Type</h3>
+                                    <div v-for="type in ALL_TYPES" :key="type"
+                                         class="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3">
+                                        <template v-if="powerStats.typeStats[type] as object" v-for="ts in [powerStats.typeStats[type]!]">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+                                                          :class="[SUPPORT_CARD_TYPE_META[type].color, SUPPORT_CARD_TYPE_META[type].bg]">
+                                                        {{ SUPPORT_CARD_TYPE_META[type].label }}
+                                                    </span>
+                                                    <span class="text-xs text-slate-500">{{ ts.count }} cards</span>
+                                                </div>
+                                                <div class="text-lg font-black" :class="SUPPORT_CARD_TYPE_META[type].color">
+                                                    {{ ts.totalPower.toFixed(0) }}
+                                                </div>
+                                            </div>
+                                            <!-- Power bar -->
+                                            <div class="w-full bg-slate-700 rounded-full h-2 overflow-hidden mb-1.5">
+                                                <div class="h-full rounded-full transition-all duration-300"
+                                                     :class="[SUPPORT_CARD_TYPE_META[type].bg.replace('/15', '/60')]"
+                                                     :style="{ width: `${ts.count > 0 ? Math.min(ts.totalPower / 30, 100) : 0}%` }"></div>
+                                            </div>
+                                            <div class="flex justify-between text-[10px] text-slate-500">
+                                                <span>Avg LB: {{ ts.count > 0 ? ts.avgLb.toFixed(1) : '—' }}</span>
+                                                <span>Best: {{ ts.maxPower.toFixed(0) }}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- ── History Tab ── -->
                         <div v-if="activeTab === 'history'" class="flex-1 flex flex-col overflow-hidden">
                             <div v-if="recentResults.length === 0"
