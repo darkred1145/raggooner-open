@@ -7,9 +7,5 @@ setGlobalOptions({ maxInstances: 10 });
 
 export * from "./auth/roles";
 export * from "./tournaments/sync";
-export * from "./tournaments/signup";
-export * from "./gameplay/captain";
-export * from "./gameplay/races";
-export * from "./integrations/discord";
 export * from "./integrations/discordLogin";
 export * from "./maintenance/backup";

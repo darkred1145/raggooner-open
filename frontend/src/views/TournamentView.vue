@@ -82,7 +82,7 @@ const {
     captainSubmitUma,
     captainSaveTapResults,
     captainUpdateRacePlacement,
-} = useCaptainActions(tournament, appId);
+} = useCaptainActions(tournament);
 
 const { currentView } = useGameLogic(tournament, secureUpdate);
 const { activeVisualEgg } = useEasterEgg(tournament);

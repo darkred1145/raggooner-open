@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
-import { APP_ID } from '../config';
 import type { Tournament } from '../types';
 import { useUserRoles } from '../composables/useUserRoles';
+import { useAuth } from '../composables/useAuth';
 import { TRACK_DICT } from '../utils/trackData';
 import { generateAnnouncementText } from '../utils/announcementUtils';
 import { useGlobalSettings } from '../composables/useGlobalSettings';
+
+const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
+const { user } = useAuth();
 
 const props = defineProps<{
   isOpen: boolean;
@@ -48,8 +49,6 @@ const showCopyImageSuccess = ref(false);
 const showPostSuccess = ref(false);
 const isPosting = ref(false);
 
-const postDiscordAnnouncementFn = httpsCallable(functions, 'postDiscordAnnouncement');
-
 const postToDiscord = async () => {
   if (!track.value || isPosting.value) return;
   isPosting.value = true;
@@ -61,12 +60,13 @@ const postToDiscord = async () => {
       reader.onloadend = () => resolve((reader.result as string).split(',')[1] ?? '');
       reader.readAsDataURL(blob);
     });
-    await postDiscordAnnouncementFn({
-      appId: props.appId ?? APP_ID,
-      content,
-      imageBase64: base64,
-      imageFileName: `${track.value.id}.png`,
+    const res = await fetch(`${VERCEL_API_URL}/api/discord-post`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'announcement', authToken: user.value?.uid, content, imageBase64: base64, imageFileName: `${track.value.id}.png` }),
     });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Discord post failed');
     showPostSuccess.value = true;
     setTimeout(() => { showPostSuccess.value = false; }, 2500);
   } catch (e) { console.error('Discord post failed', e); } finally {

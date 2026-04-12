@@ -3,10 +3,16 @@
   "name": "raggooner-discord-oauth",
   "builds": [
     { "src": "api/discord-login.js", "use": "@vercel/node" },
-    { "src": "api/ban-vote.js", "use": "@vercel/node" }
+    { "src": "api/ban-vote.js", "use": "@vercel/node" },
+    { "src": "api/captain.js", "use": "@vercel/node" },
+    { "src": "api/signup.js", "use": "@vercel/node" },
+    { "src": "api/discord-post.js", "use": "@vercel/node" }
   ],
   "routes": [
     { "src": "/api/discord-login", "dest": "/api/discord-login.js" },
-    { "src": "/api/ban-vote", "dest": "/api/ban-vote.js" }
+    { "src": "/api/ban-vote", "dest": "/api/ban-vote.js" },
+    { "src": "/api/captain", "dest": "/api/captain.js" },
+    { "src": "/api/signup", "dest": "/api/signup.js" },
+    { "src": "/api/discord-post", "dest": "/api/discord-post.js" }
   ]
 }

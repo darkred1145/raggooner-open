@@ -1,12 +1,11 @@
 import { computed, type Ref } from 'vue';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
-import { APP_ID } from '../config';
 import { useAuth } from './useAuth';
 import type { Team, Tournament } from '../types';
 
-export function useCaptainActions(tournament: Ref<Tournament | null>, appId: string = APP_ID) {
-    const { linkedPlayer } = useAuth();
+const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
+
+export function useCaptainActions(tournament: Ref<Tournament | null>) {
+    const { linkedPlayer, user } = useAuth();
 
     // The team captained by the currently logged-in Discord user (null if not a captain).
     const captainTeam = computed((): Team | null => {
@@ -44,27 +43,29 @@ export function useCaptainActions(tournament: Ref<Tournament | null>, appId: str
         return false;
     };
 
-    // --- Cloud function callers ---
+    // --- Helper to call Vercel captain API ---
 
-    const draftPlayerFn = httpsCallable(functions, 'captainDraftPlayer');
-    const pickUmaFn = httpsCallable(functions, 'captainPickUma');
-    const submitUmaFn = httpsCallable(functions, 'captainSubmitUma');
-    const saveTapFn = httpsCallable(functions, 'captainSaveTapResults');
-    const updatePlacementFn = httpsCallable(functions, 'captainUpdateRacePlacement');
+    const callCaptainApi = async (action: string, body: Record<string, any>): Promise<void> => {
+        if (!tournament.value || !user.value) return;
+        const res = await fetch(`${VERCEL_API_URL}/api/captain`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, tournamentId: tournament.value.id, authToken: user.value.uid, ...body }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Failed to call ${action}`);
+    };
 
     const captainDraftPlayer = async (targetPlayerId: string): Promise<void> => {
-        if (!tournament.value) return;
-        await draftPlayerFn({ tournamentId: tournament.value.id, appId, targetPlayerId });
+        await callCaptainApi('draftPlayer', { targetPlayerId });
     };
 
     const captainPickUma = async (umaId: string): Promise<void> => {
-        if (!tournament.value) return;
-        await pickUmaFn({ tournamentId: tournament.value.id, appId, umaId });
+        await callCaptainApi('pickUma', { umaId });
     };
 
     const captainSubmitUma = async (playerId: string, umaId: string): Promise<void> => {
-        if (!tournament.value) return;
-        await submitUmaFn({ tournamentId: tournament.value.id, appId, playerId, umaId });
+        await callCaptainApi('submitUma', { playerId, umaId });
     };
 
     const captainSaveTapResults = async (
@@ -72,8 +73,7 @@ export function useCaptainActions(tournament: Ref<Tournament | null>, appId: str
         raceNumber: number,
         placements: Record<string, number>
     ): Promise<void> => {
-        if (!tournament.value) return;
-        await saveTapFn({ tournamentId: tournament.value.id, appId, group, raceNumber, placements });
+        await callCaptainApi('saveTap', { group, raceNumber, placements });
     };
 
     const captainUpdateRacePlacement = async (
@@ -82,15 +82,7 @@ export function useCaptainActions(tournament: Ref<Tournament | null>, appId: str
         position: number,
         playerId: string
     ): Promise<void> => {
-        if (!tournament.value) return;
-        await updatePlacementFn({
-            tournamentId: tournament.value.id,
-            appId,
-            group,
-            raceNumber,
-            position,
-            playerId,
-        });
+        await callCaptainApi('updatePlacement', { group, raceNumber, position, playerId });
     };
 
     return {

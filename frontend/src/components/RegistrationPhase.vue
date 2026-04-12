@@ -8,13 +8,13 @@ import PlayerSelector from './PlayerSelector.vue';
 import PlayerProfileModal from './PlayerProfileModal.vue';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
 import { arrayUnion, deleteField } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
 import { useAuth } from '../composables/useAuth';
 import { useUserRoles } from '../composables/useUserRoles';
 import { TRACK_DICT } from '../utils/trackData';
 import { generateAnnouncementText } from '../utils/announcementUtils';
 import { useGlobalSettings } from '../composables/useGlobalSettings';
+
+const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
 
 const props = defineProps<{
   tournament: Tournament;
@@ -137,8 +137,6 @@ const showScheduleCopyImageSuccess = ref(false);
 const showSchedulePostSuccess = ref(false);
 const isSchedulePosting = ref(false);
 
-const postDiscordAnnouncementFn = httpsCallable(functions, 'postDiscordAnnouncement');
-
 const postToDiscord = async () => {
   if (isSchedulePosting.value) return;
   isSchedulePosting.value = true;
@@ -155,12 +153,13 @@ const postToDiscord = async () => {
       });
       imageFileName = `${selectedTrack.value.id}.png`;
     }
-    await postDiscordAnnouncementFn({
-      appId: props.appId,
-      content,
-      imageBase64,
-      imageFileName,
+    const res = await fetch(`${VERCEL_API_URL}/api/discord-post`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'announcement', authToken: user.value?.uid, content, imageBase64, imageFileName }),
     });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Discord post failed');
     showSchedulePostSuccess.value = true;
     setTimeout(() => { showSchedulePostSuccess.value = false; }, 2500);
   } catch (e) { console.error('Discord post failed', e); } finally {
@@ -313,7 +312,7 @@ const profilePlayerName = computed(() =>
   profilePlayerId.value ? (props.tournament.players[profilePlayerId.value]?.name ?? '') : ''
 );
 
-const { linkedPlayer } = useAuth();
+const { linkedPlayer, user } = useAuth();
 const { can } = useUserRoles();
 const { settings: globalSettings } = useGlobalSettings();
 const canPostToDiscord = computed(() => props.isAdmin && can('post_to_discord'));
@@ -328,13 +327,16 @@ const toggleSelfSignup = async () => {
   await props.secureUpdate({ selfSignupEnabled: !props.tournament.selfSignupEnabled });
 };
 
-const selfSignupFn = httpsCallable(functions, 'selfSignupTournament');
-const selfLeaveFn = httpsCallable(functions, 'selfLeaveTournament');
-
 const selfSignup = async () => {
   if (!linkedPlayer.value || !props.tournament.selfSignupEnabled || isSelfSignedUp.value) return;
   try {
-    await selfSignupFn({ tournamentId: props.tournament.id, appId: props.appId });
+    const res = await fetch(`${VERCEL_API_URL}/api/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'signup', tournamentId: props.tournament.id, authToken: user.value?.uid }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Sign-up failed');
   } catch (e: any) {
     console.error('Self-signup failed', e);
     alert(e?.message ?? 'Sign-up failed. Please try again.');
@@ -344,7 +346,13 @@ const selfSignup = async () => {
 const selfLeave = async () => {
   if (!linkedPlayer.value) return;
   try {
-    await selfLeaveFn({ tournamentId: props.tournament.id, appId: props.appId });
+    const res = await fetch(`${VERCEL_API_URL}/api/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'leave', tournamentId: props.tournament.id, authToken: user.value?.uid }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Leave failed');
   } catch (e: any) {
     console.error('Self-leave failed', e);
     alert(e?.message ?? 'Could not leave tournament. Please try again.');

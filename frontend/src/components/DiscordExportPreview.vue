@@ -145,12 +145,13 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
-import { APP_ID } from '../config';
 import type { Tournament } from '../types';
 import { generateDiscordReport, generateDiscordReportSplit, generateDiscordReportSplit3 } from '../utils/exportUtils';
 import { useUserRoles } from '../composables/useUserRoles';
+import { useAuth } from '../composables/useAuth';
+
+const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
+const { user } = useAuth();
 
 const props = defineProps<{
   tournament: Tournament;
@@ -166,13 +167,17 @@ const copySuccessMessage = ref('');
 const isPosting = ref(false);
 const showPostSuccess = ref(false);
 
-const postDiscordResultsFn = httpsCallable(functions, 'postDiscordResults');
-
 const postToDiscord = async (messages: string[]) => {
   if (isPosting.value) return;
   isPosting.value = true;
   try {
-    await postDiscordResultsFn({ appId: APP_ID, messages });
+    const res = await fetch(`${VERCEL_API_URL}/api/discord-post`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'results', authToken: user.value?.uid, messages }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Discord post failed');
     showPostSuccess.value = true;
     setTimeout(() => { showPostSuccess.value = false; }, 3000);
   } catch (e) {
