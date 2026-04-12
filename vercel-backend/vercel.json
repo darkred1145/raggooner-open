@@ -9,10 +9,20 @@
     { "src": "api/discord-post.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/discord-login", "dest": "/api/discord-login.js", "methods": ["GET"] },
-    { "src": "/api/ban-vote", "dest": "/api/ban-vote.js", "methods": ["GET", "POST", "OPTIONS"] },
-    { "src": "/api/captain", "dest": "/api/captain.js", "methods": ["GET", "POST", "OPTIONS"] },
-    { "src": "/api/signup", "dest": "/api/signup.js", "methods": ["GET", "POST", "OPTIONS"] },
-    { "src": "/api/discord-post", "dest": "/api/discord-post.js", "methods": ["GET", "POST", "OPTIONS"] }
+    { "src": "/api/discord-login", "dest": "/api/discord-login.js" },
+    { "src": "/api/ban-vote", "dest": "/api/ban-vote.js" },
+    { "src": "/api/captain", "dest": "/api/captain.js" },
+    { "src": "/api/signup", "dest": "/api/signup.js" },
+    { "src": "/api/discord-post", "dest": "/api/discord-post.js" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
   ]
 }
