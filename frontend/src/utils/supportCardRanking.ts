@@ -108,39 +108,40 @@ export function getUmaSecondaryStat(umaName: string): string | null {
 
 // ─── Core Evaluation ────────────────────────────────────────────────────────
 
-/** Get last value from a stat progression array, default 0 */
-function lv(val: number[] | null | undefined): number {
-    if (!val) return 0;
-    if (val.length === 0) return 0;
-    const last = val[val.length - 1];
-    return last ?? 0;
+/** Get stat value at a card's limit break level (0-4) */
+function lb(val: number[] | null | undefined, level: number): number {
+    if (!val || val.length === 0) return 0;
+    const idx = Math.min(level, val.length - 1);
+    return val[idx];
 }
 
-/** Get max-level stat bonus value from a card for a given stat type */
-function getCardStatBonus(card: SupportCard, statType: string): number {
+/** Get stat value at a card's limit break level (0-4) */
+function getCardStatBonus(card: SupportCard, statType: string, limitBreak: number): number {
     switch (statType) {
-        case 'speed': return lv(card.speedBonus);
-        case 'stamina': return lv(card.staminaBonus);
-        case 'power': return lv(card.powerBonus);
-        case 'guts': return lv(card.gutsBonus);
-        case 'wit': return lv(card.witBonus);
+        case 'speed': return lb(card.speedBonus, limitBreak);
+        case 'stamina': return lb(card.staminaBonus, limitBreak);
+        case 'power': return lb(card.powerBonus, limitBreak);
+        case 'guts': return lb(card.gutsBonus, limitBreak);
+        case 'wit': return lb(card.witBonus, limitBreak);
         default: return 0;
     }
 }
 
 /**
  * Evaluate a full 6-card deck against an Uma.
+ * @param umaName - The Uma to evaluate against
+ * @param cards - Array of { cardId, limitBreak } pairs
  */
-export function evaluateDeck(umaName: string, cardIds: string[]): DeckEvaluation | null {
-    if (!umaName || cardIds.length === 0) return null;
+export function evaluateDeck(umaName: string, cards: { cardId: string; limitBreak: number }[]): DeckEvaluation | null {
+    if (!umaName || cards.length === 0) return null;
 
-    // Resolve cards
-    const cards: SupportCard[] = [];
-    for (const cardId of cardIds) {
-        const card = SUPPORT_CARD_LIST.find(c => c.id === cardId);
-        if (card) cards.push(card);
-    }
-    if (cards.length === 0) return null;
+    // Resolve cards with their limit breaks
+    const resolved = cards.map(c => ({
+        card: SUPPORT_CARD_LIST.find(x => x.id === c.cardId),
+        limitBreak: c.limitBreak,
+    })).filter(c => c.card !== null);
+
+    if (resolved.length === 0) return null;
 
     // Parse uma bonuses
     const umaBonuses = parseUmaStatBonus(umaName);
@@ -149,33 +150,33 @@ export function evaluateDeck(umaName: string, cardIds: string[]): DeckEvaluation
     const primaryPct = umaBonuses.length > 0 ? umaBonuses[0]!.pct : 0;
     const secondaryPct = umaBonuses.length > 1 ? umaBonuses[1]!.pct : 0;
 
-    // Calculate totals (use last value = max level)
-    const totalRaceBonus = cards.reduce((sum, c) => sum + lv(c.raceBonus), 0);
-    const totalTrainingEff = cards.reduce((sum, c) => sum + lv(c.trainingEffectiveness), 0);
-    const totalSpecialtyPri = cards.reduce((sum, c) => sum + lv(c.specialtyPriority), 0);
-    const totalFriendship = cards.reduce((sum, c) => sum + lv(c.friendshipBonus), 0);
-    const totalMoodEffect = cards.reduce((sum, c) => sum + lv(c.moodEffect), 0);
-    const totalHintLevels = cards.reduce((sum, c) => sum + lv(c.hintLevels), 0);
-    const totalHintFrequency = cards.reduce((sum, c) => sum + lv(c.hintFrequency), 0);
+    // Calculate totals using actual limit break levels
+    const totalRaceBonus = resolved.reduce((sum, c) => sum + lb(c.card!.raceBonus, c.limitBreak), 0);
+    const totalTrainingEff = resolved.reduce((sum, c) => sum + lb(c.card!.trainingEffectiveness, c.limitBreak), 0);
+    const totalSpecialtyPri = resolved.reduce((sum, c) => sum + lb(c.card!.specialtyPriority, c.limitBreak), 0);
+    const totalFriendship = resolved.reduce((sum, c) => sum + lb(c.card!.friendshipBonus, c.limitBreak), 0);
+    const totalMoodEffect = resolved.reduce((sum, c) => sum + lb(c.card!.moodEffect, c.limitBreak), 0);
+    const totalHintLevels = resolved.reduce((sum, c) => sum + lb(c.card!.hintLevels, c.limitBreak), 0);
+    const totalHintFrequency = resolved.reduce((sum, c) => sum + lb(c.card!.hintFrequency, c.limitBreak), 0);
 
     // Stat bonuses aligned with uma
     let statBonusScore = 0;
     if (primaryStat) {
-        const totalPrimaryStat = cards.reduce((sum, c) => sum + getCardStatBonus(c, primaryStat), 0);
+        const totalPrimaryStat = resolved.reduce((sum, c) => sum + getCardStatBonus(c.card!, primaryStat, c.limitBreak), 0);
         // Weight by uma's bonus percentage (higher uma bonus = more valuable to invest in)
         statBonusScore += totalPrimaryStat * (1 + primaryPct / 100) * 100;
     }
     if (secondaryStat) {
-        const totalSecondaryStat = cards.reduce((sum, c) => sum + getCardStatBonus(c, secondaryStat), 0);
+        const totalSecondaryStat = resolved.reduce((sum, c) => sum + getCardStatBonus(c.card!, secondaryStat, c.limitBreak), 0);
         statBonusScore += totalSecondaryStat * (1 + secondaryPct / 100) * 70;
     }
 
     // Secondary stat bonuses (cards that have stats beyond the uma's bonuses)
     let secondaryStatScore = 0;
-    cards.forEach(card => {
+    resolved.forEach(({ card, limitBreak }) => {
         ['speed', 'stamina', 'power', 'guts', 'wit'].forEach(statType => {
             if (statType !== primaryStat && statType !== secondaryStat) {
-                const val = getCardStatBonus(card, statType);
+                const val = getCardStatBonus(card!, statType, limitBreak);
                 secondaryStatScore += val * 30;
             }
         });
@@ -219,17 +220,17 @@ export function evaluateDeck(umaName: string, cardIds: string[]): DeckEvaluation
     );
 
     // Per-card scores
-    const cardScores = cards.map(card => {
+    const cardScores = resolved.map(({ card, limitBreak }) => {
         let cardScore = 0;
-        if (primaryStat) cardScore += getCardStatBonus(card, primaryStat) * 100 * (1 + primaryPct / 100);
-        if (secondaryStat) cardScore += getCardStatBonus(card, secondaryStat) * 70 * (1 + secondaryPct / 100);
-        cardScore += lv(card.raceBonus) * 15;
-        cardScore += lv(card.trainingEffectiveness) * 12;
-        cardScore += lv(card.specialtyPriority) * 4;
-        cardScore += lv(card.friendshipBonus) * 3;
-        cardScore += lv(card.moodEffect) * 2;
-        cardScore += (lv(card.hintLevels) * 15) + (lv(card.hintFrequency) * 1);
-        return { card, score: Math.round(cardScore), tier: '' };
+        if (primaryStat) cardScore += getCardStatBonus(card!, primaryStat, limitBreak) * 100 * (1 + primaryPct / 100);
+        if (secondaryStat) cardScore += getCardStatBonus(card!, secondaryStat, limitBreak) * 70 * (1 + secondaryPct / 100);
+        cardScore += lb(card!.raceBonus, limitBreak) * 15;
+        cardScore += lb(card!.trainingEffectiveness, limitBreak) * 12;
+        cardScore += lb(card!.specialtyPriority, limitBreak) * 4;
+        cardScore += lb(card!.friendshipBonus, limitBreak) * 3;
+        cardScore += lb(card!.moodEffect, limitBreak) * 2;
+        cardScore += (lb(card!.hintLevels, limitBreak) * 15) + (lb(card!.hintFrequency, limitBreak) * 1);
+        return { card: card!, score: Math.round(cardScore), tier: '' };
     });
     cardScores.sort((a, b) => b.score - a.score);
 
@@ -290,17 +291,17 @@ function assignTier(score: number): 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' {
 
 /**
  * Rank players by their deck quality.
- * Requires: playerId -> umaName mapping + 6 card IDs per player
+ * Requires: playerId -> umaName mapping + cards with limitBreak
  */
 export function rankPlayers(
-    players: { id: string; name: string; uma: string; deck: string[] }[]
+    players: { id: string; name: string; uma: string; deck: { cardId: string; limitBreak: number }[] }[]
 ): PlayerDeckRanking[] {
     return players
         .map(player => ({
             playerId: player.id,
             playerName: player.name,
             umaName: player.uma,
-            deck: player.deck,
+            deck: player.deck.map(c => c.cardId),
             evaluation: evaluateDeck(player.uma, player.deck),
         }))
         .filter(r => r.evaluation !== null)
