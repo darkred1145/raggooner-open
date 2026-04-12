@@ -420,7 +420,7 @@ export const UMA_DICT: Record<string, UmaData> = {
     'Wedding Air Groove': {
         id: 'wedding-air-groove', name: 'Wedding Air Groove', stars: 3, releaseDate: '2025-08-28T22:00:00.000Z', characterId: 101802,
         gametoraId: 101802,
-        statBonus: 'SPD +10% / PWR +10% / GUT +10%',
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
         aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'C', mile: 'B', medium: 'A', long: 'E' }, style: { frontRunner: 'D', paceChaser: 'A', lateSurger: 'A', endCloser: 'G' } }
     },
     'Wedding Mayano Top Gun': {

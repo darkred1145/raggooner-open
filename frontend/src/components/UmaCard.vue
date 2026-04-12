@@ -169,9 +169,9 @@ const statusLabel = computed(() => {
       </div>
       
       <!-- Growth Rates -->
-      <div v-if="growthRates.length > 0" class="flex gap-2 justify-center flex-wrap">
-        <div v-for="rate in growthRates" :key="rate.label" class="flex flex-col items-center">
-          <span class="text-[9px] font-black uppercase" :class="growthColor(rate.label)">{{ rate.label }}</span>
+      <div v-if="growthRates.length > 0" class="flex flex-wrap justify-center gap-x-2 gap-y-0.5 -mt-0.5">
+        <div v-for="rate in growthRates" :key="rate.label" class="flex items-baseline">
+          <span class="text-[8px] font-black uppercase mr-0.5" :class="growthColor(rate.label)">{{ rate.label }}</span>
           <span class="text-[9px] font-bold text-slate-300">{{ rate.value }}</span>
         </div>
       </div>
