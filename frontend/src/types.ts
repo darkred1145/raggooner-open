@@ -192,6 +192,12 @@ export interface Tournament {
     teams: Team[];
     races: Record<string, Race>;
     bans?: string[];
+    // Ban voting system
+    banVotingEnabled?: boolean; // enables captain-proposed + player-voted ban system
+    banPhaseStatus?: 'captain-voting' | 'player-voting' | 'resolved'; // sub-phase tracking
+    captainBanProposals?: Record<string, string>; // captainId -> uma name (each captain votes once)
+    banVotes?: Record<string, Record<string, boolean>>; // umaName -> { playerId: true/false }
+    banVoteThreshold?: number; // percentage (0-1) required to pass ban (default 0.5 for majority)
     createdAt: string;
     createdBy?: TournamentCreator;
     completedAt?: string;

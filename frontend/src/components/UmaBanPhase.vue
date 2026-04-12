@@ -4,6 +4,7 @@ import type { Tournament, FirestoreUpdate } from '../types';
 import { usePlayerDraft } from '../composables/usePlayerDraft';
 import { useGameLogic } from '../composables/useGameLogic';
 import { useTournamentFlow } from '../composables/useTournamentFlow';
+import { useBanVoting } from '../composables/useBanVoting';
 import { voicelineVolume, playLocalSfx } from '../composables/useVoicelines';
 import { getPlayerName } from '../utils/utils';
 import { UMA_DICT } from '../utils/umaData';
@@ -28,6 +29,19 @@ const { toggleBan, isBanned } = useGameLogic(tournamentRef, props.secureUpdate);
 // Initialize Tournament Flow (for phase transitions)
 const { advancePhase, isAdvancing: isAdvancingPhase } = useTournamentFlow(tournamentRef, props.secureUpdate);
 
+// Initialize Ban Voting
+const {
+  isCaptain,
+  hasCaptainProposed,
+  captainProposedUma,
+  proposedBans,
+  banPhaseStatus,
+  hasPlayerVoted,
+  getPlayerVote,
+  captainProposeBan,
+  playerVoteOnBan,
+} = useBanVoting(tournamentRef);
+
 // Local State for Search
 const banSearch = ref('');
 
@@ -41,6 +55,19 @@ const selectedTrackData = computed(() => {
   if (!props.tournament.selectedTrack) return null;
   return TRACK_DICT[props.tournament.selectedTrack] || null;
 });
+
+// Determine if we're using voting mode
+const isVotingMode = computed(() => {
+  return props.tournament.banVotingEnabled === true;
+});
+
+// Check if captain can still propose (captain who hasn't voted yet)
+const canCaptainPropose = computed(() => {
+  return isCaptain.value && !hasCaptainProposed.value && banPhaseStatus.value === 'captain-voting';
+});
+
+// Selected uma for captain proposal
+const selectedUmaForProposal = ref<string | null>(null);
 
 // --- TIMER LOGIC ---
 const now = ref(Date.now());
@@ -83,10 +110,23 @@ const formattedTime = computed(() => {
 const resetBanTimer = async () => {
   await props.secureUpdate({ banTimerStart: null });
 };
+
+// Captain proposes a ban
+const handleCaptainPropose = async () => {
+  if (!selectedUmaForProposal.value) return;
+  await captainProposeBan(selectedUmaForProposal.value);
+  selectedUmaForProposal.value = null;
+};
+
+// Player votes on a ban
+const handlePlayerVote = async (umaId: string, vote: boolean) => {
+  await playerVoteOnBan(umaId, vote);
+};
 </script>
 
 <template>
   <div class="space-y-6">
+    <!-- Timer Display -->
     <div class="flex flex-col items-center justify-center py-8">
 
       <div v-if="tournament.banTimerStart || isAdminRef" class="text-center relative group">
@@ -118,17 +158,27 @@ const resetBanTimer = async () => {
 
     </div>
 
+    <!-- Header Bar -->
     <div class="sticky top-20 z-30 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-700 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
       <div>
         <h2 class="text-3xl font-bold text-white flex items-center gap-3">
           <i class="ph-fill ph-prohibit text-red-500"></i>
           Uma Ban
         </h2>
-        <p class="text-slate-400 text-sm">Select Umas to exclude from the tournament.</p>
+        <p v-if="!isVotingMode" class="text-slate-400 text-sm">Select Umas to exclude from the tournament.</p>
+        <p v-else-if="banPhaseStatus === 'captain-voting'" class="text-slate-400 text-sm">
+          Captains: Propose your ban. Players will vote afterwards.
+        </p>
+        <p v-else-if="banPhaseStatus === 'player-voting'" class="text-slate-400 text-sm">
+          Vote on proposed bans. Majority decides.
+        </p>
+        <p v-else-if="banPhaseStatus === 'resolved'" class="text-emerald-400 text-sm">
+          Ban phase resolved. Ready to advance.
+        </p>
       </div>
 
       <div class="flex items-center gap-4 w-full sm:w-auto">
-        <button v-if="isAdmin && (!tournament.bans || tournament.bans.length === 0)"
+        <button v-if="isAdmin && (!tournament.bans || tournament.bans.length === 0) && !isVotingMode"
                 @click="undoLastPick"
                 class="text-slate-500 hover:text-white flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 transition-colors mr-2">
           <i class="ph-bold ph-arrow-u-up-left"></i>
@@ -163,55 +213,232 @@ const resetBanTimer = async () => {
       </div>
     </div>
 
-    <div class="relative">
-      <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl"></i>
-      <input v-model="banSearch"
-             type="text"
-             placeholder="Search Umas..."
-             class="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm">
-    </div>
+    <!-- Voting Mode UI -->
+    <template v-if="isVotingMode">
+      <!-- Captain Proposal Phase -->
+      <div v-if="banPhaseStatus === 'captain-voting'" class="space-y-6">
+        <!-- Captain Proposal Panel -->
+        <div v-if="canCaptainPropose" class="bg-slate-800/50 border border-amber-500/50 rounded-xl p-6">
+          <h3 class="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+            <i class="ph-fill ph-crown"></i>
+            Your Turn to Propose a Ban
+          </h3>
+          <p class="text-slate-400 mb-4">Select an uma from the grid below and confirm your ban proposal.</p>
 
-    <div class="grid md:grid-cols-12 gap-6">
-      <div class="md:col-span-8">
-        <div v-if="filteredUmas.length === 0" class="text-center py-12 text-slate-500">
-          No Umas found matching "{{ banSearch }}"
+          <div v-if="selectedUmaForProposal" class="bg-slate-900/50 rounded-lg p-4 mb-4">
+            <p class="text-white font-semibold">Selected: {{ selectedUmaForProposal }}</p>
+            <div class="flex gap-3 mt-3">
+              <button @click="handleCaptainPropose"
+                      class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-colors">
+                <i class="ph-bold ph-prohibit"></i> Confirm Ban Proposal
+              </button>
+              <button @click="selectedUmaForProposal = null"
+                      class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+          <p v-else class="text-slate-500 italic">Click on an uma below to select your ban proposal.</p>
         </div>
-        <div v-else class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          <UmaCard v-for="uma in filteredUmas" :key="uma"
-                   :uma-name="uma"
-                   :is-banned="isBanned(uma)"
-                   :disabled="!isAdmin"
-                   action-type="ban"
-                   :surface-aptitude="selectedTrackData?.surface"
-                   :distance-aptitude="selectedTrackData?.distanceType"
-                   @click="isAdmin && toggleBan(uma)"
-                   @mouseenter="isAdminRef && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')" />
+
+        <div v-else-if="hasCaptainProposed" class="bg-slate-800/50 border border-emerald-500/50 rounded-xl p-6">
+          <h3 class="text-xl font-bold text-emerald-400 mb-2 flex items-center gap-2">
+            <i class="ph-fill ph-check-circle"></i>
+            Ban Proposed
+          </h3>
+          <p class="text-slate-300">You proposed: <span class="font-semibold text-white">{{ captainProposedUma }}</span></p>
+          <p class="text-slate-500 text-sm mt-2">Waiting for other captains to propose...</p>
         </div>
       </div>
 
-      <div class="md:col-span-4 space-y-4">
-        <h3 class="text-lg font-bold mb-3 text-slate-300">Squads</h3>
-        <div v-for="team in tournament.teams" :key="team.id"
-             class="bg-slate-900 border rounded-lg p-4 transition-colors"
-             :class="currentDrafter?.id === team.captainId ? 'border-amber-500 ring-1 ring-amber-500/50' : 'border-slate-800'">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-bold text-white" :style="{ color: team.color }">{{ team.name }}</span>
-            <i v-if="currentDrafter?.id === team.captainId" class="ph-fill ph-pencil-simple text-amber-500 animate-pulse"></i>
+      <!-- Player Voting Phase -->
+      <div v-else-if="banPhaseStatus === 'player-voting'" class="space-y-6">
+        <div class="bg-indigo-900/30 border border-indigo-500/50 rounded-xl p-4">
+          <h3 class="text-lg font-bold text-indigo-300 flex items-center gap-2">
+            <i class="ph-fill ph-ballot"></i>
+            Player Voting Phase
+          </h3>
+          <p class="text-slate-400 text-sm">Vote Yes or No on each proposed ban. Majority decides.</p>
+        </div>
+
+        <!-- Proposed Bans with Voting -->
+        <div v-for="ban in proposedBans" :key="ban.umaId"
+             class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h4 class="text-xl font-bold text-white">{{ ban.umaId }}</h4>
+              <p class="text-slate-500 text-sm">Proposed by Captain</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span v-if="ban.banPassed" class="bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm font-bold">
+                <i class="ph-fill ph-prohibit"></i> PASSED
+              </span>
+              <span v-else-if="ban.allVoted" class="bg-slate-600/20 text-slate-400 px-3 py-1 rounded-full text-sm font-bold">
+                REJECTED
+              </span>
+            </div>
           </div>
-          <div class="space-y-2">
-            <div class="flex items-center gap-2 text-sm text-amber-400">
-              <i class="ph-fill ph-crown"></i> {{ getPlayerName(tournament, team.captainId) }}
+
+          <!-- Vote Progress Bar -->
+          <div class="mb-4">
+            <div class="flex justify-between text-sm text-slate-400 mb-2">
+              <span class="text-emerald-400">{{ ban.yesVotes }} Yes</span>
+              <span class="text-red-400">{{ ban.noVotes }} No</span>
+              <span>{{ ban.totalVotes }} / {{ ban.totalVoters }}</span>
             </div>
-            <div v-for="memberId in team.memberIds" :key="memberId" class="flex items-center gap-2 text-sm text-slate-300">
-              <i class="ph-fill ph-user"></i> {{ getPlayerName(tournament, memberId) }}
+            <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-300"
+                   :style="{ width: `${(ban.yesVotes / ban.totalVoters) * 100}%` }"></div>
             </div>
-            <div v-for="n in (2 - team.memberIds.length)" :key="n" class="flex items-center gap-2 text-sm text-slate-700 border-dashed border border-slate-800 p-1 rounded">
-              <span class="text-xs">Empty Slot</span>
+          </div>
+
+          <!-- Vote Buttons -->
+          <div v-if="!hasPlayerVoted(ban.umaId) && !ban.banPassed && !ban.allVoted" class="flex gap-3">
+            <button @click="handlePlayerVote(ban.umaId, true)"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition-colors">
+              <i class="ph-bold ph-check"></i> Yes, Ban
+            </button>
+            <button @click="handlePlayerVote(ban.umaId, false)"
+                    class="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-lg font-bold transition-colors">
+              <i class="ph-bold ph-x"></i> No, Skip
+            </button>
+          </div>
+          <div v-else class="text-center text-slate-500 py-2">
+            <span v-if="hasPlayerVoted(ban.umaId)">
+              Your vote: <span class="font-semibold" :class="getPlayerVote(ban.umaId) ? 'text-emerald-400' : 'text-red-400'">
+                {{ getPlayerVote(ban.umaId) ? 'Yes' : 'No' }}
+              </span>
+            </span>
+            <span v-else-if="ban.banPassed">Ban approved by majority</span>
+            <span v-else>Voting complete</span>
+          </div>
+        </div>
+
+        <div v-if="proposedBans.length === 0" class="text-center py-12 text-slate-500">
+          <i class="ph ph-clock text-4xl mb-3"></i>
+          <p>Waiting for captains to propose bans...</p>
+        </div>
+      </div>
+
+      <!-- Resolved Phase -->
+      <div v-else-if="banPhaseStatus === 'resolved'" class="space-y-4">
+        <div class="bg-emerald-900/30 border border-emerald-500/50 rounded-xl p-6 text-center">
+          <i class="ph-fill ph-check-circle text-5xl text-emerald-400 mb-3"></i>
+          <h3 class="text-2xl font-bold text-emerald-400 mb-2">Ban Phase Resolved</h3>
+          <p class="text-slate-400">All votes have been counted. Final bans:</p>
+          <div v-if="tournament.bans && tournament.bans.length > 0" class="mt-4 space-y-2">
+            <div v-for="ban in tournament.bans" :key="ban" class="bg-red-900/30 text-red-400 px-4 py-2 rounded-lg font-semibold">
+              <i class="ph-fill ph-prohibit"></i> {{ ban }}
+            </div>
+          </div>
+          <p v-else class="text-slate-500 mt-2">No bans were approved.</p>
+        </div>
+      </div>
+
+      <!-- Uma Grid for Captain Selection -->
+      <div v-if="canCaptainPropose" class="relative">
+        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl"></i>
+        <input v-model="banSearch"
+               type="text"
+               placeholder="Search Umas..."
+               class="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-sm">
+      </div>
+
+      <div v-if="canCaptainPropose" class="grid md:grid-cols-12 gap-6">
+        <div class="md:col-span-8">
+          <div v-if="filteredUmas.length === 0" class="text-center py-12 text-slate-500">
+            No Umas found matching "{{ banSearch }}"
+          </div>
+          <div v-else class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <UmaCard v-for="uma in filteredUmas" :key="uma"
+                     :uma-name="uma"
+                     :is-banned="isBanned(uma)"
+                     :disabled="!canCaptainPropose"
+                     action-type="ban"
+                     :surface-aptitude="selectedTrackData?.surface"
+                     :distance-aptitude="selectedTrackData?.distanceType"
+                     @click="canCaptainPropose && (selectedUmaForProposal = uma)"
+                     @mouseenter="canCaptainPropose && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')" />
+          </div>
+        </div>
+
+        <div class="md:col-span-4 space-y-4">
+          <h3 class="text-lg font-bold mb-3 text-slate-300">Squads</h3>
+          <div v-for="team in tournament.teams" :key="team.id"
+               class="bg-slate-900 border rounded-lg p-4 transition-colors"
+               :class="currentDrafter?.id === team.captainId ? 'border-amber-500 ring-1 ring-amber-500/50' : 'border-slate-800'">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-bold text-white" :style="{ color: team.color }">{{ team.name }}</span>
+              <i v-if="currentDrafter?.id === team.captainId" class="ph-fill ph-pencil-simple text-amber-500 animate-pulse"></i>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 text-sm text-amber-400">
+                <i class="ph-fill ph-crown"></i> {{ getPlayerName(tournament, team.captainId) }}
+              </div>
+              <div v-for="memberId in team.memberIds" :key="memberId" class="flex items-center gap-2 text-sm text-slate-300">
+                <i class="ph-fill ph-user"></i> {{ getPlayerName(tournament, memberId) }}
+              </div>
+              <div v-for="n in (2 - team.memberIds.length)" :key="n" class="flex items-center gap-2 text-sm text-slate-700 border-dashed border border-slate-800 p-1 rounded">
+                <span class="text-xs">Empty Slot</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
+
+    <!-- Classic Admin Mode UI (Non-Voting) -->
+    <template v-else>
+      <div class="relative">
+        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl"></i>
+        <input v-model="banSearch"
+               type="text"
+               placeholder="Search Umas..."
+               class="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm">
+      </div>
+
+      <div class="grid md:grid-cols-12 gap-6">
+        <div class="md:col-span-8">
+          <div v-if="filteredUmas.length === 0" class="text-center py-12 text-slate-500">
+            No Umas found matching "{{ banSearch }}"
+          </div>
+          <div v-else class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <UmaCard v-for="uma in filteredUmas" :key="uma"
+                     :uma-name="uma"
+                     :is-banned="isBanned(uma)"
+                     :disabled="!isAdmin"
+                     action-type="ban"
+                     :surface-aptitude="selectedTrackData?.surface"
+                     :distance-aptitude="selectedTrackData?.distanceType"
+                     @click="isAdmin && toggleBan(uma)"
+                     @mouseenter="isAdminRef && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')" />
+          </div>
+        </div>
+
+        <div class="md:col-span-4 space-y-4">
+          <h3 class="text-lg font-bold mb-3 text-slate-300">Squads</h3>
+          <div v-for="team in tournament.teams" :key="team.id"
+               class="bg-slate-900 border rounded-lg p-4 transition-colors"
+               :class="currentDrafter?.id === team.captainId ? 'border-amber-500 ring-1 ring-amber-500/50' : 'border-slate-800'">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-bold text-white" :style="{ color: team.color }">{{ team.name }}</span>
+              <i v-if="currentDrafter?.id === team.captainId" class="ph-fill ph-pencil-simple text-amber-500 animate-pulse"></i>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 text-sm text-amber-400">
+                <i class="ph-fill ph-crown"></i> {{ getPlayerName(tournament, team.captainId) }}
+              </div>
+              <div v-for="memberId in team.memberIds" :key="memberId" class="flex items-center gap-2 text-sm text-slate-300">
+                <i class="ph-fill ph-user"></i> {{ getPlayerName(tournament, memberId) }}
+              </div>
+              <div v-for="n in (2 - team.memberIds.length)" :key="n" class="flex items-center gap-2 text-sm text-slate-700 border-dashed border border-slate-800 p-1 rounded">
+                <span class="text-xs">Empty Slot</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
 
   </div>
 </template>

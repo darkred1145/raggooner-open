@@ -33,6 +33,7 @@ const isCreating = ref(false);
 const availableSeasons = ref<Season[]>([]);
 const selectedSeasonId = ref('');
 const selectedFormat = ref(settings.value.defaultFormat);
+const banVotingEnabled = ref(false); // Enable captain-proposed + player-voted bans
 
 // Update selectedFormat once when settings finish loading (if different from default)
 const stopFormatWatch = watch(() => settings.value.defaultFormat, (fmt) => {
@@ -208,6 +209,8 @@ const createTournament = async () => {
       captainActionsEnabled: settings.value.defaultCaptainActionsEnabled,
       usePlacementTiebreaker: settings.value.defaultUsePlacementTiebreaker,
       pointsSystem: { ...settings.value.pointsSystem },
+      banVotingEnabled: banVotingEnabled.value,
+      banVoteThreshold: 0.5, // Simple majority
       createdAt: new Date().toISOString(),
       createdBy: {
         uid: userId,
@@ -319,6 +322,20 @@ onMounted(() => {
                     <div class="text-sm font-bold" :class="selectedFormat === key ? 'text-indigo-300' : 'text-slate-300'">{{ fmt.name }}</div>
                     <div class="text-[10px] mt-0.5" :class="selectedFormat === key ? 'text-indigo-400/70' : 'text-slate-500'">{{ fmt.description }}</div>
                   </button>
+                </div>
+
+                <div class="flex items-center gap-3 bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+                  <button @click="banVotingEnabled = !banVotingEnabled"
+                          :disabled="isCreating"
+                          class="relative w-12 h-6 rounded-full transition-colors shrink-0"
+                          :class="banVotingEnabled ? 'bg-indigo-600' : 'bg-slate-600'">
+                    <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
+                          :class="banVotingEnabled ? 'translate-x-6' : 'translate-x-0'"></span>
+                  </button>
+                  <div class="flex-1">
+                    <div class="text-sm font-semibold text-white">Ban Voting System</div>
+                    <div class="text-[11px] text-slate-400">Captains propose bans, players vote (simple majority)</div>
+                  </div>
                 </div>
 
                 <div class="flex flex-col gap-1.5">
