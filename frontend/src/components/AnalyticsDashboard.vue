@@ -11,7 +11,9 @@ import { useAnalyticsData } from '../composables/analytics/useAnalyticsData';
 import { usePlayerRankings } from '../composables/analytics/usePlayerRankings';
 import { useUmaStats } from '../composables/analytics/useUmaStats';
 import { useDiagrams } from '../composables/analytics/useDiagrams';
+import { useDeckRankings } from '../composables/analytics/useDeckRankings';
 import { TIER_CRITERIA, TOP5_CRITERIA, getWinningTeam } from '../utils/analyticsUtils';
+import { getTierBg } from '../utils/supportCardRanking';
 import SiteHeader from './shared/SiteHeader.vue';
 import SiteNav from './shared/SiteNav.vue';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
@@ -19,7 +21,7 @@ import PlayerProfileModal from './PlayerProfileModal.vue';
 import type { GlobalPlayer } from '../types';
 
 
-const activeTab = ref<'overview' | 'players' | 'umas' | 'tierlist' | 'tournaments' | 'diagrams'>('overview');
+const activeTab = ref<'overview' | 'players' | 'umas' | 'tierlist' | 'tournaments' | 'diagrams' | 'decks'>('overview');
 
 const profileModalOpen = ref(false);
 const profilePlayer = ref<GlobalPlayer | null>(null);
@@ -67,6 +69,12 @@ const {
   playerTimelineData, diagramAvailableUmas, umaTimelineData,
   toggleDiagramPlayer, toggleDiagramUma
 } = useDiagrams(players, filteredTournaments, filteredRaces, playerRankings, activeTab, stageView);
+
+// 5. Deck Rankings Layer
+const {
+  deckRankings, filteredDeckRankings, deckStats, umaStatBonus,
+  deckSortKey, deckSortDesc, deckSearchQuery, toggleDeckSort
+} = useDeckRankings(players, filteredTournaments);
 
 onMounted(loadData);
 
@@ -442,7 +450,8 @@ function perfIndicator(
             { id: 'players', label: 'Players', icon: 'ph-users' },
             { id: 'umas', label: 'Umas', icon: 'ph-horse' },
             { id: 'tournaments', label: 'Tournaments', icon: 'ph-trophy' },
-            { id: 'diagrams', label: 'Diagrams', icon: 'ph-trend-up' }
+            { id: 'diagrams', label: 'Diagrams', icon: 'ph-trend-up' },
+            { id: 'decks', label: 'Decks', icon: 'ph-cards' }
           ]"
             :key="tab.id"
             @click="activeTab = tab.id as any"
@@ -1650,6 +1659,124 @@ function perfIndicator(
 
       </div>
       <!-- ==================== END DIAGRAMS TAB ==================== -->
+
+      <!-- ==================== DECKS TAB ==================== -->
+      <div v-if="activeTab === 'decks'" class="space-y-4">
+
+        <!-- Stats Summary -->
+        <div v-if="deckStats" class="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3">Deck Stats Overview</h3>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div>
+              <div class="text-2xl font-bold text-white">{{ deckStats.totalPlayers }}</div>
+              <div class="text-xs text-slate-400">Players with Decks</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-indigo-400">{{ deckStats.avgScore }}</div>
+              <div class="text-xs text-slate-400">Avg Score</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-sky-400">{{ deckStats.avgRaceBonus }}</div>
+              <div class="text-xs text-slate-400">Avg Race Bonus</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-emerald-400">{{ deckStats.metRaceBonusPct }}%</div>
+              <div class="text-xs text-slate-400">Met 50 RB Target</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-yellow-400">{{ deckStats.maxScore }}</div>
+              <div class="text-xs text-slate-400">Highest Score</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search + Sort -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex flex-wrap gap-3 items-center">
+          <div class="flex-1 min-w-[200px]">
+            <div class="relative">
+              <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input v-model="deckSearchQuery" type="text" placeholder="Search player or uma..."
+                     class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider mr-1">Sort</span>
+            <button v-for="key in ['score', 'raceBonus', 'trainingEff', 'specialtyPri', 'friendship'] as const"
+                    :key="key"
+                    @click="toggleDeckSort(key)"
+                    class="px-3 py-1.5 text-xs font-bold rounded transition-all"
+                    :class="deckSortKey === key
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white bg-slate-900'">
+              {{ key === 'raceBonus' ? 'Race Bonus' : key === 'trainingEff' ? 'Training' : key === 'specialtyPri' ? 'Specialty' : key === 'friendship' ? 'Friendship' : 'Score' }}
+              <i v-if="deckSortKey === key" :class="deckSortDesc ? 'ph-caret-down' : 'ph-caret-up'" class="ml-1"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- No decks message -->
+        <div v-if="filteredDeckRankings.length === 0" class="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">
+          <i class="ph ph-cards text-4xl text-slate-500 mb-3"></i>
+          <p class="text-slate-400">No player decks found. Players need to add support cards to their profile.</p>
+        </div>
+
+        <!-- Player Deck Rankings -->
+        <div v-for="(ranking, index) in filteredDeckRankings" :key="ranking.playerId"
+             class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+
+          <!-- Header -->
+          <div class="flex items-center justify-between px-4 py-3 bg-slate-800/80 border-b border-slate-700">
+            <div class="flex items-center gap-3">
+              <span class="text-lg font-black w-8 text-center"
+                    :class="index < 3 ? 'text-yellow-400' : 'text-slate-400'">#{{ index + 1 }}</span>
+              <div>
+                <div class="font-bold text-white">{{ ranking.playerName }}</div>
+                <div class="text-xs text-slate-400">{{ ranking.umaName }}
+                  <span v-if="umaStatBonus[ranking.umaName]" class="text-indigo-400 ml-1">({{ umaStatBonus[ranking.umaName] }})</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-slate-400">
+                RB: <span :class="ranking.evaluation?.raceBonusMet ? 'text-emerald-400' : 'text-orange-400'">{{ ranking.evaluation?.totalRaceBonus ?? 0 }}/50</span>
+              </span>
+              <span class="px-3 py-1 rounded-lg text-sm font-black border"
+                    :class="ranking.evaluation ? `border-current ${getTierBg(ranking.evaluation.tier)}` : ''">
+                {{ ranking.evaluation?.tier ?? '-' }}
+              </span>
+              <span class="text-2xl font-black text-white">{{ ranking.evaluation?.score ?? 0 }}</span>
+            </div>
+          </div>
+
+          <!-- Cards -->
+          <div v-if="ranking.evaluation" class="px-4 py-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div v-for="cs in ranking.evaluation.cardScores" :key="cs.card.id"
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg border bg-slate-900/50"
+                   :class="`border-slate-700`">
+                <span class="text-xs font-black w-5 text-center"
+                      :class="cs.tier === 'S' ? 'text-yellow-400' : cs.tier === 'A' ? 'text-orange-400' : 'text-slate-500'">{{ cs.tier }}</span>
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs font-bold text-white truncate">{{ cs.card.name }}</div>
+                  <div class="text-[10px] text-slate-500 truncate">{{ cs.card.cardName }}</div>
+                  <div class="text-[10px] text-indigo-400">{{ cs.score }} pts</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Breakdown Bar -->
+            <div class="mt-2 flex flex-wrap gap-3 text-xs text-slate-400">
+              <span>Stats: <b class="text-white">{{ ranking.evaluation.breakdown.statBonusScore }}</b></span>
+              <span>RB Score: <b class="text-white">{{ ranking.evaluation.breakdown.raceBonusScore }}</b></span>
+              <span>Training: <b class="text-white">{{ ranking.evaluation.breakdown.trainingEffectivenessScore }}</b></span>
+              <span>Specialty: <b class="text-white">{{ ranking.evaluation.breakdown.specialtyPriorityScore }}</b></span>
+              <span>Friendship: <b class="text-white">{{ ranking.evaluation.breakdown.friendshipScore }}</b></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- ==================== END DECKS TAB ==================== -->
 
     </main>
 
