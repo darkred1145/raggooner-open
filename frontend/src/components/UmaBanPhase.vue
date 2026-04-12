@@ -164,6 +164,9 @@ const handlePlayerVote = async (umaId: string, vote: boolean) => {
         <h2 class="text-3xl font-bold text-white flex items-center gap-3">
           <i class="ph-fill ph-prohibit text-red-500"></i>
           Uma Ban
+          <span v-if="isVotingMode" class="text-sm font-normal px-3 py-1 rounded-full bg-indigo-600/50 border border-indigo-400/30">
+            Voting Mode
+          </span>
         </h2>
         <p v-if="!isVotingMode" class="text-slate-400 text-sm">Select Umas to exclude from the tournament.</p>
         <p v-else-if="banPhaseStatus === 'captain-voting'" class="text-slate-400 text-sm">
@@ -175,6 +178,16 @@ const handlePlayerVote = async (umaId: string, vote: boolean) => {
         <p v-else-if="banPhaseStatus === 'resolved'" class="text-emerald-400 text-sm">
           Ban phase resolved. Ready to advance.
         </p>
+      </div>
+
+      <!-- Admin: Toggle voting mode -->
+      <div v-if="isAdmin && !isVotingMode" class="flex items-center gap-2">
+        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+          <input type="checkbox" :checked="tournament.banVotingEnabled"
+                 @change="props.secureUpdate({ banVotingEnabled: !tournament.banVotingEnabled, banPhaseStatus: 'captain-voting' })"
+                 class="accent-indigo-500" />
+          <span>Enable Ban Voting</span>
+        </label>
       </div>
 
       <div class="flex items-center gap-4 w-full sm:w-auto">
