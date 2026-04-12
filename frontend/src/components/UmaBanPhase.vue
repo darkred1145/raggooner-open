@@ -69,120 +69,6 @@ const canCaptainPropose = computed(() => {
 // Selected uma for captain proposal
 const selectedUmaForProposal = ref<string | null>(null);
 
-// --- Debug / Test Panel ---
-const showDebugPanel = ref(false);
-const debugSimulateProposalCaptain = ref<string>('');
-const debugSimulateVoteUma = ref<string>('');
-const debugSimulateVotePlayer = ref<string>('');
-const debugSimulateVoteYes = ref<boolean>(true);
-
-// Get captains who haven't proposed yet
-const unproposedCaptains = computed(() => {
-  if (!props.tournament) return [];
-  const proposals = props.tournament.captainBanProposals ?? {};
-  return props.tournament.teams
-    .map((t: any) => ({ captainId: t.captainId, name: getPlayerName(props.tournament, t.captainId), color: t.color }))
-    .filter((c: any) => !proposals[c.captainId]);
-});
-
-// Simulate a captain proposal (admin debug)
-const simulateCaptainProposal = async () => {
-  const captainId = debugSimulateProposalCaptain.value;
-  if (!captainId) return;
-  const umaOptions = Object.keys(UMA_DICT).filter((u) => !props.tournament?.bans?.includes(u));
-  const uma = umaOptions[Math.floor(Math.random() * umaOptions.length)];
-  if (!uma) return;
-
-  const currentProposals = props.tournament?.captainBanProposals ?? {};
-  const updated = { ...currentProposals, [captainId]: uma };
-  const captainIds = props.tournament!.teams.map((t: any) => t.captainId);
-  const allDone = captainIds.every((cid: string) => updated[cid]);
-  const update: Record<string, any> = { captainBanProposals: updated };
-  if (allDone) update.banPhaseStatus = 'player-voting';
-  await props.secureUpdate(update);
-};
-
-// Simulate a player vote (admin debug)
-const simulatePlayerVote = async () => {
-  const umaId = debugSimulateVoteUma.value;
-  const playerId = debugSimulateVotePlayer.value;
-  if (!umaId || !playerId) return;
-
-  const votes = props.tournament?.banVotes ?? {};
-  const umaVotes = votes[umaId] ?? {};
-  const updatedUmaVotes = { ...umaVotes, [playerId]: debugSimulateVoteYes.value };
-  const updatedVotes = { ...votes, [umaId]: updatedUmaVotes };
-
-  const playerIds = props.tournament?.playerIds ?? [];
-  const totalVoters = playerIds.length;
-  const yesVotes = Object.values(updatedUmaVotes).filter((v) => v === true).length;
-  const threshold = props.tournament?.banVoteThreshold ?? 0.5;
-  const banPassed = totalVoters > 0 && yesVotes / totalVoters > threshold;
-  const allVoted = totalVoters > 0 && playerIds.every((pid: string) => updatedUmaVotes[pid] !== undefined);
-
-  const update: Record<string, any> = { banVotes: updatedVotes };
-  if (banPassed || allVoted) {
-    if (banPassed) {
-      const currentBans = props.tournament?.bans ?? [];
-      if (!currentBans.includes(umaId)) update.bans = [...currentBans, umaId];
-    }
-    const proposals = props.tournament?.captainBanProposals ?? {};
-    const proposedUmas = Object.values(proposals) as string[];
-    const allResolved = proposedUmas.every((proposedUma: string) => {
-      const v = votes[proposedUma] ?? {};
-      if (proposedUma === umaId) return true;
-      return playerIds.every((pid: string) => v[pid] !== undefined);
-    });
-    if (allResolved) update.banPhaseStatus = 'resolved';
-  }
-  await props.secureUpdate(update);
-};
-
-// Mass vote for all players on a selected uma
-const massVote = async (vote: boolean) => {
-  const umaId = debugSimulateVoteUma.value;
-  if (!umaId) return;
-  const playerIds = props.tournament?.playerIds ?? [];
-  const votes = props.tournament?.banVotes ?? {};
-  const umaVotes = votes[umaId] ?? {};
-  const updatedUmaVotes = { ...umaVotes };
-  playerIds.forEach((pid: string) => { updatedUmaVotes[pid] = vote; });
-  const updatedVotes = { ...votes, [umaId]: updatedUmaVotes };
-
-  const totalVoters = playerIds.length;
-  const yesVotes = Object.values(updatedUmaVotes).filter((v) => v === true).length;
-  const threshold = props.tournament?.banVoteThreshold ?? 0.5;
-  const banPassed = totalVoters > 0 && yesVotes / totalVoters > threshold;
-  const allVoted = totalVoters > 0 && playerIds.every((pid: string) => updatedUmaVotes[pid] !== undefined);
-
-  const update: Record<string, any> = { banVotes: updatedVotes };
-  if (banPassed || allVoted) {
-    if (banPassed) {
-      const currentBans = props.tournament?.bans ?? [];
-      if (!currentBans.includes(umaId)) update.bans = [...currentBans, umaId];
-    }
-    const proposals = props.tournament?.captainBanProposals ?? {};
-    const proposedUmas = Object.values(proposals) as string[];
-    const allResolved = proposedUmas.every((proposedUma: string) => {
-      const v = votes[proposedUma] ?? {};
-      if (proposedUma === umaId) return true;
-      return playerIds.every((pid: string) => v[pid] !== undefined);
-    });
-    if (allResolved) update.banPhaseStatus = 'resolved';
-  }
-  await props.secureUpdate(update);
-};
-
-// Reset ban voting state for re-testing
-const resetBanVoting = async () => {
-  await props.secureUpdate({
-    captainBanProposals: null,
-    banVotes: null,
-    banPhaseStatus: 'captain-voting',
-    bans: [],
-  });
-};
-
 // --- TIMER LOGIC ---
 const now = ref(Date.now());
 let timerInterval: number | null = null;
@@ -340,74 +226,6 @@ const handlePlayerVote = async (umaId: string, vote: boolean) => {
       </div>
     </div>
 
-    <!-- Admin Debug / Test Panel -->
-    <div v-if="isAdmin && isVotingMode" class="bg-slate-900/50 border border-slate-700 rounded-xl p-4">
-      <button @click="showDebugPanel = !showDebugPanel"
-              class="text-sm font-semibold text-slate-300 hover:text-white flex items-center gap-2">
-        <i :class="showDebugPanel ? 'ph-bold ph-caret-down' : 'ph-bold ph-caret-right'"></i>
-        Test Panel (simulate proposals &amp; votes)
-      </button>
-
-      <div v-if="showDebugPanel" class="mt-4 space-y-4">
-        <div class="flex gap-2">
-          <button @click="resetBanVoting" class="text-xs bg-red-600/20 text-red-400 px-3 py-1.5 rounded hover:bg-red-600/30">
-            <i class="ph-bold ph-arrow-counter-clockwise mr-1"></i> Reset All Voting
-          </button>
-        </div>
-
-        <!-- Simulate Captain Proposal -->
-        <div v-if="banPhaseStatus === 'captain-voting'" class="space-y-2">
-          <h4 class="text-sm font-semibold text-amber-400">Simulate Captain Proposals</h4>
-          <div v-for="cap in unproposedCaptains" :key="cap.captainId" class="flex items-center gap-3">
-            <span class="text-sm text-slate-300" :style="{ color: cap.color }">{{ cap.name }}</span>
-            <button @click="debugSimulateProposalCaptain = cap.captainId; simulateCaptainProposal()"
-                    class="text-xs bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded hover:bg-amber-600/50">
-              <i class="ph-bold ph-play mr-1"></i>Propose (random uma)
-            </button>
-          </div>
-          <div v-if="unproposedCaptains.length === 0" class="text-xs text-slate-500">All captains have proposed!</div>
-        </div>
-
-        <!-- Simulate Player Vote -->
-        <div v-if="banPhaseStatus === 'player-voting'" class="space-y-2">
-          <h4 class="text-sm font-semibold text-indigo-400">Simulate Player Votes</h4>
-          <div class="flex flex-wrap gap-2 items-center">
-            <span class="text-xs text-slate-400">Uma:</span>
-            <select v-model="debugSimulateVoteUma" class="bg-slate-800 text-white text-sm px-2 py-1 rounded border border-slate-600">
-              <option value="">-- select --</option>
-              <option v-for="ban in proposedBans" :key="ban.umaId" :value="ban.umaId">{{ ban.umaId }}</option>
-            </select>
-            <span class="text-xs text-slate-400">Player:</span>
-            <select v-model="debugSimulateVotePlayer" class="bg-slate-800 text-white text-sm px-2 py-1 rounded border border-slate-600">
-              <option value="">-- select --</option>
-              <option v-for="pid in tournament.playerIds" :key="pid" :value="pid">{{ getPlayerName(tournament, pid) }}</option>
-            </select>
-            <button @click="debugSimulateVoteYes = true; simulatePlayerVote()"
-                    :disabled="!debugSimulateVoteUma || !debugSimulateVotePlayer"
-                    class="text-xs bg-emerald-600/30 text-emerald-300 px-3 py-1.5 rounded hover:bg-emerald-600/50 disabled:opacity-40">
-              <i class="ph-bold ph-thumbs-up mr-1"></i>Yes
-            </button>
-            <button @click="debugSimulateVoteYes = false; simulatePlayerVote()"
-                    :disabled="!debugSimulateVoteUma || !debugSimulateVotePlayer"
-                    class="text-xs bg-slate-600/30 text-slate-300 px-3 py-1.5 rounded hover:bg-slate-600/50 disabled:opacity-40">
-              <i class="ph-bold ph-thumbs-down mr-1"></i>No
-            </button>
-          </div>
-          <!-- Mass vote buttons -->
-          <div class="flex gap-2 flex-wrap">
-            <button @click="massVote(true)"
-                    class="text-xs bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded hover:bg-emerald-600/40">
-              Vote YES for all players on selected uma
-            </button>
-            <button @click="massVote(false)"
-                    class="text-xs bg-slate-600/20 text-slate-400 px-3 py-1 rounded hover:bg-slate-600/40">
-              Vote NO for all players on selected uma
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Voting Mode UI -->
     <template v-if="isVotingMode">
       <!-- Captain Proposal Phase -->
@@ -458,54 +276,66 @@ const handlePlayerVote = async (umaId: string, vote: boolean) => {
 
         <!-- Proposed Bans with Voting -->
         <div v-for="ban in proposedBans" :key="ban.umaId"
-             class="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <h4 class="text-xl font-bold text-white">{{ ban.umaId }}</h4>
-              <p class="text-slate-500 text-sm">Proposed by Captain</p>
+             class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div class="flex flex-col sm:flex-row">
+            <!-- Uma Image -->
+            <div class="sm:w-48 h-48 bg-slate-900 flex items-center justify-center shrink-0">
+              <img :src="`https://gametora.com/images/umamusume/characters/chara_stand_${Math.floor((UMA_DICT[ban.umaId]?.characterId || 0) / 100)}_${UMA_DICT[ban.umaId]?.characterId || 0}.png`"
+                   :alt="ban.umaId"
+                   class="w-full h-full object-cover"
+                   @error="($event.target as HTMLImageElement).style.display = 'none'" />
             </div>
-            <div class="flex items-center gap-2">
-              <span v-if="ban.banPassed" class="bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm font-bold">
-                <i class="ph-fill ph-prohibit"></i> PASSED
-              </span>
-              <span v-else-if="ban.allVoted" class="bg-slate-600/20 text-slate-400 px-3 py-1 rounded-full text-sm font-bold">
-                REJECTED
-              </span>
-            </div>
-          </div>
+            <!-- Vote Info -->
+            <div class="flex-1 p-6">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h4 class="text-xl font-bold text-white">{{ ban.umaId }}</h4>
+                  <p class="text-slate-500 text-sm">Proposed by Captain</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span v-if="ban.banPassed" class="bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm font-bold">
+                    <i class="ph-fill ph-prohibit"></i> PASSED
+                  </span>
+                  <span v-else-if="ban.allVoted" class="bg-slate-600/20 text-slate-400 px-3 py-1 rounded-full text-sm font-bold">
+                    REJECTED
+                  </span>
+                </div>
+              </div>
 
-          <!-- Vote Progress Bar -->
-          <div class="mb-4">
-            <div class="flex justify-between text-sm text-slate-400 mb-2">
-              <span class="text-emerald-400">{{ ban.yesVotes }} Yes</span>
-              <span class="text-red-400">{{ ban.noVotes }} No</span>
-              <span>{{ ban.totalVotes }} / {{ ban.totalVoters }}</span>
-            </div>
-            <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-300"
-                   :style="{ width: `${(ban.yesVotes / ban.totalVoters) * 100}%` }"></div>
-            </div>
-          </div>
+              <!-- Vote Progress Bar -->
+              <div class="mb-4">
+                <div class="flex justify-between text-sm text-slate-400 mb-2">
+                  <span class="text-emerald-400">{{ ban.yesVotes }} Yes</span>
+                  <span class="text-red-400">{{ ban.noVotes }} No</span>
+                  <span>{{ ban.totalVotes }} / {{ ban.totalVoters }}</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-300"
+                       :style="{ width: `${(ban.yesVotes / ban.totalVoters) * 100}%` }"></div>
+                </div>
+              </div>
 
-          <!-- Vote Buttons -->
-          <div v-if="!hasPlayerVoted(ban.umaId) && !ban.banPassed && !ban.allVoted" class="flex gap-3">
-            <button @click="handlePlayerVote(ban.umaId, true)"
-                    class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition-colors">
-              <i class="ph-bold ph-check"></i> Yes, Ban
-            </button>
-            <button @click="handlePlayerVote(ban.umaId, false)"
-                    class="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-lg font-bold transition-colors">
-              <i class="ph-bold ph-x"></i> No, Skip
-            </button>
-          </div>
-          <div v-else class="text-center text-slate-500 py-2">
-            <span v-if="hasPlayerVoted(ban.umaId)">
-              Your vote: <span class="font-semibold" :class="getPlayerVote(ban.umaId) ? 'text-emerald-400' : 'text-red-400'">
-                {{ getPlayerVote(ban.umaId) ? 'Yes' : 'No' }}
-              </span>
-            </span>
-            <span v-else-if="ban.banPassed">Ban approved by majority</span>
-            <span v-else>Voting complete</span>
+              <!-- Vote Buttons -->
+              <div v-if="!hasPlayerVoted(ban.umaId) && !ban.banPassed && !ban.allVoted" class="flex gap-3">
+                <button @click="handlePlayerVote(ban.umaId, true)"
+                        class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-lg font-bold transition-colors">
+                  <i class="ph-bold ph-check"></i> Yes, Ban
+                </button>
+                <button @click="handlePlayerVote(ban.umaId, false)"
+                        class="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-lg font-bold transition-colors">
+                  <i class="ph-bold ph-x"></i> No, Skip
+                </button>
+              </div>
+              <div v-else class="text-center text-slate-500 py-2">
+                <span v-if="hasPlayerVoted(ban.umaId)">
+                  Your vote: <span class="font-semibold" :class="getPlayerVote(ban.umaId) ? 'text-emerald-400' : 'text-red-400'">
+                    {{ getPlayerVote(ban.umaId) ? 'Yes' : 'No' }}
+                  </span>
+                </span>
+                <span v-else-if="ban.banPassed">Ban approved by majority</span>
+                <span v-else>Voting complete</span>
+              </div>
+            </div>
           </div>
         </div>
 

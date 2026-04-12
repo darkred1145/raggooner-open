@@ -5,6 +5,8 @@ import {collection, doc, getDocs, orderBy, query, setDoc, updateDoc, writeBatch}
 import type {Season, Tournament, Race} from "../../types.ts";
 import { claimAndSyncMetadata, claimAndUnsyncMetadata } from '../../utils/metadataSync.ts';
 import { APP_ID } from '../../config';
+import { UMA_DICT } from '../../utils/umaData';
+import { getPlayerName } from '../../utils/utils';
 
 defineProps<{ isOpen: boolean }>();
 const emit = defineEmits(['close']);
@@ -13,6 +15,81 @@ const emit = defineEmits(['close']);
 const activeTournament = inject<Ref<Tournament | null>>('activeTournament', ref(null));
 
 const isCreatingSeason = ref(false);
+
+// --- Ban Voting Test Panel ---
+const showBanTestPanel = ref(false);
+const debugVoteUma = ref('');
+
+const updateTournament = async (data: Record<string, any>) => {
+  if (!activeTournament.value) return;
+  const tRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'tournaments', activeTournament.value.id);
+  await updateDoc(tRef, data);
+};
+
+const unproposedCaptains = computed(() => {
+  if (!activeTournament.value) return [];
+  const proposals = activeTournament.value.captainBanProposals ?? {};
+  return activeTournament.value.teams
+    .map((t: any) => ({ captainId: t.captainId, name: getPlayerName(activeTournament.value, t.captainId), color: t.color }))
+    .filter((c: any) => !proposals[c.captainId]);
+});
+
+const proposedBansList = computed(() => {
+  if (!activeTournament.value) return [];
+  const proposals = activeTournament.value.captainBanProposals ?? {};
+  const votes = activeTournament.value.banVotes ?? {};
+  const playerIds = activeTournament.value.playerIds ?? [];
+  return Object.entries(proposals).map(([captainId, umaId]) => {
+    const umaVotes = votes[umaId as string] ?? {};
+    const yesVotes = Object.values(umaVotes).filter((v) => v === true).length;
+    return { umaId: umaId as string, captainId, yesVotes, totalVoters: playerIds.length };
+  });
+});
+
+const simulateCaptainProposal = async (captainId: string) => {
+  const umaOptions = Object.keys(UMA_DICT).filter((u: string) => !activeTournament.value?.bans?.includes(u));
+  const uma = umaOptions[Math.floor(Math.random() * umaOptions.length)];
+  if (!uma) return;
+  const currentProposals = activeTournament.value?.captainBanProposals ?? {};
+  const updated = { ...currentProposals, [captainId]: uma };
+  const captainIds = activeTournament.value!.teams.map((t: any) => t.captainId);
+  const allDone = captainIds.every((cid: string) => updated[cid]);
+  const update: Record<string, any> = { captainBanProposals: updated };
+  if (allDone) update.banPhaseStatus = 'player-voting';
+  await updateTournament(update);
+};
+
+const massVoteAll = async (vote: boolean) => {
+  const umaId = debugVoteUma.value;
+  if (!umaId) return;
+  const playerIds = activeTournament.value?.playerIds ?? [];
+  const votes = activeTournament.value?.banVotes ?? {};
+  const umaVotes = votes[umaId] ?? {};
+  const updatedUmaVotes = { ...umaVotes };
+  playerIds.forEach((pid: string) => { updatedUmaVotes[pid] = vote; });
+  const updatedVotes = { ...votes, [umaId]: updatedUmaVotes };
+  const totalVoters = playerIds.length;
+  const yesVotes = Object.values(updatedUmaVotes).filter((v) => v === true).length;
+  const threshold = activeTournament.value?.banVoteThreshold ?? 0.5;
+  const banPassed = totalVoters > 0 && yesVotes / totalVoters > threshold;
+  const allVoted = totalVoters > 0 && playerIds.every((pid: string) => updatedUmaVotes[pid] !== undefined);
+  const update: Record<string, any> = { banVotes: updatedVotes };
+  if (banPassed || allVoted) {
+    if (banPassed) {
+      const currentBans = activeTournament.value?.bans ?? [];
+      if (!currentBans.includes(umaId)) update.bans = [...currentBans, umaId];
+    }
+    const proposals = activeTournament.value?.captainBanProposals ?? {};
+    const proposedUmas = Object.values(proposals) as string[];
+    const allResolved = proposedUmas.every((proposedUma: string) => {
+      const v = votes[proposedUma] ?? {};
+      if (proposedUma === umaId) return true;
+      return playerIds.every((pid: string) => v[pid] !== undefined);
+    });
+    if (allResolved) update.banPhaseStatus = 'resolved';
+  }
+  await updateTournament(update);
+};
 
 // State
 const seasons = ref<Season[]>([]);
@@ -735,6 +812,64 @@ const executeMerge = async () => {
               <i class="ph-bold ph-crown-simple text-xl text-amber-400 group-hover:scale-110 transition-transform"></i>
               <span class="text-sm font-bold">Switch Captain</span>
             </button>
+          </div>
+        </section>
+
+        <!-- Ban Voting Test Panel -->
+        <section v-if="activeTournament" class="space-y-3">
+          <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest px-2">Ban Voting Test</h3>
+          <div class="grid gap-2">
+            <button
+                @click="showBanTestPanel = !showBanTestPanel"
+                class="flex items-center gap-3 w-full p-3 bg-slate-800 hover:bg-red-600/20 border border-slate-700 hover:border-red-500/50 rounded-xl text-white transition-all group"
+            >
+              <i class="ph-bold ph-flask text-xl text-red-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-sm font-bold">{{ showBanTestPanel ? 'Hide' : 'Open' }} Ban Test Panel</span>
+            </button>
+          </div>
+          <div v-if="showBanTestPanel" class="bg-slate-800/50 border border-red-500/30 rounded-xl p-3 space-y-3">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                <input type="checkbox" :checked="activeTournament.banVotingEnabled"
+                       @change="updateTournament({ banVotingEnabled: !activeTournament.banVotingEnabled, banPhaseStatus: 'captain-voting' })"
+                       class="accent-indigo-500" />
+                <span>Enable Ban Voting</span>
+              </label>
+            </div>
+            <div class="flex gap-2">
+              <button @click="updateTournament({ captainBanProposals: null, banVotes: null, banPhaseStatus: 'captain-voting', bans: [] })"
+                      class="text-xs bg-red-600/20 text-red-400 px-3 py-1.5 rounded hover:bg-red-600/30 flex-1">
+                Reset Voting State
+              </button>
+            </div>
+            <!-- Simulate Captain Proposals -->
+            <div v-if="activeTournament.banPhaseStatus !== 'resolved'" class="space-y-2">
+              <div class="text-xs text-slate-400 font-semibold">Simulate Captain Proposals</div>
+              <button v-for="cap in unproposedCaptains" :key="cap.captainId"
+                      @click="simulateCaptainProposal(cap.captainId)"
+                      class="text-xs bg-amber-600/20 text-amber-300 px-3 py-1.5 rounded hover:bg-amber-600/40 w-full text-left">
+                <i class="ph-bold ph-play mr-1"></i> Propose for {{ cap.name }} (random uma)
+              </button>
+              <div v-if="unproposedCaptains.length === 0" class="text-xs text-slate-500">All captains have proposed!</div>
+            </div>
+            <!-- Simulate Player Votes -->
+            <div v-if="activeTournament.banPhaseStatus === 'player-voting'" class="space-y-2">
+              <div class="text-xs text-slate-400 font-semibold">Simulate Player Votes</div>
+              <select v-model="debugVoteUma" class="w-full bg-slate-900 text-white text-xs px-2 py-1 rounded border border-slate-600">
+                <option value="">-- select uma --</option>
+                <option v-for="ban in proposedBansList" :key="ban.umaId" :value="ban.umaId">{{ ban.umaId }}</option>
+              </select>
+              <div class="flex gap-2 flex-wrap">
+                <button @click="massVoteAll(true)" :disabled="!debugVoteUma"
+                        class="text-xs bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded hover:bg-emerald-600/40 disabled:opacity-40 flex-1">
+                  Vote YES for all
+                </button>
+                <button @click="massVoteAll(false)" :disabled="!debugVoteUma"
+                        class="text-xs bg-slate-600/20 text-slate-400 px-3 py-1 rounded hover:bg-slate-600/40 disabled:opacity-40 flex-1">
+                  Vote NO for all
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       </div>
