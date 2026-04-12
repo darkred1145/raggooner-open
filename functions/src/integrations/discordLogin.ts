@@ -112,7 +112,7 @@ export const discordLogin = onRequest(
           discordId,
           displayName: globalName,
           photoURL: photoURL || "",
-          state: state || "",
+          state: typeof state === "string" ? state : "",
         });
         const redirectUrl = `${frontendUrl}/auth/callback?${params.toString()}`;
         res.redirect(redirectUrl);
