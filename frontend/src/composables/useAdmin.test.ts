@@ -204,16 +204,15 @@ describe('useAdmin', () => {
       expect(localStorage.getItem('admin_pwd_t1')).toBe('SUPERADMIN');
     });
 
-    it('logs error when setDoc throws during auto-login', async () => {
-      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('still works when setDoc throws during auto-login', async () => {
       mockIsSuperAdmin.value = true;
       (setDoc as any).mockRejectedValueOnce(new Error('permission denied'));
       const tournament = ref(makeTournament({ id: 't1' }));
       const { autoLoginIfSuperAdmin, localAdminPassword } = useAdmin(tournament, secureUpdate, fetchPublicTournaments, appId);
       await autoLoginIfSuperAdmin();
-      expect(consoleError).toHaveBeenCalled();
-      expect(localAdminPassword.value).toBe('');
-      consoleError.mockRestore();
+      // Superadmin bypasses password — still gets access even if setDoc fails
+      expect(localAdminPassword.value).toBe('SUPERADMIN');
+      expect(localStorage.getItem('admin_pwd_t1')).toBe('SUPERADMIN');
     });
   });
 

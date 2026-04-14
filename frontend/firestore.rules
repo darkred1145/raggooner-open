@@ -47,7 +47,8 @@ service cloud.firestore {
       // 4. SECRETS
       match /secrets/{tournamentId} {
         allow create: if request.auth != null;
-        allow read, update, delete: if request.auth != null &&
+        allow read: if isSuperAdmin(appId);
+        allow update, delete: if request.auth != null &&
           exists(/databases/$(database)/documents/artifacts/$(appId)/public/data/admins/$(tournamentId + '_' + request.auth.uid));
       }
 
@@ -56,8 +57,10 @@ service cloud.firestore {
         allow read, create, update, delete: if isAdmin(appId);
         allow get: if request.auth != null && resource.data.userId == request.auth.uid;
         allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
-        allow create: if request.auth != null &&
-          request.resource.data.password == getAfter(/databases/$(database)/documents/artifacts/$(appId)/public/data/secrets/$(request.resource.data.tournamentId)).data.password;
+        // Normal admin: must match secret password
+        // Superadmin: can create admin entry for any tournament without password
+        allow create: if isSuperAdmin(appId) || (request.auth != null &&
+          request.resource.data.password == getAfter(/databases/$(database)/documents/artifacts/$(appId)/public/data/secrets/$(request.resource.data.tournamentId)).data.password);
       }
 
       // 6. GLOBAL SETTINGS

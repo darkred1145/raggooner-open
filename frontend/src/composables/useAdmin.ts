@@ -1,6 +1,6 @@
 // src/composables/useAdmin.ts
 import { ref, computed, watch, type Ref } from 'vue';
-import { doc, setDoc, deleteDoc, collection } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, collection, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase'; // Adjust path if needed
 import type { Tournament, FirestoreUpdate } from '../types';
 import { useUserRoles } from './useUserRoles';
@@ -91,24 +91,31 @@ export function useAdmin(
         if (!tournament.value) return;
         if (!auth.currentUser) return;
 
-        const uid = auth.currentUser.uid;
         const { can } = useUserRoles();
         if (!can('bypass_tournament_password')) return;
 
         const tId = tournament.value.id;
 
         try {
-            const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${uid}`);
+            // Create admin entry so normal admin checks pass
+            const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${auth.currentUser.uid}`);
             await setDoc(adminRef, {
                 tournamentId: tId,
-                userId: uid,
+                userId: auth.currentUser.uid,
                 password: 'SUPERADMIN'
             });
 
+            // Read the actual tournament secret so the client has a valid password
+            const secretRef = doc(db, 'artifacts', appId, 'public', 'data', 'secrets', tId);
+            const secretSnap = await getDoc(secretRef);
+            const pwd = secretSnap.exists() ? secretSnap.data().password : 'SUPERADMIN';
+
+            localAdminPassword.value = pwd;
+            localStorage.setItem(`admin_pwd_${tId}`, pwd);
+        } catch {
+            // Even if setup fails, superadmin still gets local access
             localAdminPassword.value = 'SUPERADMIN';
             localStorage.setItem(`admin_pwd_${tId}`, 'SUPERADMIN');
-        } catch (e) {
-            console.error('Privileged auto-login failed', e);
         }
     };
 
