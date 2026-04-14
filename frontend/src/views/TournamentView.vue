@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref, computed, watch, onUnmounted, onMounted, inject, type Ref} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { doc, onSnapshot, updateDoc, setDoc, collection, getDocs } from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { doc, onSnapshot, updateDoc, collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 import { APP_ID } from '../config';
 import type { FirestoreUpdate, Tournament, GlobalPlayer, Season } from '../types';
 import { recalculateTournamentScores, migrateRaces, migratePlayers } from "../utils/utils.ts";
@@ -49,18 +49,6 @@ const secureUpdate = async (data: FirestoreUpdate<Tournament>) => {
     await updateDoc(getTournamentRef(tournament.value.id), data);
   } catch (e: any) {
     if (e.code === 'permission-denied') {
-      try {
-        const uid = auth.currentUser?.uid;
-        if (uid) {
-          const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tournament.value.id}_${uid}`);
-          await setDoc(adminRef, { tournamentId: tournament.value.id, userId: uid, password: 'SA' });
-          localAdminPassword.value = 'SA';
-          localStorage.setItem(`admin_pwd_${tournament.value.id}`, 'SA');
-          await updateDoc(getTournamentRef(tournament.value.id), data);
-          return;
-        }
-      } catch { /* fall through to revalidate */ }
-
       if (localAdminPassword.value) {
         const revalidated = await revalidateAdminSlip();
         if (revalidated) {
