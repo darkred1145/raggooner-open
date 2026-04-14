@@ -7,7 +7,7 @@ import { useJokeConfirmation, JOKE_PLAYERS } from '../composables/useEasterEgg';
 import PlayerSelector from './PlayerSelector.vue';
 import PlayerProfileModal from './PlayerProfileModal.vue';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
-import { arrayUnion, deleteField } from 'firebase/firestore';
+import { deleteField } from 'firebase/firestore';
 import { useAuth } from '../composables/useAuth';
 import { useUserRoles } from '../composables/useUserRoles';
 import { TRACK_DICT } from '../utils/trackData';

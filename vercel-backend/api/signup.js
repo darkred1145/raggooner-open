@@ -36,10 +36,12 @@ function getTournamentRef(db, tournamentId) {
 }
 
 async function getPlayerId(db, uid, discordId) {
-  let snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
-  if (!snap.empty) return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+  if (uid) {
+    const snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
+    if (!snap.empty) return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
+  }
   if (discordId) {
-    snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('discordId', '==', discordId).limit(1).get();
+    const snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('discordId', '==', discordId).limit(1).get();
     if (!snap.empty) return { playerId: snap.docs[0].id, playerData: snap.docs[0].data() };
   }
   return null;

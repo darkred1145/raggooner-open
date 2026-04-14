@@ -32,14 +32,18 @@ async function getDb() {
 
 async function checkAdminRole(db, uid, discordId) {
   // Find player by either uid or discordId
-  let snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
-  if (snap.empty && discordId) {
+  let snap;
+  if (uid) {
+    snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
+  }
+  if ((!snap || snap.empty) && discordId) {
     snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('discordId', '==', discordId).limit(1).get();
   }
-  if (snap.empty) return false;
+  if (!snap || snap.empty) return false;
   const playerData = snap.docs[0].data();
   // Check role from userRoles collection using the player's firebaseUid
   const roleUid = playerData.firebaseUid || uid;
+  if (!roleUid) return false;
   const roleSnap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('userRoles').doc(roleUid).get();
   const role = roleSnap.exists ? roleSnap.data()?.role : null;
   return role === 'tournament_creator' || role === 'superadmin' || role === 'admin';

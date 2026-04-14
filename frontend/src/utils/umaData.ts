@@ -306,7 +306,7 @@ export const UMA_DICT: Record<string, UmaData> = {
     'Fuji Kiseki': {
         id: 'fuji-kiseki', name: 'Fuji Kiseki', stars: 3, releaseDate: '2025-10-02T22:00:00.000Z', characterId: 100501,
         gametoraId: 100501,
-        statBonus: 'SPD +10% / POW +20%',
+        statBonus: 'POW +20% / WIT +10%',
         aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'B', mile: 'A', medium: 'B', long: 'E' }, style: { frontRunner: 'C', paceChaser: 'A', lateSurger: 'C', endCloser: 'G' } }
     },
     'Ballroom Fuji Kiseki': {

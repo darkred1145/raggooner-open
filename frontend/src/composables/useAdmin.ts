@@ -1,6 +1,6 @@
 // src/composables/useAdmin.ts
 import { ref, computed, watch, type Ref } from 'vue';
-import { doc, setDoc, deleteDoc, collection, getDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import type { Tournament, FirestoreUpdate } from '../types';
 import { useUserRoles } from './useUserRoles';
