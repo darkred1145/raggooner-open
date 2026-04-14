@@ -68,22 +68,23 @@ Handles the full tournament lifecycle — player registration, team drafts, race
    cd frontend && npm run dev      # App on :5173
    ```
 
-### Syncing Data from Original Site
+### Syncing Data
 
-If you need to pull the latest tournament/player data from the original site:
+> ⚠️ **Deprecated.** The `scripts/` data sync tools are no longer functional due to the original project enabling Firebase App Check, which locks out programmatic access. Data is now managed entirely through the live app at `https://raggooner-uma-2026.web.app/`.
 
-```bash
-# 1. Extract latest data from original site
-node scripts/extract-data.js
+## Recent Changes
 
-# 2. Test locally (optional)
-node scripts/import-to-emulator.js
+### RACC OPEN S3-18 Tournament Migration
 
-# 3. Import to your production Firestore
-node scripts/import-to-production.js
-```
+Due to the original project enabling Firebase App Check and locking me out of our own data, we manually rebuilt the entire **RACC OPEN S3-18** tournament by hand — 18 players, 6 teams, 15 races, point-for-point. 
 
-This safely syncs new tournaments, players, and settings without overwriting existing data.
+Yes, it was as fun as it sounds. No, I'm not doing it again.
+
+If you're reading this and you were the one who flipped that App Check switch: Screw you or maybe not? Idk it seems like ragebait.
+
+Either way, the tournament is live on `https://raggooner-uma-2026.web.app/t/IVX4FB` with all data intact. Don't make me do this twice.
+
+---
 
 ## Contributing
 
