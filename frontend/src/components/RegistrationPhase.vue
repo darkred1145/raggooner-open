@@ -366,8 +366,8 @@ const selfLeave = async () => {
 // Handle player selection from PlayerSelector
 const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
   if (!props.isAdmin) return;
+  if (!globalPlayer.id) return;
 
-  // Convert GlobalPlayer to Player format
   const player = {
     id: globalPlayer.id,
     name: globalPlayer.name,
@@ -375,10 +375,17 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
     uma: ''
   };
 
-  await props.secureUpdate({
-    [`players.${player.id}`]: player,
-    playerIds: arrayUnion(globalPlayer.id)
-  });
+  const existingIds = Array.isArray(props.tournament.playerIds) ? props.tournament.playerIds : [];
+  const updatedPlayerIds = [...existingIds, globalPlayer.id];
+
+  try {
+    await props.secureUpdate({
+      [`players.${player.id}`]: player,
+      playerIds: updatedPlayerIds
+    });
+  } catch (e) {
+    console.error('[Add Player] Error:', e);
+  }
 };
 </script>
 

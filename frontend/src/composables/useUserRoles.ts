@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, deleteField, collection, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, deleteField, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { APP_ID } from '../config';
 import type { UserRole, GlobalPlayer } from '../types';
@@ -34,24 +34,40 @@ async function fetchRoleByDiscordId(discordId: string): Promise<UserRole> {
 onAuthStateChanged(auth, async (u) => {
     currentUid.value = u?.uid ?? null;
     if (u) {
-        // Check role by UID first
-        let role = await fetchRoleForUid(u.uid);
+        // 1. Check Discord ID from localStorage
+        let role: UserRole | null = null;
+        try {
+            const raw = localStorage.getItem('discord_session');
+            if (raw) {
+                const session = JSON.parse(raw);
+                if (session?.discordId) {
+                    role = await fetchRoleByDiscordId(session.discordId);
+                }
+            }
+        } catch {}
 
-        // If player role, also check by Discord ID from localStorage (dev mode)
-        if (role === 'player') {
+        // 2. If no role yet, check if current Firebase UID matches a player, then use their discordId
+        if (!role || role === 'player') {
             try {
-                const raw = localStorage.getItem('discord_session');
-                if (raw) {
-                    const session = JSON.parse(raw);
-                    if (session?.discordId) {
-                        const discordRole = await fetchRoleByDiscordId(session.discordId);
-                        if (discordRole !== 'player') role = discordRole;
+                const playersRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+                const q = query(playersRef, where('firebaseUid', '==', u.uid));
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    const playerData = snap.docs[0]?.data();
+                    if (playerData?.discordId) {
+                        role = await fetchRoleByDiscordId(playerData.discordId);
                     }
                 }
             } catch {}
         }
 
-        currentUserRole.value = role;
+        // 3. Last resort: check by Firebase UID directly
+        if (!role || role === 'player') {
+            const uidRole = await fetchRoleForUid(u.uid);
+            if (uidRole !== 'player') role = uidRole;
+        }
+
+        currentUserRole.value = role ?? 'player';
     } else {
         currentUserRole.value = null;
     }
@@ -66,13 +82,8 @@ export interface UserRoleEntry {
 
 export function useUserRoles() {
     const isSuperAdmin = computed(() => currentUserRole.value === 'superadmin');
-
-    // True for both admin and superadmin
     const isAdmin = computed(() => currentUserRole.value === 'admin' || isSuperAdmin.value);
-
-    // Check a permission for the current user
     const can = (permission: Permission): boolean => hasPermission(currentUserRole.value, permission);
-
     const isOfficialCreator = computed(() => can('create_official_tournament'));
 
     const setUserRole = async (targetUid: string, role: UserRole, displayName?: string) => {

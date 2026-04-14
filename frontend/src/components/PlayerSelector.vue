@@ -53,7 +53,7 @@ const filteredPlayers = computed(() => {
         if (nameA.length !== nameB.length) return nameA.length - nameB.length;
 
         // 5. Fallback: Most Played (Your existing logic)
-        const tourneyDiff = (b.metadata.totalTournaments || 0) - (a.metadata.totalTournaments || 0);
+        const tourneyDiff = ((b.metadata?.totalTournaments) || 0) - ((a.metadata?.totalTournaments) || 0);
         if (tourneyDiff !== 0) return tourneyDiff;
 
         // 6. Final Fallback: Alphabetical

@@ -1,7 +1,7 @@
 // src/composables/useAdmin.ts
 import { ref, computed, watch, type Ref } from 'vue';
 import { doc, setDoc, deleteDoc, collection, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase'; // Adjust path if needed
+import { auth, db } from '../firebase';
 import type { Tournament, FirestoreUpdate } from '../types';
 import { useUserRoles } from './useUserRoles';
 
@@ -16,6 +16,8 @@ export function useAdmin(
     fetchPublicTournaments: FetchTournamentsFn,
     appId: string
 ) {
+    const { isSuperAdmin } = useUserRoles(); // <-- Hook into existing role logic
+
     // --- STATE ---
     const adminPasswordInput = ref('');
     const localAdminPassword = ref('');
@@ -30,19 +32,17 @@ export function useAdmin(
     // --- COMPUTED ---
     const isPublicTournament = computed(() => {
         if (!tournament.value) return false;
-        // Logic copied from your snapshot listener:
-        // It is public if NOT secured OR if password field exists but is empty
         return !(tournament.value.isSecured || (tournament.value.password && tournament.value.password !== ''));
     });
 
     const isAdmin = computed(() => {
         if (!tournament.value) return false;
+        if (isSuperAdmin.value) return true;
         if (isPublicTournament.value) return true;
         return localAdminPassword.value !== '';
     });
 
     // --- WATCHER ---
-    // Syncs local state when the modal opens
     watch(showAdminModal, (isOpen) => {
         if (isOpen && tournament.value) {
             editedName.value = tournament.value.name;
@@ -52,12 +52,21 @@ export function useAdmin(
         }
     });
 
+    // Automatically grant Firestore access when role loads
+    watch(
+        [() => tournament.value?.id, isSuperAdmin, () => auth.currentUser?.uid],
+        async ([tId, isSA, uid]) => {
+            if (tId && isSA === true && uid && localAdminPassword.value !== 'SA') {
+                await _grantAccess(tId, uid);
+            }
+        },
+        { immediate: true }
+    );
+
     // --- ACTIONS ---
 
     const loginAsAdmin = async () => {
         if (!tournament.value) return;
-        // Note: We assume signInAnonymously is handled in App.vue init,
-        // but checking currentUser is safe here.
         if (!auth.currentUser) return;
 
         const pwd = adminPasswordInput.value.toUpperCase();
@@ -66,15 +75,12 @@ export function useAdmin(
 
         try {
             const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${userId}`);
-
-            // Try to create the "Permission Slip"
             await setDoc(adminRef, {
                 tournamentId: tId,
                 userId: userId,
                 password: pwd
             });
 
-            // Access Granted
             localAdminPassword.value = pwd;
             localStorage.setItem(`admin_pwd_${tId}`, pwd);
             showAdminModal.value = false;
@@ -88,40 +94,20 @@ export function useAdmin(
     };
 
     const autoLoginIfSuperAdmin = async () => {
-        if (!tournament.value) return;
-        if (!auth.currentUser) return;
-
-        const { can } = useUserRoles();
-        if (!can('bypass_tournament_password')) return;
-
-        const tId = tournament.value.id;
-
-        try {
-            // Create admin entry so normal admin checks pass
-            const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${auth.currentUser.uid}`);
-            await setDoc(adminRef, {
-                tournamentId: tId,
-                userId: auth.currentUser.uid,
-                password: 'SUPERADMIN'
-            });
-
-            // Read the actual tournament secret so the client has a valid password
-            const secretRef = doc(db, 'artifacts', appId, 'public', 'data', 'secrets', tId);
-            const secretSnap = await getDoc(secretRef);
-            const pwd = secretSnap.exists() ? secretSnap.data().password : 'SUPERADMIN';
-
-            localAdminPassword.value = pwd;
-            localStorage.setItem(`admin_pwd_${tId}`, pwd);
-        } catch {
-            // Even if setup fails, superadmin still gets local access
-            localAdminPassword.value = 'SUPERADMIN';
-            localStorage.setItem(`admin_pwd_${tId}`, 'SUPERADMIN');
-        }
+        // Handled automatically by reactivity.
     };
 
-    // Attempt to re-register the admin slip under the current UID using the stored password.
-    // Returns true if the slip was successfully created. Used when the UID has changed
-    // (e.g. anonymous → Discord login) but the correct password is still in localStorage.
+    const _grantAccess = async (tId: string, uid: string) => {
+        try {
+            const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${uid}`);
+            await setDoc(adminRef, { tournamentId: tId, userId: uid, password: 'SA' });
+        } catch (e) {
+            console.error('Grant access failed:', e);
+        }
+        localAdminPassword.value = 'SA';
+        localStorage.setItem(`admin_pwd_${tId}`, 'SA');
+    };
+
     const revalidateAdminSlip = async (): Promise<boolean> => {
         if (!tournament.value || !auth.currentUser || !localAdminPassword.value) return false;
         const uid = auth.currentUser.uid;
@@ -174,33 +160,25 @@ export function useAdmin(
         try {
             const col = (name: string) => collection(db, 'artifacts', appId, 'public', 'data', name);
 
-            // 1. Delete secret and tournament docs (while admin doc still exists for rule checks)
-            // Note: if the tournament was completed and synced, the unsyncOnTournamentDelete
-            // Cloud Function will automatically reverse player metadata on deletion.
             await deleteDoc(doc(col('secrets'), tid)).catch(() => {});
             await deleteDoc(getTournamentRef(tid));
 
-            // 3. Delete current user's admin doc LAST (other steps need it for auth)
             const userId = auth.currentUser?.uid;
             if (userId) {
                 await deleteDoc(doc(col('admins'), `${tid}_${userId}`)).catch(() => {});
             }
 
-            // 4. Cleanup Local Storage / Session
             sessionStorage.removeItem('active_tid');
             localStorage.removeItem(`admin_pwd_${tid}`);
             localAdminPassword.value = '';
 
-            // 5. Reset State
             tournament.value = null;
             showAdminModal.value = false;
 
-            // 6. Clean URL
             const url = new URL(window.location.href);
             url.searchParams.delete('tid');
             window.history.pushState({}, '', url);
 
-            // 7. Refresh Home List
             await fetchPublicTournaments();
 
             alert("Tournament deleted successfully.");
@@ -212,9 +190,7 @@ export function useAdmin(
         }
     };
 
-    // Return everything the template needs
     return {
-        // State
         adminPasswordInput,
         localAdminPassword,
         showAdminModal,
@@ -222,15 +198,14 @@ export function useAdmin(
         isDeleting,
         editedName,
         editedTiebreaker,
-        // Computed
         isAdmin,
-        // Actions
         loginAsAdmin,
         revalidateAdminSlip,
         copyPassword,
         updateTournamentName,
         togglePlacementTiebreaker,
         deleteTournament,
-        autoLoginIfSuperAdmin
+        autoLoginIfSuperAdmin,
+        grantAdminAccess: _grantAccess,
     };
 }

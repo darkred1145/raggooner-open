@@ -175,8 +175,8 @@ const sortedOwnedCards = computed(() =>
                         {{ user.displayName }}
                     </div>
                     <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-slate-500">
-                        <span><span class="text-white font-bold">{{ linkedPlayer.metadata.totalTournaments }}</span> tournaments</span>
-                        <span><span class="text-white font-bold">{{ linkedPlayer.metadata.totalRaces }}</span> races</span>
+                        <span><span class="text-white font-bold">{{ linkedPlayer?.metadata?.totalTournaments ?? 0 }}</span> tournaments</span>
+                        <span><span class="text-white font-bold">{{ linkedPlayer?.metadata?.totalRaces ?? 0 }}</span> races</span>
                         <span><span class="inline-block min-w-[2ch] text-right tabular-nums text-white font-bold">{{ linkedPlayer.roster?.length ?? 0 }}</span> umas</span>
                         <span><span class="text-white font-bold">{{ linkedPlayer.supportCards?.length ?? 0 }}</span> support cards</span>
                     </div>

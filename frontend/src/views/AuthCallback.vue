@@ -13,6 +13,12 @@ onMounted(async () => {
     const displayName = params.get('displayName');
     const photoURL = params.get('photoURL') || undefined;
 
+    // Always save discord_session regardless of token vs dev mode
+    if (uid && discordId) {
+      const session = { uid, discordId, displayName, photoURL, timestamp: Date.now() };
+      localStorage.setItem('discord_session', JSON.stringify(session));
+    }
+
     if (token) {
       // Production: sign in with custom token from Cloud Function
       const { signInWithCustomToken, setPersistence, browserLocalPersistence } = await import('firebase/auth');
@@ -27,12 +33,7 @@ onMounted(async () => {
       throw new Error('No login info received.');
     }
 
-    // Dev mode: store Discord session in localStorage (persistent)
-    const session = { uid, discordId, displayName, photoURL, timestamp: Date.now() };
-    localStorage.setItem('discord_session', JSON.stringify(session));
-
     // Redirect to home — the app will pick up the session
-    // and show the DiscordAuthModal to link/create a player
     window.location.href = '/';
   } catch (e: any) {
     console.error('Auth callback error:', e);
