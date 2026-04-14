@@ -72,7 +72,7 @@ const {
 
 // 5. Deck Rankings Layer
 const {
-  deckRankings, filteredDeckRankings, deckStats, umaStatBonus,
+  filteredDeckRankings, deckStats, umaStatBonus,
   deckSortKey, deckSortDesc, deckSearchQuery, toggleDeckSort
 } = useDeckRankings(players, filteredTournaments);
 
@@ -1701,14 +1701,14 @@ function perfIndicator(
           </div>
           <div class="flex items-center gap-1">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider mr-1">Sort</span>
-            <button v-for="key in ['score', 'raceBonus', 'trainingEff', 'specialtyPri', 'friendship'] as const"
+            <button v-for="key in ['score', 'raceBonus', 'trainingEff', 'specialtyPri', 'utility', 'composition'] as const"
                     :key="key"
                     @click="toggleDeckSort(key)"
                     class="px-3 py-1.5 text-xs font-bold rounded transition-all"
                     :class="deckSortKey === key
                       ? 'bg-indigo-600 text-white shadow'
                       : 'text-slate-400 hover:text-white bg-slate-900'">
-              {{ key === 'raceBonus' ? 'Race Bonus' : key === 'trainingEff' ? 'Training' : key === 'specialtyPri' ? 'Specialty' : key === 'friendship' ? 'Friendship' : 'Score' }}
+              {{ key === 'raceBonus' ? 'Race Bonus' : key === 'trainingEff' ? 'Training' : key === 'specialtyPri' ? 'Specialty' : key === 'utility' ? 'Utility' : key === 'composition' ? 'Comp' : 'Score' }}
               <i v-if="deckSortKey === key" :class="deckSortDesc ? 'ph-caret-down' : 'ph-caret-up'" class="ml-1"></i>
             </button>
           </div>
@@ -1770,7 +1770,8 @@ function perfIndicator(
               <span>RB Score: <b class="text-white">{{ ranking.evaluation.breakdown.raceBonusScore }}</b></span>
               <span>Training: <b class="text-white">{{ ranking.evaluation.breakdown.trainingEffectivenessScore }}</b></span>
               <span>Specialty: <b class="text-white">{{ ranking.evaluation.breakdown.specialtyPriorityScore }}</b></span>
-              <span>Friendship: <b class="text-white">{{ ranking.evaluation.breakdown.friendshipScore }}</b></span>
+              <span>Utility: <b class="text-white">{{ ranking.evaluation.breakdown.utilityScore }}</b></span>
+              <span v-if="ranking.evaluation.breakdown.compositionPenalty > 0" class="text-red-400">Comp: <b>-{{ ranking.evaluation.breakdown.compositionPenalty }}</b></span>
             </div>
           </div>
         </div>

@@ -7,14 +7,14 @@
 
 import { ref, computed, type Ref } from 'vue';
 import type { GlobalPlayer, Tournament } from '../../types';
-import { evaluateDeck, type PlayerDeckRanking, type DeckEvaluation, TB_RACE_BONUS_TARGET } from '../../utils/supportCardRanking';
+import { evaluateDeck, type PlayerDeckRanking, type DeckEvaluation } from '../../utils/supportCardRanking';
 import { getUmaData } from '../../utils/umaData';
 
 export function useDeckRankings(
     players: Ref<GlobalPlayer[]>,
     filteredTournaments: Ref<Tournament[]>
 ) {
-    const deckSortKey = ref<'score' | 'raceBonus' | 'trainingEff' | 'specialtyPri' | 'friendship'>('score');
+    const deckSortKey = ref<'score' | 'raceBonus' | 'trainingEff' | 'specialtyPri' | 'utility' | 'composition'>('score');
     const deckSortDesc = ref(true);
     const deckSearchQuery = ref('');
 
@@ -79,23 +79,22 @@ export function useDeckRankings(
             const avgEvaluation: DeckEvaluation = {
                 umaName: `${umas[0]}${umas.length > 1 ? ` +${umas.length - 1}` : ''}`,
                 score: Math.round(evaluations.reduce((s, e) => s + e.score, 0) / evaluations.length),
-                tier: evaluations[0].tier,
-                cardScores: evaluations[0].cardScores,
+                tier: evaluations[0]!.tier,
+                cardScores: evaluations[0]!.cardScores,
                 breakdown: {
                     raceBonus: Math.round(evaluations.reduce((s, e) => s + e.breakdown.raceBonus, 0) / evaluations.length),
                     raceBonusScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.raceBonusScore, 0) / evaluations.length),
                     statBonusScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.statBonusScore, 0) / evaluations.length),
                     trainingEffectivenessScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.trainingEffectivenessScore, 0) / evaluations.length),
                     specialtyPriorityScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.specialtyPriorityScore, 0) / evaluations.length),
-                    friendshipScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.friendshipScore, 0) / evaluations.length),
-                    moodEffectScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.moodEffectScore, 0) / evaluations.length),
-                    hintScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.hintScore, 0) / evaluations.length),
+                    utilityScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.utilityScore, 0) / evaluations.length),
+                    compositionPenalty: Math.round(evaluations.reduce((s, e) => s + e.breakdown.compositionPenalty, 0) / evaluations.length),
                     secondaryStatScore: Math.round(evaluations.reduce((s, e) => s + e.breakdown.secondaryStatScore, 0) / evaluations.length),
                 },
                 raceBonusMet: evaluations.every(e => e.raceBonusMet),
                 totalRaceBonus: Math.round(evaluations.reduce((s, e) => s + e.totalRaceBonus, 0) / evaluations.length),
-                umaPrimaryStat: evaluations[0].umaPrimaryStat,
-                umaSecondaryStat: evaluations[0].umaSecondaryStat,
+                umaPrimaryStat: evaluations[0]!.umaPrimaryStat,
+                umaSecondaryStat: evaluations[0]!.umaSecondaryStat,
             };
 
             rankings.push({
@@ -130,9 +129,13 @@ export function useDeckRankings(
                     aVal = aEval?.breakdown.specialtyPriorityScore ?? 0;
                     bVal = bEval?.breakdown.specialtyPriorityScore ?? 0;
                     break;
-                case 'friendship':
-                    aVal = aEval?.breakdown.friendshipScore ?? 0;
-                    bVal = bEval?.breakdown.friendshipScore ?? 0;
+                case 'utility':
+                    aVal = aEval?.breakdown.utilityScore ?? 0;
+                    bVal = bEval?.breakdown.utilityScore ?? 0;
+                    break;
+                case 'composition':
+                    aVal = aEval?.breakdown.compositionPenalty ?? 0;
+                    bVal = bEval?.breakdown.compositionPenalty ?? 0;
                     break;
             }
 
@@ -180,8 +183,8 @@ export function useDeckRankings(
     const umaStatBonus = computed(() => {
         const result: Record<string, string> = {};
         deckRankings.value.forEach(r => {
-            // Extract primary uma name (before " +X" suffix)
             const primaryUma = r.umaName.split(' +')[0];
+            if (!primaryUma) return;
             const uma = getUmaData(primaryUma);
             if (uma?.statBonus && !result[primaryUma]) {
                 result[primaryUma] = uma.statBonus;
