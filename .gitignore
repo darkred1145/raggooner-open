@@ -67,4 +67,7 @@ report.json
 # Emulator data
 emulator-data/
 firestore-debug.log
-"frontend/.firebase/"  
+"frontend/.firebase/"
+
+# Utility scripts (not part of the app)
+scripts/  
