@@ -176,6 +176,38 @@ export function useAuth() {
 
         const session = discordSession.value;
         const sessionDiscordId = session?.discordId;
+
+        // CRITICAL: Check if a player with this discordId already exists before creating
+        if (sessionDiscordId) {
+            const playersRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+            const q = query(playersRef, where('discordId', '==', sessionDiscordId));
+            const snap = await getDocs(q);
+
+            if (!snap.empty) {
+                // Player with this discordId already exists — link to it instead
+                const existingDoc = snap.docs[0];
+                if (!existingDoc) throw new Error('Unexpected empty query result');
+
+                const existingPlayer: GlobalPlayer = { id: existingDoc.id, ...existingDoc.data() as Record<string, unknown> } as GlobalPlayer;
+                const existingData = existingDoc.data();
+
+                // Update the existing player with current uid/avatar
+                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', existingDoc.id);
+                await updateDoc(playerRef, {
+                    firebaseUid: user.value?.uid || session.uid,
+                    avatarUrl: user.value?.photoURL || session.photoURL || existingData.avatarUrl,
+                });
+
+                linkedPlayer.value = { ...existingPlayer, firebaseUid: user.value?.uid || session.uid };
+                if (session) {
+                    saveSession({ ...session, uid: user.value?.uid || session.uid } as DiscordSession);
+                }
+
+                console.log('Found existing player with this discordId — linked instead of creating new');
+                return existingPlayer;
+            }
+        }
+
         const playerId = crypto.randomUUID();
 
         const newPlayer: GlobalPlayer = {

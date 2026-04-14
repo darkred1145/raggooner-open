@@ -5,7 +5,7 @@ import { db } from '../../firebase';
 import { APP_ID } from '../../config';
 import type { GlobalPlayer } from '../../types';
 import PlayerSelector from '../PlayerSelector.vue';
-import { useAuth } from '../../composables/useAuth';
+import { useAuth, checkDiscordSession } from '../../composables/useAuth';
 
 const globalPlayers = ref<GlobalPlayer[]>([]);
 const isFetchingPlayers = ref(true);
@@ -30,11 +30,17 @@ const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 
 const handleSelectExisting = async (player: GlobalPlayer) => {
-  if (player.firebaseUid) {
+  // Block if linked to a DIFFERENT discord account
+  const session = checkDiscordSession();
+  if (player.discordId && session && player.discordId !== session.discordId) {
+    error.value = "This player is already linked to another Discord account.";
+    return;
+  }
+  if (player.firebaseUid && !player.discordId) {
     error.value = "This player is already linked to another account.";
     return;
   }
-  
+
   isSubmitting.value = true;
   error.value = null;
   try {
