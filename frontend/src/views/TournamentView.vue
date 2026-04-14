@@ -202,7 +202,7 @@ const subscribeToTournament = (id: string) => {
         setBaseline(data);
       }
 
-      tournament.value = { id, ...data };
+      tournament.value = { ...data, id };
       if (!localAdminPassword.value) autoLoginIfSuperAdmin();
       if (!hasInitialViewLoaded.value && tournament.value.stage === 'finals') {
         currentView.value = 'finals';
