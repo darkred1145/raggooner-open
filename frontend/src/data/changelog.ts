@@ -9,9 +9,27 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '4.0.1'; // Update this manually when you deploy
+export const APP_VERSION = '4.1.0'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '4.1.0',
+        date: '2026-04-14',
+        title: 'Gametora Stats, Deck Ranking & Serverless Actions',
+        changes: [
+            { type: 'new', text: 'Overhauled support card deck evaluation system with full ranking and power stats' },
+            { type: 'new', text: 'Migrated all Firebase callable functions to Vercel serverless (free tier support)' },
+            { type: 'new', text: 'Captain-proposed ban voting system with player majority vote via Vercel' },
+            { type: 'new', text: 'Added admin test panel to simulate captain proposals and player votes' },
+            { type: 'new', text: 'Added accurate Gametora stats, stat bonuses, and 517 unique skills to all characters' },
+            { type: 'new', text: 'Added Nishino Flower uma data and restored missing Fuji Kiseki entry' },
+            { type: 'improvement', text: 'Display growth rates on Uma cards similar to aptitudes' },
+            { type: 'fix', text: 'Improved player ID retrieval logic and added Discord ID fallbacks' },
+            { type: 'fix', text: 'Fixed player removal logic to properly handle wildcards in roster' },
+            { type: 'fix', text: 'Allowed superadmins to access any tournament without hardcoded password' },
+            { type: 'fix', text: 'Added global CORS headers in vercel.json for preflight support' }
+        ]
+    },
     {
         version: '4.0.1',
         date: '2026-04-11',
@@ -32,6 +50,35 @@ export const changelogData: ChangeLogEntry[] = [
             { type: 'fix', text: 'Fixed superadmin role lookup by Discord ID instead of Firebase UID' },
             { type: 'fix', text: 'Removed debug console.log statements from production code' },
             { type: 'fix', text: 'Fixed vite build config (Migrate.vue exclusion)' },
+        ]
+    },
+    {
+        version: '4.0.0',
+        date: '2026-04-08',
+        title: 'Storage Rules & Extraction Tool',
+        changes: [
+            { type: 'new', text: 'Added initial extraction tool' },
+            { type: 'improvement', text: 'Deployed storage rules' },
+            { type: 'fix', text: 'Fixed backup function' },
+        ]
+    },
+    {
+        version: '3.4.0',
+        date: '2026-04-06',
+        title: 'Ballroom Umas & Support Cards',
+        changes: [
+            { type: 'new', text: 'Added Ballroom Umas' },
+            { type: 'new', text: 'Added Ballroom Support Cards' },
+        ]
+    },
+    {
+        version: '3.3.1',
+        date: '2026-04-01',
+        title: 'Lazy Loading & Tournament Info',
+        changes: [
+            { type: 'new', text: 'Added creator information on tournament creation' },
+            { type: 'improvement', text: 'Lazy-load completed tournaments on home view' },
+            { type: 'fix', text: 'Fixed player join order and updated picture names' },
         ]
     },
     {
