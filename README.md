@@ -76,7 +76,7 @@ Handles the full tournament lifecycle — player registration, team drafts, race
 
 ### RACC OPEN S3-18 Tournament Migration
 
-Due to the original project enabling Firebase App Check and locking me out of our own data, we manually rebuilt the entire **RACC OPEN S3-18** tournament by hand — 18 players, 6 teams, 15 races, point-for-point. 
+Due to the original project enabling Firebase App Check and locking me out of my own data, I manually rebuilt the entire **RACC OPEN S3-18** tournament by hand — 18 players, 6 teams, 15 races, point-for-point. 
 
 Yes, it was as fun as it sounds. No, I'm not doing it again.
 
