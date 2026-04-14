@@ -14,6 +14,12 @@ export const UMA_DICT: Record<string, UmaData> = {
         statBonus: 'SPD +8% / STA +8% / POW +7% / WIT +7%',
         aptitudes: { surface: { turf: 'A', dirt: 'A' }, distance: { sprint: 'A', mile: 'A', medium: 'B', long: 'E' }, style: { frontRunner: 'B', paceChaser: 'A', lateSurger: 'A', endCloser: 'E' } }
     },
+    'Nishino Flower': {
+        id: 'nishino-flower', name: 'Nishino Flower', stars: 3, releaseDate: '2026-04-12T22:00:00.000Z', characterId: 105101,
+        gametoraId: 105101,
+        statBonus: 'SPD +15% / POW +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'A', mile: 'A', medium: 'E', long: 'G' }, style: { frontRunner: 'F', paceChaser: 'A', lateSurger: 'A', endCloser: 'G' } }
+    },
     'Agnes Tachyon': {
         id: 'agnes-tachyon', name: 'Agnes Tachyon', stars: 1, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 103201,
         gametoraId: 103201,
