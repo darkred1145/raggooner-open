@@ -184,7 +184,7 @@ const categories: FameCategory[] = [
                     .map(r => r.placements[p.id]!);
 
                 // Must have played at least 1 race in BOTH stages to qualify
-                if (groupPlaces.length === 0 || finalsPlaces.length === 0) return [];
+                if (groupPlaces.length === 0 || finalsPlaces.length === 0) return;
 
                 // 2. Calculate Averages
                 const groupAvg = groupPlaces.reduce((a,b)=>a+b,0) / groupPlaces.length;
@@ -558,11 +558,11 @@ const categories: FameCategory[] = [
                 Object.values(t.races).forEach(r => {
                     const pos = r.placements[p.id];
                     // Skip if player didn't race
-                    if (pos === undefined) return [];
+                    if (pos === undefined) return;
 
                     // Get all positions to find the true "Last Place"
                     const allPositions = Object.values(r.placements);
-                    if (allPositions.length === 0) return [];
+                    if (allPositions.length === 0) return;
 
                     // CHANGE: Field size is now determined by the highest placement number
                     const fieldSize = Math.max(...allPositions);
@@ -577,7 +577,7 @@ const categories: FameCategory[] = [
                 });
 
                 // Minimum 3 races to qualify
-                if (raceCount < 3) return [];
+                if (raceCount < 3) return;
 
                 const avgDev = totalDev / raceCount;
 
@@ -627,7 +627,7 @@ const categories: FameCategory[] = [
 
                 // Minimum 4 races needed to establish a trend line
                 const n = myRaces.length;
-                if (n < 4) return [];
+                if (n < 4) return;
 
                 // 2. Prepare Data Points for Linear Regression
                 // x = Race Index (0, 1, 2...), y = Placement
@@ -648,7 +648,7 @@ const categories: FameCategory[] = [
                 const numerator = (n * sumXY) - (sumX * sumY);
                 const denominator = (n * sumXX) - (sumX * sumX);
 
-                if (denominator === 0) return []; // Avoid division by zero
+                if (denominator === 0) return; // Avoid division by zero
 
                 const slope = numerator / denominator;
 

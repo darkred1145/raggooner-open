@@ -93,10 +93,17 @@ export function useRoster(
     const removePlayer = async (pid: string) => {
         if (!tournament.value || !isAdmin.value) return;
 
-        await secureUpdate({
+        const updates: any = {
             [`players.${pid}`]: deleteField(),
             playerIds: arrayRemove(pid)
-        });
+        };
+
+        const wildcard = tournament.value.wildcards?.find(w => w.playerId === pid);
+        if (wildcard) {
+            updates.wildcards = arrayRemove(wildcard);
+        }
+
+        await secureUpdate(updates);
     };
 
     const toggleCaptain = async (playerId: string) => {
