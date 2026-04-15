@@ -156,31 +156,38 @@ describe('useUserRoles', () => {
       await expect(setUserRole('uid2', 'superadmin')).rejects.toThrow('Only superadmins can promote to superadmin');
     });
 
-    it('calls deleteDoc when setting role to player', async () => {
+    it('calls the Vercel API to set role to player', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true, json: async () => ({}) } as any);
       await loginAs('uid1', 'superadmin');
       const { setUserRole } = useUserRoles();
       await setUserRole('uid2', 'player');
-      expect(mockDeleteDoc).toHaveBeenCalledOnce();
-      expect(mockSetDoc).not.toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledOnce();
+      const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string);
+      expect(body.role).toBe('player');
+      fetchSpy.mockRestore();
     });
 
-    it('calls setDoc with role data for non-player roles', async () => {
+    it('calls the Vercel API with role data for non-player roles', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true, json: async () => ({}) } as any);
       await loginAs('uid1', 'superadmin');
       const { setUserRole } = useUserRoles();
       await setUserRole('uid2', 'admin', 'TestUser');
-      expect(mockSetDoc).toHaveBeenCalledOnce();
-      const [, data] = mockSetDoc.mock.calls[0]!;
-      expect(data.role).toBe('admin');
-      expect(data.displayName).toBe('TestUser');
-      expect(data.uid).toBe('uid2');
+      expect(fetchSpy).toHaveBeenCalledOnce();
+      const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string);
+      expect(body.role).toBe('admin');
+      expect(body.displayName).toBe('TestUser');
+      expect(body.targetUid).toBe('uid2');
+      fetchSpy.mockRestore();
     });
 
     it('uses empty string for displayName when not provided', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true, json: async () => ({}) } as any);
       await loginAs('uid1', 'superadmin');
       const { setUserRole } = useUserRoles();
       await setUserRole('uid2', 'tournament_creator');
-      const [, data] = mockSetDoc.mock.calls[0]!;
-      expect(data.displayName).toBe('');
+      const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string);
+      expect(body.displayName).toBe('');
+      fetchSpy.mockRestore();
     });
   });
 

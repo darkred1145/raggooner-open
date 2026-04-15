@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 import SiteHeader from '../components/shared/SiteHeader.vue';
@@ -8,7 +8,8 @@ import PlayerProfileModal from '../components/PlayerProfileModal.vue';
 import { useUserRoles } from '../composables/useUserRoles';
 import type { GlobalPlayer, UserRole } from '../types';
 
-const { can, isSuperAdmin, setUserRole, unlinkPlayer, fetchAllRoles, fetchAllPlayers } = useUserRoles();
+// FIXED: Destructured isAdmin
+const { can, isSuperAdmin, isAdmin, setUserRole, unlinkPlayer, fetchAllRoles, fetchAllPlayers } = useUserRoles();
 
 const players = ref<GlobalPlayer[]>([]);
 const roleMap = ref<Record<string, UserRole>>({});
@@ -28,6 +29,7 @@ const setRole = async (player: GlobalPlayer, newRole: UserRole, confirmMsg?: str
         await setUserRole(player.firebaseUid, newRole, player.name);
         roleMap.value = { ...roleMap.value, [player.firebaseUid]: newRole };
     } catch (e) {
+        console.error(`[setRole] Failed to set role for ${player.firebaseUid} (${player.name}) to ${newRole}:`, e);
         statusMessage.value = `Error: ${e instanceof Error ? e.message : 'Unknown error'}`;
     } finally {
         saving.value = null;
@@ -65,10 +67,19 @@ const toggleCreator = async (player: GlobalPlayer, isCreator: boolean) => {
 
 // ── Data loading ───────────────────────────────────────────────────────────────
 
-onMounted(async () => {
-    if (!can('manage_users')) return;
+const loadData = async () => {
+    loading.value = true;
     try {
-        const [allPlayers, allRoles] = await Promise.all([fetchAllPlayers(), fetchAllRoles()]);
+        const [allPlayers, allRoles] = await Promise.all([
+            fetchAllPlayers().catch(e => {
+                console.error('Failed to fetch players:', e);
+                return [] as GlobalPlayer[];
+            }),
+            fetchAllRoles().catch(e => {
+                console.error('Failed to fetch roles (may need superadmin bootstrap):', e);
+                return [] as any[];
+            })
+        ]);
         players.value = allPlayers.filter(p => p.firebaseUid);
         const map: Record<string, UserRole> = {};
         for (const entry of allRoles) {
@@ -80,6 +91,16 @@ onMounted(async () => {
     } finally {
         loading.value = false;
     }
+};
+
+onMounted(() => {
+    // FIXED: Added isAdmin override
+    if (isAdmin.value || can('manage_users')) loadData();
+});
+
+watch(() => isAdmin.value || can('manage_users'), (newVal) => {
+    // FIXED: Added isAdmin override
+    if (newVal && players.value.length === 0) loadData();
 });
 
 const filteredPlayers = computed(() => {
@@ -132,7 +153,7 @@ const handleUnlink = async (player: GlobalPlayer) => {
             <div class="max-w-4xl mx-auto">
                 <SiteNav />
 
-                <div v-if="!can('manage_users')" class="mt-12 text-center text-slate-500">
+                <div v-if="!(isAdmin || can('manage_users'))" class="mt-12 text-center text-slate-500">
                     <i class="ph ph-lock text-5xl mb-4 block"></i>
                     <p class="text-lg">Access denied.</p>
                 </div>
@@ -245,7 +266,7 @@ const handleUnlink = async (player: GlobalPlayer) => {
                                     <span class="text-xs text-slate-400 w-20">{{ getRole(player.firebaseUid!) === 'tournament_creator' ? 'Official creator' : 'Player' }}</span>
                                 </label>
                                 <!-- Promote to admin -->
-                                <button v-if="can('promote_to_admin')"
+                                <button v-if="isAdmin || can('promote_to_admin')"
                                         @click="toggleAdmin(player, true)"
                                         :disabled="saving === player.firebaseUid"
                                         title="Promote to admin"
@@ -269,7 +290,7 @@ const handleUnlink = async (player: GlobalPlayer) => {
                             </button>
 
                             <!-- Unlink: superadmin only -->
-                            <button v-if="can('unlink_player')"
+                            <button v-if="isSuperAdmin || can('unlink_player')"
                                     @click="handleUnlink(player)"
                                     :disabled="unlinking === player.id"
                                     title="Unlink Discord account from player"

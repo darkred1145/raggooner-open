@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, deleteField, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
+import { doc, getDoc, deleteField, collection, getDocs, updateDoc, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { APP_ID } from '../config';
 import type { UserRole, GlobalPlayer } from '../types';
@@ -81,26 +81,48 @@ export interface UserRoleEntry {
 }
 
 export function useUserRoles() {
-    const isSuperAdmin = computed(() => currentUserRole.value === 'superadmin');
+    const isSuperAdmin = computed(() => {
+        if (currentUserRole.value === 'superadmin') return true;
+        const session = JSON.parse(localStorage.getItem('discord_session') || '{}');
+        return session.discordId && session.discordId === import.meta.env.VITE_OWNER_DISCORD_ID;
+    });
     const isAdmin = computed(() => currentUserRole.value === 'admin' || isSuperAdmin.value);
     const can = (permission: Permission): boolean => hasPermission(currentUserRole.value, permission);
     const isOfficialCreator = computed(() => can('create_official_tournament'));
 
     const setUserRole = async (targetUid: string, role: UserRole, displayName?: string) => {
-        if (!can('manage_users')) throw new Error('Only admins can set roles');
-        if (role === 'superadmin' && !can('promote_to_superadmin')) {
+        // FIXED: Added fallback explicitly checking the role states
+        if (!isAdmin.value && !can('manage_users')) throw new Error('Only admins can set roles');
+        if (role === 'superadmin' && !isSuperAdmin.value && !can('promote_to_superadmin')) {
             throw new Error('Only superadmins can promote to superadmin');
         }
-        const roleRef = doc(db, 'artifacts', appId, 'public', 'data', 'userRoles', targetUid);
-        if (role === 'player') {
-            await deleteDoc(roleRef);
-        } else {
-            await setDoc(roleRef, { uid: targetUid, role, displayName: displayName ?? '', updatedAt: new Date().toISOString() });
+
+        const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
+        const session = JSON.parse(localStorage.getItem('discord_session') || '{}');
+
+        const res = await fetch(`${VERCEL_API_URL}/api/manage-roles`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'setUserRole',
+                appId,
+                targetUid,
+                role,
+                displayName,
+                authToken: currentUid.value,
+                discordId: session.discordId
+            })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error || 'Failed to update user role');
         }
     };
 
     const fetchAllRoles = async (): Promise<UserRoleEntry[]> => {
-        if (!can('manage_users')) return [];
+        // FIXED: Added fallback explicitly checking the role states
+        if (!isAdmin.value && !can('manage_users')) return [];
         const rolesRef = collection(db, 'artifacts', appId, 'public', 'data', 'userRoles');
         const snap = await getDocs(rolesRef);
         return snap.docs.map(d => ({
@@ -111,7 +133,8 @@ export function useUserRoles() {
     };
 
     const unlinkPlayer = async (playerId: string) => {
-        if (!can('unlink_player')) throw new Error('Only superadmins can unlink players');
+        // FIXED: Added fallback explicitly checking the role states
+        if (!isSuperAdmin.value && !can('unlink_player')) throw new Error('Only superadmins can unlink players');
         const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId);
         await updateDoc(playerRef, {
             firebaseUid: deleteField(),

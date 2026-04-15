@@ -6,13 +6,25 @@
     { "src": "api/ban-vote.js", "use": "@vercel/node" },
     { "src": "api/captain.js", "use": "@vercel/node" },
     { "src": "api/signup.js", "use": "@vercel/node" },
-    { "src": "api/discord-post.js", "use": "@vercel/node" }
+    { "src": "api/discord-post.js", "use": "@vercel/node" },
+    { "src": "api/manage-roles.js", "use": "@vercel/node" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
+    }
   ],
   "routes": [
     { "src": "/api/discord-login", "dest": "/api/discord-login.js" },
     { "src": "/api/ban-vote", "dest": "/api/ban-vote.js" },
     { "src": "/api/captain", "dest": "/api/captain.js" },
     { "src": "/api/signup", "dest": "/api/signup.js" },
-    { "src": "/api/discord-post", "dest": "/api/discord-post.js" }
+    { "src": "/api/discord-post", "dest": "/api/discord-post.js" },
+    { "src": "/api/manage-roles", "dest": "/api/manage-roles.js" }
   ]
 }
