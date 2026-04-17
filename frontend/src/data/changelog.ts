@@ -9,9 +9,20 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '4.1.0'; // Update this manually when you deploy
+export const APP_VERSION = '4.1.1'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '4.1.1',
+        date: '2026-04-17',
+        title: 'Tournament Comparison & Role Security',
+        changes: [
+            { type: 'new', text: 'Added a tournament comparison view in Analytics with side-by-side event stats and team standings.' },
+            { type: 'improvement', text: 'Tournament archive entries can now be assigned directly into comparison slots.' },
+            { type: 'fix', text: 'Hardened backend role management to validate role values and block admins from modifying superadmin roles.' },
+            { type: 'fix', text: 'Improved role lookup and timestamp handling in the Vercel role-management endpoint.' },
+        ]
+    },
     {
         version: '4.1.0',
         date: '2026-04-14',
