@@ -32,7 +32,9 @@ const {
   startUmaDraft,
   currentPicker,
   allUmas,
-  umaOwnerMap,
+  canPickUma,
+  umaDraftMaxCopiesPerUma,
+  umaDraftAllowSameGroupDuplicates,
   remainingPicks,
   isDraftComplete,
   pickUma,
@@ -103,10 +105,12 @@ const selectedTrackData = computed(() => {
 });
 
 const umaToTeamMap = computed(() => {
-  const map = new Map<string, Team>();
+  const map = new Map<string, Team[]>();
   props.tournament.teams.forEach(t => {
     t.umaPool?.forEach(uma => {
-      map.set(uma, t);
+      const owners = map.get(uma) ?? [];
+      owners.push(t);
+      map.set(uma, owners);
     });
   });
   return map;
@@ -198,7 +202,10 @@ const sinceLastPick = computed(() => {
               <i class="ph-fill ph-horse text-indigo-400"></i>
               Uma Draft
             </h2>
-            <p class="text-slate-400 text-sm">Teams draft their Uma pool in snake order.</p>
+            <p class="text-slate-400 text-sm">
+              Teams draft their Uma pool in snake order. Limit {{ umaDraftMaxCopiesPerUma }} copy<span v-if="umaDraftMaxCopiesPerUma !== 1">ies</span><span v-else> </span> per uma,
+              {{ umaDraftAllowSameGroupDuplicates ? 'including within the same group.' : 'with same-group duplicates blocked.' }}
+            </p>
           </div>
 
           <div class="flex items-center gap-4 w-full sm:w-auto">
@@ -322,14 +329,14 @@ const sinceLastPick = computed(() => {
             <UmaCard v-for="uma in filteredUmas" :key="uma"
                      :uma-name="uma"
                      :is-banned="isBanned(uma)"
-                     :owner-team="umaToTeamMap.get(uma)"
+                     :owner-teams="umaToTeamMap.get(uma)"
                      :highlight-aptitude="selectedAptitude"
-                     :disabled="(!isAdmin && !isCaptainTurn) || umaOwnerMap.has(uma) || isBanned(uma)"
+                     :disabled="(!isAdmin && !isCaptainTurn) || !canPickUma(uma) || isBanned(uma)"
                      action-type="pick"
                      :surface-aptitude="selectedTrackData?.surface"
                      :distance-aptitude="selectedTrackData?.distanceType"
-                     @click="!umaOwnerMap.has(uma) && !isBanned(uma) && (isCaptainTurn ? onCaptainPickUma?.(uma) : pickUma(uma))"
-                     @mouseenter="(isAdmin || isCaptainTurn) && !umaOwnerMap.has(uma) && !isBanned(uma) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')" />
+                     @click="canPickUma(uma) && !isBanned(uma) && (isCaptainTurn ? onCaptainPickUma?.(uma) : pickUma(uma))"
+                     @mouseenter="(isAdmin || isCaptainTurn) && canPickUma(uma) && !isBanned(uma) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')" />
           </div>
         </div>
 

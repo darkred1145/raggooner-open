@@ -17,15 +17,15 @@ import crypto from 'crypto';
 
 const APP_ID = process.env.APP_ID || 'raggooner-uma-2026';
 
-let dbInitialized = false;
-
 async function getDb() {
-  if (!dbInitialized) {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_BASE64');
+  }
+  if (!admin.apps.length) {
     const serviceAccount = JSON.parse(
       Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8')
     );
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-    dbInitialized = true;
   }
   return admin.firestore();
 }
@@ -35,6 +35,43 @@ function getTournamentRef(db, tournamentId) {
     .collection('artifacts').doc(APP_ID)
     .collection('public').doc('data')
     .collection('tournaments').doc(tournamentId);
+}
+
+function getUmaDraftRules(tournament) {
+  const maxCopies = Math.max(1, Number(tournament.umaDraftMaxCopiesPerUma) || 1);
+  return {
+    maxCopies,
+    allowSameGroupDuplicates: Boolean(tournament.umaDraftAllowSameGroupDuplicates),
+  };
+}
+
+function canTeamPickUma(tournament, team, umaId) {
+  const teams = tournament.teams || [];
+  const { maxCopies, allowSameGroupDuplicates } = getUmaDraftRules(tournament);
+  const owners = teams.filter((candidate) => (candidate.umaPool || []).includes(umaId));
+
+  if ((team.umaPool || []).includes(umaId)) {
+    return { allowed: false, message: 'Your team already drafted that uma.' };
+  }
+  if (owners.length >= maxCopies) {
+    return { allowed: false, message: `That uma already reached the ${maxCopies}-copy limit.` };
+  }
+  if (!allowSameGroupDuplicates && owners.some((owner) => owner.group === team.group)) {
+    return { allowed: false, message: 'That uma is already owned by a team in your group.' };
+  }
+
+  return { allowed: true };
+}
+
+function normalizeTeamName(name) {
+  const trimmed = String(name || '').trim().replace(/\s+/g, ' ');
+  if (trimmed.length < 2) {
+    throw { code: 400, message: 'Team name must be at least 2 characters long.' };
+  }
+  if (trimmed.length > 32) {
+    throw { code: 400, message: 'Team name must be 32 characters or fewer.' };
+  }
+  return trimmed;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,7 +90,7 @@ async function getPlayerId(db, uid, discordId) {
   return null;
 }
 
-async function resolveCaptainTeam(db, uid, tournamentId, discordId) {
+async function resolveCaptainTeam(db, uid, tournamentId, discordId, { requireCaptainActions = true } = {}) {
   const playerInfo = await getPlayerId(db, uid, discordId);
   if (!playerInfo) throw { code: 401, message: 'Not authenticated' };
   const { playerId, playerData } = playerInfo;
@@ -63,7 +100,7 @@ async function resolveCaptainTeam(db, uid, tournamentId, discordId) {
   if (!tournamentSnap.exists) throw { code: 404, message: 'Tournament not found.' };
 
   const tournament = tournamentSnap.data();
-  if (!tournament.captainActionsEnabled) {
+  if (requireCaptainActions && !tournament.captainActionsEnabled) {
     throw { code: 400, message: 'Captain actions are disabled for this tournament.' };
   }
 
@@ -180,8 +217,8 @@ async function handlePickUma(db, { uid, tournamentId, discordId, umaId }) {
   }
 
   const teams = tournament.teams || [];
-  const alreadyPicked = teams.some((t) => (t.umaPool || []).includes(umaId));
-  if (alreadyPicked) throw { code: 409, message: 'Uma already picked by another team.' };
+  const pickCheck = canTeamPickUma(tournament, team, umaId);
+  if (!pickCheck.allowed) throw { code: 409, message: pickCheck.message };
 
   const updatedTeams = teams.map((t) =>
     t.id === team.id
@@ -194,6 +231,30 @@ async function handlePickUma(db, { uid, tournamentId, discordId, umaId }) {
     'draft.currentIdx': currentIdx + 1,
     draftLastPickTime: new Date().toISOString(),
   });
+  return { success: true };
+}
+
+async function handleRenameTeam(db, { uid, tournamentId, discordId, name }) {
+  const { team, tournament, tournamentRef } =
+    await resolveCaptainTeam(db, uid, tournamentId, discordId, { requireCaptainActions: false });
+
+  if (tournament.teamRenamingEnabled === false) {
+    throw { code: 400, message: 'Team renaming is disabled for this tournament.' };
+  }
+
+  const nextName = normalizeTeamName(name);
+  const duplicate = (tournament.teams || []).some((candidate) =>
+    candidate.id !== team.id && String(candidate.name || '').trim().toLowerCase() === nextName.toLowerCase()
+  );
+  if (duplicate) {
+    throw { code: 409, message: 'Another team already uses that name.' };
+  }
+
+  const updatedTeams = (tournament.teams || []).map((candidate) =>
+    candidate.id === team.id ? { ...candidate, name: nextName } : candidate
+  );
+
+  await tournamentRef.update({ teams: updatedTeams });
   return { success: true };
 }
 
@@ -339,6 +400,7 @@ export default async function handler(req, res) {
     const handlers = {
       draftPlayer: () => handleDraftPlayer(db, { uid: authToken, tournamentId, discordId, ...rest }),
       pickUma: () => handlePickUma(db, { uid: authToken, tournamentId, discordId, ...rest }),
+      renameTeam: () => handleRenameTeam(db, { uid: authToken, tournamentId, discordId, ...rest }),
       submitUma: () => handleSubmitUma(db, { uid: authToken, tournamentId, discordId, ...rest }),
       saveTap: () => handleSaveTapResults(db, { uid: authToken, tournamentId, discordId, ...rest }),
       updatePlacement: () => handleUpdateRacePlacement(db, { uid: authToken, tournamentId, discordId, ...rest }),

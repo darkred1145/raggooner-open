@@ -76,6 +76,10 @@ export function useCaptainActions(tournament: Ref<Tournament | null>) {
         await callCaptainApi('submitUma', { playerId, umaId });
     };
 
+    const captainRenameTeam = async (name: string): Promise<void> => {
+        await callCaptainApi('renameTeam', { name });
+    };
+
     const captainSaveTapResults = async (
         group: string,
         raceNumber: number,
@@ -102,6 +106,7 @@ export function useCaptainActions(tournament: Ref<Tournament | null>) {
         captainDraftPlayer,
         captainPickUma,
         captainSubmitUma,
+        captainRenameTeam,
         captainSaveTapResults,
         captainUpdateRacePlacement,
     };

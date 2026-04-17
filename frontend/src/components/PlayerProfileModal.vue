@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { doc, getDocFromServer } from 'firebase/firestore';
 import type { GlobalPlayer, RecentResult, SupportCardType } from '../types';
+import { db } from '../firebase';
+import { APP_ID } from '../config';
 import { getUmaImagePath, UMA_LIST } from '../utils/umaData';
 import { SUPPORT_CARD_DICT, SUPPORT_CARD_TYPE_META } from '../utils/supportCardData';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
@@ -15,13 +18,17 @@ const emit = defineEmits<{ close: [] }>();
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 const activeTab = ref<'umas' | 'cards' | 'history'>('umas');
+const freshProfile = ref<GlobalPlayer | null>(null);
+const isRefreshing = ref(false);
+
+const profile = computed(() => freshProfile.value ?? props.globalPlayer);
 
 // ── Uma filters ───────────────────────────────────────────────────────────────
 const umaFilter = ref('');
 const showUnowned = ref(false);
 
 const ownedUmas = computed(() => {
-    const roster = props.globalPlayer?.roster ?? [];
+    const roster = profile.value?.roster ?? [];
     const q = umaFilter.value.toLowerCase();
     return roster
         .filter(name => name.toLowerCase().includes(q))
@@ -30,7 +37,7 @@ const ownedUmas = computed(() => {
 
 const unownedUmas = computed(() => {
     if (!showUnowned.value) return [];
-    const owned = new Set(props.globalPlayer?.roster ?? []);
+    const owned = new Set(profile.value?.roster ?? []);
     const q = umaFilter.value.toLowerCase();
     return UMA_LIST
         .map(u => u.name)
@@ -43,7 +50,7 @@ const cardTypeFilter = ref<SupportCardType | null>(null);
 const cardMinLb = ref(0);
 
 const filteredCards = computed(() => {
-    const cards = props.globalPlayer?.supportCards ?? [];
+    const cards = profile.value?.supportCards ?? [];
     return cards.filter(c => {
         if (cardTypeFilter.value !== null) {
             const meta = SUPPORT_CARD_DICT[c.cardId];
@@ -67,7 +74,7 @@ const toggleTypeFilter = (type: SupportCardType) => {
 
 // ── History helpers ───────────────────────────────────────────────────────────
 const recentResults = computed<RecentResult[]>(() =>
-    props.globalPlayer?.metadata?.recentResults ?? []
+    profile.value?.metadata?.recentResults ?? []
 );
 
 const ordinal = (n: number): string => {
@@ -100,9 +107,39 @@ const onOpen = () => {
     cardMinLb.value = 0;
 };
 
-// Reset state whenever the modal opens
-import { watch } from 'vue';
-watch(() => props.open, (val) => { if (val) onOpen(); });
+const fetchFreshProfile = async () => {
+    if (!props.globalPlayer?.id) {
+        freshProfile.value = props.globalPlayer;
+        return;
+    }
+
+    isRefreshing.value = true;
+    try {
+        const playerRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'players', props.globalPlayer.id);
+        const snap = await getDocFromServer(playerRef);
+        freshProfile.value = snap.exists()
+            ? ({ id: snap.id, ...snap.data() } as GlobalPlayer)
+            : props.globalPlayer;
+    } catch (error) {
+        console.error('Failed to fetch fresh player profile:', error);
+        freshProfile.value = props.globalPlayer;
+    } finally {
+        isRefreshing.value = false;
+    }
+};
+
+watch(
+    () => [props.open, props.globalPlayer?.id] as const,
+    ([isOpen]) => {
+        if (!isOpen) {
+            freshProfile.value = null;
+            return;
+        }
+        onOpen();
+        void fetchFreshProfile();
+    },
+    { immediate: true }
+);
 </script>
 
 <template>
@@ -121,14 +158,15 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                     <!-- Header -->
                     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700 shrink-0">
                         <div class="flex items-center gap-3">
-                            <PlayerAvatar :name="playerName" :avatar-url="globalPlayer?.avatarUrl" size="xl" />
+                            <PlayerAvatar :name="playerName" :avatar-url="profile?.avatarUrl" size="xl" />
                             <div>
                                 <h2 class="text-lg font-bold text-white">{{ playerName }}</h2>
-                                <p v-if="globalPlayer?.discordId" class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                                <p v-if="profile?.discordId" class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
                                     <i class="ph-fill ph-discord-logo text-[#5865F2]"></i>
                                     Linked profile
                                 </p>
                                 <p v-else class="text-xs text-slate-600 mt-0.5 italic">No linked profile</p>
+                                <p v-if="isRefreshing" class="text-[10px] text-indigo-400 mt-1">Refreshing profile...</p>
                             </div>
                         </div>
                         <button @click="emit('close')"
@@ -138,7 +176,7 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                     </div>
 
                     <!-- No profile state -->
-                    <div v-if="!globalPlayer || (!globalPlayer.roster?.length && !globalPlayer.supportCards?.length && !recentResults.length)"
+                    <div v-if="!profile || (!profile.roster?.length && !profile.supportCards?.length && !recentResults.length)"
                          class="flex-1 flex flex-col items-center justify-center py-16 text-slate-600">
                         <i class="ph-bold ph-user-circle text-5xl mb-3"></i>
                         <p class="text-sm">No profile data available.</p>
@@ -155,7 +193,7 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                         : 'text-slate-500 hover:text-slate-300'">
                                 <i class="ph-fill ph-horse"></i>
                                 Umas
-                                <span class="text-[10px] opacity-70">({{ globalPlayer?.roster?.length ?? 0 }})</span>
+                                <span class="text-[10px] opacity-70">({{ profile?.roster?.length ?? 0 }})</span>
                             </button>
                             <button @click="activeTab = 'cards'"
                                     class="flex-1 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
@@ -164,7 +202,7 @@ watch(() => props.open, (val) => { if (val) onOpen(); });
                                         : 'text-slate-500 hover:text-slate-300'">
                                 <i class="ph-fill ph-cards"></i>
                                 Support Cards
-                                <span class="text-[10px] opacity-70">({{ globalPlayer?.supportCards?.length ?? 0 }})</span>
+                                <span class="text-[10px] opacity-70">({{ profile?.supportCards?.length ?? 0 }})</span>
                             </button>
                             <button @click="activeTab = 'history'"
                                     class="flex-1 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"

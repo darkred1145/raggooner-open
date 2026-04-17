@@ -77,6 +77,7 @@ const {
     canCaptainEditGroup,
     captainDraftPlayer,
     captainPickUma,
+    captainRenameTeam,
     captainSubmitUma,
     captainSaveTapResults,
     captainUpdateRacePlacement,
@@ -252,6 +253,69 @@ const savePointsSystem = async () => {
   await secureUpdate({ pointsSystem: localPointsSystem.value });
   isEditingPoints.value = false;
 };
+
+const editedTeamRenamingEnabled = ref(true);
+const editedUmaDraftMaxCopies = ref(1);
+const editedUmaDraftAllowSameGroupDuplicates = ref(false);
+const captainTeamName = ref('');
+const adminTeamNames = ref<Record<string, string>>({});
+
+watch(showAdminModal, (isOpen) => {
+  if (!isOpen || !tournament.value) return;
+  editedTeamRenamingEnabled.value = tournament.value.teamRenamingEnabled ?? true;
+  editedUmaDraftMaxCopies.value = Math.max(1, Number(tournament.value.umaDraftMaxCopiesPerUma) || 1);
+  editedUmaDraftAllowSameGroupDuplicates.value = Boolean(tournament.value.umaDraftAllowSameGroupDuplicates);
+  adminTeamNames.value = Object.fromEntries(
+      tournament.value.teams.map(team => [team.id, team.name])
+  );
+});
+
+watch(captainTeam, (team) => {
+  captainTeamName.value = team?.name ?? '';
+}, { immediate: true });
+
+const saveUmaDraftSettings = async () => {
+  await secureUpdate({
+    umaDraftMaxCopiesPerUma: Math.max(1, Math.floor(editedUmaDraftMaxCopies.value || 1)),
+    umaDraftAllowSameGroupDuplicates: editedUmaDraftAllowSameGroupDuplicates.value,
+  });
+  alert('Uma draft settings updated!');
+};
+
+const saveAdminTeamName = async (teamId: string) => {
+  if (!tournament.value) return;
+  const nextName = (adminTeamNames.value[teamId] || '').trim().replace(/\s+/g, ' ');
+  if (nextName.length < 2 || nextName.length > 32) {
+    alert('Team names must be between 2 and 32 characters.');
+    return;
+  }
+  const duplicate = tournament.value.teams.some(team =>
+      team.id !== teamId && team.name.trim().toLowerCase() === nextName.toLowerCase()
+  );
+  if (duplicate) {
+    alert('Another team already uses that name.');
+    return;
+  }
+
+  await secureUpdate({
+    teams: tournament.value.teams.map(team =>
+        team.id === teamId ? { ...team, name: nextName } : team
+    ),
+  });
+  alert('Team name updated!');
+};
+
+const saveCaptainTeamName = async () => {
+  const nextName = captainTeamName.value.trim();
+  if (!nextName || nextName === captainTeam.value?.name) return;
+
+  try {
+    await captainRenameTeam(nextName);
+    alert('Team name updated!');
+  } catch (error: any) {
+    alert(error.message || 'Failed to rename team.');
+  }
+};
 </script>
 
 <template>
@@ -319,6 +383,29 @@ const savePointsSystem = async () => {
         <div v-else-if="tournament" class="space-y-6 animate-fade-in">
           <h1 class="text-3xl font-black text-white text-center md:hidden mb-4">{{ tData.name }}</h1>
 
+          <div v-if="captainTeam && (tournament.teamRenamingEnabled ?? true)"
+               class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4 md:p-5 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-end gap-4">
+              <div class="flex-1">
+                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-indigo-400 mb-2">Captain Tools</p>
+                <h2 class="text-xl font-black text-white">Rename Your Team</h2>
+                <p class="text-sm text-slate-400 mt-1">Captains can update their own team name without waiting for an admin.</p>
+              </div>
+              <div class="flex-1 flex gap-2">
+                <input v-model="captainTeamName"
+                       type="text"
+                       maxlength="32"
+                       class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                       placeholder="Enter team name" />
+                <button @click="saveCaptainTeamName"
+                        :disabled="!captainTeamName.trim() || captainTeamName.trim() === captainTeam?.name"
+                        class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl font-bold transition-colors">
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+
           <TrackSelectionPhase v-if="tournament.status === 'track-selection'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" />
           <RegistrationPhase v-else-if="tournament.status === 'registration'" :tournament="tournament" :is-admin="isAdmin" :app-id="appId" :secure-update="secureUpdate" :global-players="globalPlayers" :add-global-player="addGlobalPlayer" :seasons="seasons" />
           <PlayerDraftPhase v-else-if="tournament.status === 'draft'" :tournament="tournament" :is-admin="isAdmin" :secure-update="secureUpdate" :global-players="globalPlayers" :seasons="seasons"
@@ -342,7 +429,7 @@ const savePointsSystem = async () => {
       </main>
 
       <div v-if="showAdminModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-sm w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
 
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-white">
@@ -442,6 +529,87 @@ const savePointsSystem = async () => {
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                           :class="tournament?.captainActionsEnabled ? 'translate-x-6' : 'translate-x-1'"/>
                   </button>
+                </div>
+              </div>
+              <div class="pt-4 mt-4 border-t border-slate-700/50">
+                <div class="flex items-center justify-between">
+                  <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 uppercase font-bold">Captain Team Renames</label>
+                    <span class="text-[10px] text-slate-500">
+                      {{ editedTeamRenamingEnabled ? 'Captains can rename their own teams' : 'Only admins can rename teams' }}
+                    </span>
+                  </div>
+
+                  <button @click="editedTeamRenamingEnabled = !editedTeamRenamingEnabled; secureUpdate({ teamRenamingEnabled: editedTeamRenamingEnabled })"
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                          :class="editedTeamRenamingEnabled ? 'bg-indigo-600' : 'bg-slate-700'">
+                    <span class="sr-only">Enable Team Renaming</span>
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                          :class="editedTeamRenamingEnabled ? 'translate-x-6' : 'translate-x-1'"/>
+                  </button>
+                </div>
+              </div>
+              <div class="pt-4 mt-4 border-t border-slate-700/50 space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 uppercase font-bold">Uma Draft Rules</label>
+                    <span class="text-[10px] text-slate-500">
+                      Set duplicate limits and whether the same group can share an uma.
+                    </span>
+                  </div>
+                  <button @click="saveUmaDraftSettings"
+                          class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded font-bold transition-colors">
+                    Save
+                  </button>
+                </div>
+
+                <div class="grid md:grid-cols-[160px,1fr] gap-3 items-center">
+                  <label class="text-xs text-slate-500 uppercase font-bold">Max Copies Per Uma</label>
+                  <input v-model.number="editedUmaDraftMaxCopies"
+                         type="number"
+                         min="1"
+                         max="9"
+                         class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-800/70 border border-slate-700 rounded-lg px-3 py-3">
+                  <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 uppercase font-bold">Allow Same-Group Duplicates</label>
+                    <span class="text-[10px] text-slate-500">
+                      {{ editedUmaDraftAllowSameGroupDuplicates ? 'Teams in the same group can share a drafted uma' : 'A drafted uma must stay unique within each group' }}
+                    </span>
+                  </div>
+                  <button @click="editedUmaDraftAllowSameGroupDuplicates = !editedUmaDraftAllowSameGroupDuplicates"
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                          :class="editedUmaDraftAllowSameGroupDuplicates ? 'bg-indigo-600' : 'bg-slate-700'">
+                    <span class="sr-only">Allow same group duplicates</span>
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                          :class="editedUmaDraftAllowSameGroupDuplicates ? 'translate-x-6' : 'translate-x-1'"/>
+                  </button>
+                </div>
+              </div>
+              <div class="pt-4 mt-4 border-t border-slate-700/50 space-y-3">
+                <div>
+                  <label class="text-xs text-slate-500 uppercase font-bold">Rename Teams</label>
+                  <p class="text-[10px] text-slate-500 mt-1">Admins can still rename any team directly here.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-3">
+                  <div v-for="team in tournament?.teams" :key="team.id" class="bg-slate-800/70 border border-slate-700 rounded-lg p-3">
+                    <div class="text-[10px] uppercase tracking-widest font-bold mb-2" :style="{ color: team.color || '#94a3b8' }">
+                      Group {{ team.group }}
+                    </div>
+                    <div class="flex gap-2">
+                      <input v-model="adminTeamNames[team.id]"
+                             type="text"
+                             maxlength="32"
+                             class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                      <button @click="saveAdminTeamName(team.id)"
+                              :disabled="!adminTeamNames[team.id]?.trim() || adminTeamNames[team.id]?.trim() === team.name"
+                              class="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded font-bold transition-colors">
+                        Save
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

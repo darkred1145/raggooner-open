@@ -6,7 +6,7 @@ import { UMA_DICT, getUmaImagePath } from '../utils/umaData';
 const props = defineProps<{
   umaName: string;
   isBanned?: boolean;
-  ownerTeam?: Team;
+  ownerTeams?: Team[];
   disabled?: boolean;
   highlightAptitude?: string; // 'turf', 'dirt', 'sprint', etc.
   showStats?: boolean;
@@ -91,9 +91,15 @@ const growthRates = computed(() => {
 // Determine status text
 const statusLabel = computed(() => {
     if (props.isBanned) return 'BANNED';
-    if (props.ownerTeam) return props.ownerTeam.name;
+    if (props.ownerTeams?.length) {
+      return props.ownerTeams.length === 1 ? props.ownerTeams[0]!.name : `${props.ownerTeams.length} teams`;
+    }
     return null;
 });
+
+const primaryOwner = computed(() => props.ownerTeams?.[0] ?? null);
+const hasOwners = computed(() => (props.ownerTeams?.length ?? 0) > 0);
+const ownerTooltip = computed(() => props.ownerTeams?.map(team => team.name).join(', ') ?? '');
 
 </script>
 
@@ -102,18 +108,19 @@ const statusLabel = computed(() => {
        :class="[
          isBanned
            ? 'bg-red-950/20 border-red-500/40 grayscale-[0.5] opacity-80'
-           : ownerTeam
+           : hasOwners
              ? 'bg-slate-900 border-slate-700 opacity-90'
              : 'bg-slate-800 border-slate-700 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-1',
-         disabled && !ownerTeam && !isBanned ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+         disabled && !hasOwners && !isBanned ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
        ]"
-       :style="ownerTeam ? { borderColor: ownerTeam.color + '60', boxShadow: `0 4px 20px -5px ${ownerTeam.color}30` } : {}">
+       :style="primaryOwner ? { borderColor: primaryOwner.color + '60', boxShadow: `0 4px 20px -5px ${primaryOwner.color}30` } : {}"
+       :title="ownerTooltip">
 
     <!-- Status Overlay/Ribbon -->
     <div v-if="statusLabel"
          class="absolute top-0 right-0 z-20 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-bl-lg shadow-sm max-w-full truncate"
          :class="isBanned ? 'bg-red-600 text-white' : ''"
-         :style="ownerTeam ? { backgroundColor: ownerTeam.color, color: '#fff' } : {}">
+         :style="primaryOwner ? { backgroundColor: primaryOwner.color, color: '#fff' } : {}">
       {{ statusLabel }}
     </div>
 
@@ -130,7 +137,7 @@ const statusLabel = computed(() => {
              :class="{ 'border-red-500/50': isBanned }"/>
 
         <!-- Action Icon (Floating on top right of image) -->
-        <div v-if="!ownerTeam && !isBanned"
+        <div v-if="!hasOwners && !isBanned"
              class="absolute -top-1 -right-1 w-6 h-6 rounded-full border-2 border-slate-900 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 text-white shadow-lg z-30"
              :class="actionType === 'ban' ? 'bg-red-600' : 'bg-indigo-600'">
           <i class="ph-bold text-xs" :class="actionType === 'ban' ? 'ph-prohibit' : 'ph-plus'"></i>
@@ -163,7 +170,7 @@ const statusLabel = computed(() => {
       <div class="font-bold text-xs leading-tight line-clamp-2 min-h-[2rem] flex items-center justify-center px-1"
            :class="[
              isBanned ? 'text-red-300 line-through decoration-red-500/50' : 'text-slate-100 group-hover:text-white',
-             ownerTeam ? 'text-white' : ''
+             hasOwners ? 'text-white' : ''
            ]">
         {{ umaName }}
       </div>

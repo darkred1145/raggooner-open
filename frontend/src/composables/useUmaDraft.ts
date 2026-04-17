@@ -1,4 +1,4 @@
-import {computed, type Ref} from 'vue';
+import { computed, type Ref } from 'vue';
 import type {FirestoreUpdate, Tournament} from '../types';
 import {generateUmaDraftOrder} from '../utils/draftUtils';
 import {UMA_DICT} from '../utils/umaData';
@@ -42,13 +42,28 @@ export function useUmaDraft(
         return team ?? null;
     });
 
-    // Maps each drafted uma to the team that owns it
+    const umaDraftMaxCopiesPerUma = computed(() =>
+        Math.max(1, Number(tournament.value?.umaDraftMaxCopiesPerUma) || 1)
+    );
+
+    const umaDraftAllowSameGroupDuplicates = computed(() =>
+        Boolean(tournament.value?.umaDraftAllowSameGroupDuplicates)
+    );
+
+    // Maps each drafted uma to the teams that own it
     const umaOwnerMap = computed(() => {
-        const map = new Map<string, { teamName: string; teamColor: string }>();
+        const map = new Map<string, { teamId: string; teamName: string; teamColor: string; group: string }[]>();
         if (!tournament.value) return map;
         tournament.value.teams.forEach(t => {
             t.umaPool?.forEach(uma => {
-                map.set(uma, { teamName: t.name, teamColor: t.color || '#94a3b8' });
+                const owners = map.get(uma) ?? [];
+                owners.push({
+                    teamId: t.id,
+                    teamName: t.name,
+                    teamColor: t.color || '#94a3b8',
+                    group: t.group,
+                });
+                map.set(uma, owners);
             });
         });
         return map;
@@ -60,9 +75,21 @@ export function useUmaDraft(
         return Object.keys(UMA_DICT).sort();
     });
 
-    // Only unpicked umas (used for random selection)
+    const canPickUma = (uma: string, teamId = currentPicker.value?.id ?? '') => {
+        if (!tournament.value || !teamId) return false;
+        const team = tournament.value.teams.find(candidate => candidate.id === teamId);
+        if (!team) return false;
+
+        const owners = umaOwnerMap.value.get(uma) ?? [];
+        if ((team.umaPool || []).includes(uma)) return false;
+        if (owners.length >= umaDraftMaxCopiesPerUma.value) return false;
+        if (!umaDraftAllowSameGroupDuplicates.value && owners.some(owner => owner.group === team.group)) return false;
+        return true;
+    };
+
+    // Available for the current picker (used for random selection and UI state)
     const availableUmas = computed(() => {
-        return allUmas.value.filter(uma => !umaOwnerMap.value.has(uma));
+        return allUmas.value.filter(uma => canPickUma(uma));
     });
 
     const remainingPicks = computed(() => {
@@ -92,6 +119,7 @@ export function useUmaDraft(
         const currentTeamId = draft.order[draft.currentIdx];
         const teamIndex = tournament.value.teams.findIndex(t => t.id === currentTeamId);
         if (teamIndex === -1) return;
+        if (!canPickUma(uma, currentTeamId)) return;
 
         const updatedTeams = [...tournament.value.teams];
         const updatedTeam = {...updatedTeams[teamIndex]!};
@@ -141,6 +169,9 @@ export function useUmaDraft(
         allUmas,
         availableUmas,
         umaOwnerMap,
+        canPickUma,
+        umaDraftMaxCopiesPerUma,
+        umaDraftAllowSameGroupDuplicates,
         remainingPicks,
         isDraftComplete,
         pickUma,

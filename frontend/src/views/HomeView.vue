@@ -207,7 +207,10 @@ const createTournament = async () => {
       isSecured: true,
       selfSignupEnabled: settings.value.defaultSelfSignupEnabled,
       captainActionsEnabled: settings.value.defaultCaptainActionsEnabled,
+      teamRenamingEnabled: true,
       usePlacementTiebreaker: settings.value.defaultUsePlacementTiebreaker,
+      umaDraftMaxCopiesPerUma: 1,
+      umaDraftAllowSameGroupDuplicates: false,
       pointsSystem: { ...settings.value.pointsSystem },
       banVotingEnabled: banVotingEnabled.value,
       banVoteThreshold: 0.5, // Simple majority
