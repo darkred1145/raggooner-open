@@ -8,44 +8,82 @@
 import admin from 'firebase-admin';
 
 const APP_ID = process.env.APP_ID || 'raggooner-uma-2026';
+const VALID_ROLES = new Set(['player', 'tournament_creator', 'admin', 'superadmin']);
 
-let dbInitialized = false;
+function getDataRoot(db, appId = APP_ID) {
+  return db.collection('artifacts').doc(appId).collection('public').doc('data');
+}
 
 async function getDb() {
-  if (!dbInitialized) {
+  if (!admin.apps.length) {
+    const encodedServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+    if (!encodedServiceAccount) {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT_BASE64 is not configured');
+    }
+
     const serviceAccount = JSON.parse(
-      Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8')
+      Buffer.from(encodedServiceAccount, 'base64').toString('utf-8')
     );
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-    dbInitialized = true;
   }
   return admin.firestore();
 }
 
-async function getCallerRole(db, uid, discordId) {
+function getPlayersCollection(db, appId = APP_ID) {
+  return getDataRoot(db, appId).collection('players');
+}
+
+function getUserRolesCollection(db, appId = APP_ID) {
+  return getDataRoot(db, appId).collection('userRoles');
+}
+
+async function findPlayerByIdentity(db, uid, discordId, appId = APP_ID) {
+  const players = getPlayersCollection(db, appId);
+
+  if (uid) {
+    const snap = await players.where('firebaseUid', '==', uid).limit(1).get();
+    if (!snap.empty) return snap.docs[0];
+  }
+
+  if (discordId) {
+    const snap = await players.where('discordId', '==', discordId).limit(1).get();
+    if (!snap.empty) return snap.docs[0];
+  }
+
+  return null;
+}
+
+async function getUserRoleByUid(db, uid, appId = APP_ID) {
+  if (!uid) return 'player';
+
+  const roleSnap = await getUserRolesCollection(db, appId).doc(uid).get();
+  return roleSnap.exists ? roleSnap.data().role : 'player';
+}
+
+async function getCallerRole(db, uid, discordId, appId = APP_ID) {
   // If the discordId matches the OWNER_DISCORD_ID env var, grant superadmin automatically
   if (discordId && process.env.OWNER_DISCORD_ID && discordId === process.env.OWNER_DISCORD_ID) {
     return 'superadmin';
   }
 
-  let snap;
   if (uid) {
-    snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('firebaseUid', '==', uid).limit(1).get();
-  }
-  if ((!snap || snap.empty) && discordId) {
-    snap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players').where('discordId', '==', discordId).limit(1).get();
+    const uidRole = await getUserRoleByUid(db, uid, appId);
+    if (uidRole !== 'player') return uidRole;
   }
 
   let roleUid = uid;
-  if (snap && !snap.empty) {
-    const playerData = snap.docs[0].data();
+  const playerDoc = await findPlayerByIdentity(db, uid, discordId, appId);
+  if (playerDoc) {
+    const playerData = playerDoc.data();
     roleUid = playerData.firebaseUid || uid;
   }
 
-  if (!roleUid) return 'player';
+  if (!roleUid && discordId) {
+    const discordRole = await getUserRoleByUid(db, discordId, appId);
+    if (discordRole !== 'player') return discordRole;
+  }
 
-  const roleSnap = await db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('userRoles').doc(roleUid).get();
-  return roleSnap.exists ? roleSnap.data().role : 'player';
+  return getUserRoleByUid(db, roleUid, appId);
 }
 
 export default async function handler(req, res) {
@@ -62,28 +100,37 @@ export default async function handler(req, res) {
 
   try {
     const db = await getDb();
+    const targetAppId = appId || APP_ID;
 
     if (action === 'setUserRole') {
       if (!targetUid || !role) { res.status(400).json({ error: 'targetUid and role are required' }); return; }
+      if (!VALID_ROLES.has(role)) {
+        res.status(400).json({ error: `Invalid role: ${role}` }); return;
+      }
 
-      const callerRole = await getCallerRole(db, authToken, discordId);
+      const callerRole = await getCallerRole(db, authToken, discordId, targetAppId);
 
       if (callerRole !== 'superadmin' && callerRole !== 'admin') {
         res.status(403).json({ error: 'Not authorized to manage users.' }); return;
       }
 
-      if (role === 'superadmin' && callerRole !== 'superadmin') {
-        res.status(403).json({ error: 'Only superadmins can promote to superadmin.' }); return;
+      const targetCurrentRole = await getUserRoleByUid(db, targetUid, targetAppId);
+      if (callerRole !== 'superadmin') {
+        if (role === 'superadmin') {
+          res.status(403).json({ error: 'Only superadmins can promote to superadmin.' }); return;
+        }
+        if (targetCurrentRole === 'superadmin') {
+          res.status(403).json({ error: 'Only superadmins can modify superadmin roles.' }); return;
+        }
       }
 
-      const targetAppId = appId || APP_ID;
-      const roleRef = db.collection('artifacts').doc(targetAppId).collection('public').doc('data').collection('userRoles').doc(targetUid);
-      
+      const roleRef = getUserRolesCollection(db, targetAppId).doc(targetUid);
+
       await roleRef.set({
         uid: targetUid,
         role,
         displayName: displayName || '',
-        updatedAt: new Date().toISOString(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
 
       res.json({ success: true });
