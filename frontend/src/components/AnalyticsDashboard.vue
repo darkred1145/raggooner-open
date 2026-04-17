@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 import LineChart from './analytics/LineChart.vue';
@@ -14,11 +14,12 @@ import { useDiagrams } from '../composables/analytics/useDiagrams';
 import { useDeckRankings } from '../composables/analytics/useDeckRankings';
 import { TIER_CRITERIA, TOP5_CRITERIA, getWinningTeam } from '../utils/analyticsUtils';
 import { getTierBg } from '../utils/supportCardRanking';
+import { compareTeams, recalculateTournamentScores } from '../utils/utils';
 import SiteHeader from './shared/SiteHeader.vue';
 import SiteNav from './shared/SiteNav.vue';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
 import PlayerProfileModal from './PlayerProfileModal.vue';
-import type { GlobalPlayer } from '../types';
+import type { GlobalPlayer, Tournament } from '../types';
 
 
 const activeTab = ref<'overview' | 'players' | 'umas' | 'tierlist' | 'tournaments' | 'diagrams' | 'decks'>('overview');
@@ -110,6 +111,52 @@ const sortedTournaments = computed(() => {
   });
 });
 
+const compareLeftId = ref<string | null>(null);
+const compareRightId = ref<string | null>(null);
+
+watch(filteredTournaments, (list) => {
+  const ids = list.map(t => t.id);
+  const isValid = (id: string | null) => !!id && ids.includes(id);
+
+  if (!isValid(compareLeftId.value)) {
+    compareLeftId.value = ids[0] ?? null;
+  }
+
+  if (!isValid(compareRightId.value) || compareRightId.value === compareLeftId.value) {
+    compareRightId.value = ids.find(id => id !== compareLeftId.value) ?? null;
+  }
+}, { immediate: true });
+
+const assignTournamentSlot = (slot: 'left' | 'right', id: string) => {
+  const current = slot === 'left' ? compareLeftId : compareRightId;
+  const other = slot === 'left' ? compareRightId : compareLeftId;
+
+  if (other.value === id) {
+    other.value = current.value !== id ? current.value : null;
+  }
+
+  current.value = id;
+
+  if (!other.value) {
+    other.value = filteredTournaments.value.find(t => t.id !== id)?.id ?? null;
+  }
+};
+
+const comparisonTournamentOptions = computed(() =>
+  sortedTournaments.value.map(t => ({
+    id: t.id,
+    label: `${t.name} (${new Date(t.playedAt ?? t.createdAt).toLocaleDateString()})`,
+  }))
+);
+
+const leftTournament = computed(() =>
+  filteredTournaments.value.find(t => t.id === compareLeftId.value) ?? null
+);
+
+const rightTournament = computed(() =>
+  filteredTournaments.value.find(t => t.id === compareRightId.value) ?? null
+);
+
 const tournamentWinnerNames = computed(() => {
   const map = new Map<string, string[]>();
   filteredTournaments.value.filter(t => t.status === 'completed').forEach(t => {
@@ -125,6 +172,178 @@ const tournamentWinnerNames = computed(() => {
     map.set(t.id, names);
   });
   return map;
+});
+
+type TournamentComparisonTeam = {
+  id: string;
+  rank: number;
+  name: string;
+  group: string;
+  rosterCount: number;
+  rosterNames: string[];
+  points: number;
+  finalsPoints: number;
+  totalPoints: number;
+  inFinals: boolean;
+};
+
+type TournamentComparisonSummary = {
+  id: string;
+  name: string;
+  dateLabel: string;
+  formatLabel: string;
+  trackLabel: string;
+  conditionLabel: string;
+  winners: string[];
+  playerCount: number;
+  teamCount: number;
+  finalistCount: number;
+  raceCount: number;
+  groupRaceCount: number;
+  finalsRaceCount: number;
+  banCount: number;
+  wildcardCount: number;
+  totalPoints: number;
+  averagePointsPerPlayer: number;
+  topScorer: string;
+  topScorerPoints: number;
+  completionLabel: string;
+  statusLabel: string;
+  teams: TournamentComparisonTeam[];
+};
+
+const getTournamentFormatLabel = (tournament: Tournament) =>
+  TOURNAMENT_FORMATS[tournament.format || 'uma-ban']?.name ?? (tournament.format || 'Unknown');
+
+const getTournamentTrackLabel = (tournament: Tournament) => {
+  const track = tournament.selectedTrack ? TRACK_DICT[tournament.selectedTrack] : null;
+  return track ? `${track.location} ${track.distance}m ${track.surface}` : 'No track selected';
+};
+
+const getTournamentConditionLabel = (tournament: Tournament) => {
+  if (!tournament.selectedCondition) return 'No conditions set';
+  const { ground, weather, season } = tournament.selectedCondition;
+  return `${ground} · ${weather} · ${season}`;
+};
+
+const getTournamentTeamName = (team: TournamentComparisonTeam) =>
+  team.name || `Team ${team.rank}`;
+
+const summarizeTournament = (tournament: Tournament): TournamentComparisonSummary => {
+  const { teams: scoredTeams, players: scoredPlayers, wildcards } = recalculateTournamentScores(tournament);
+  const finalizedTeams = scoredTeams.filter(team => team.inFinals);
+
+  const orderedTeams = finalizedTeams.length > 0
+    ? [
+        ...finalizedTeams.sort((a, b) => compareTeams(a, b, true, tournament, true)),
+        ...scoredTeams
+          .filter(team => !team.inFinals)
+          .sort((a, b) => compareTeams(a, b, true, tournament, false)),
+      ]
+    : [...scoredTeams].sort((a, b) => {
+        const totalDiff = (b.points + b.finalsPoints) - (a.points + a.finalsPoints);
+        if (totalDiff !== 0) return totalDiff;
+        return compareTeams(a, b, true, tournament, false);
+      });
+
+  const teams = orderedTeams.map((team, index) => {
+    const rosterIds = [team.captainId, ...(team.memberIds || [])];
+    return {
+      id: team.id,
+      rank: index + 1,
+      name: team.name,
+      group: team.group,
+      rosterCount: rosterIds.length,
+      rosterNames: rosterIds.map(id => tournament.players[id]?.name).filter(Boolean) as string[],
+      points: team.points || 0,
+      finalsPoints: team.finalsPoints || 0,
+      totalPoints: (team.points || 0) + (team.finalsPoints || 0),
+      inFinals: !!team.inFinals,
+    };
+  });
+
+  const playerStats = Object.values(scoredPlayers);
+  const totalPoints = playerStats.reduce((sum, player) => sum + (player.totalPoints || 0), 0);
+  const topScorer = [...playerStats].sort((a, b) =>
+    (b.totalPoints || 0) - (a.totalPoints || 0) || a.name.localeCompare(b.name)
+  )[0];
+  const raceEntries = Object.values(tournament.races || {});
+  const winners = tournamentWinnerNames.value.get(tournament.id) ?? [];
+
+  return {
+    id: tournament.id,
+    name: tournament.name,
+    dateLabel: new Date(tournament.playedAt ?? tournament.createdAt).toLocaleDateString(),
+    formatLabel: getTournamentFormatLabel(tournament),
+    trackLabel: getTournamentTrackLabel(tournament),
+    conditionLabel: getTournamentConditionLabel(tournament),
+    winners,
+    playerCount: Object.keys(tournament.players || {}).length,
+    teamCount: tournament.teams?.length || 0,
+    finalistCount: scoredTeams.filter(team => team.inFinals).length,
+    raceCount: raceEntries.length,
+    groupRaceCount: raceEntries.filter(race => race.stage === 'groups').length,
+    finalsRaceCount: raceEntries.filter(race => race.stage === 'finals').length,
+    banCount: tournament.bans?.length || 0,
+    wildcardCount: wildcards.length,
+    totalPoints,
+    averagePointsPerPlayer: playerStats.length > 0 ? totalPoints / playerStats.length : 0,
+    topScorer: topScorer?.name || '—',
+    topScorerPoints: topScorer?.totalPoints || 0,
+    completionLabel: tournament.completedAt
+      ? new Date(tournament.completedAt).toLocaleString()
+      : (tournament.playedAt ? new Date(tournament.playedAt).toLocaleString() : '—'),
+    statusLabel: tournament.status,
+    teams,
+  };
+};
+
+const tournamentComparisonMap = computed(() => {
+  const map = new Map<string, TournamentComparisonSummary>();
+  filteredTournaments.value.forEach(tournament => {
+    map.set(tournament.id, summarizeTournament(tournament));
+  });
+  return map;
+});
+
+const leftTournamentSummary = computed(() =>
+  leftTournament.value ? tournamentComparisonMap.value.get(leftTournament.value.id) ?? null : null
+);
+
+const rightTournamentSummary = computed(() =>
+  rightTournament.value ? tournamentComparisonMap.value.get(rightTournament.value.id) ?? null : null
+);
+
+const tournamentCompareMetrics = computed(() => {
+  const left = leftTournamentSummary.value;
+  const right = rightTournamentSummary.value;
+  if (!left || !right) return [];
+
+  const deltaClass = (diff: number, higherIsBetter = true) => {
+    if (diff === 0) return 'text-slate-400';
+    const good = higherIsBetter ? diff > 0 : diff < 0;
+    return good ? 'text-emerald-400' : 'text-rose-400';
+  };
+
+  const formatDiff = (diff: number, suffix = '') => {
+    if (diff === 0) return 'Even';
+    const abs = Math.abs(diff);
+    const sign = diff > 0 ? '+' : '-';
+    return `${sign}${Number.isInteger(abs) ? abs : abs.toFixed(1)}${suffix}`;
+  };
+
+  return [
+    { key: 'players', label: 'Players', icon: 'ph-users', left: left.playerCount, right: right.playerCount, delta: left.playerCount - right.playerCount, higherIsBetter: true, suffix: '' },
+    { key: 'teams', label: 'Teams', icon: 'ph-shield-check', left: left.teamCount, right: right.teamCount, delta: left.teamCount - right.teamCount, higherIsBetter: true, suffix: '' },
+    { key: 'races', label: 'Races', icon: 'ph-flag-checkered', left: left.raceCount, right: right.raceCount, delta: left.raceCount - right.raceCount, higherIsBetter: true, suffix: '' },
+    { key: 'points', label: 'Total Points', icon: 'ph-lightning', left: left.totalPoints, right: right.totalPoints, delta: left.totalPoints - right.totalPoints, higherIsBetter: true, suffix: ' pts' },
+    { key: 'avg', label: 'Avg Points / Player', icon: 'ph-chart-bar', left: left.averagePointsPerPlayer.toFixed(1), right: right.averagePointsPerPlayer.toFixed(1), delta: Number((left.averagePointsPerPlayer - right.averagePointsPerPlayer).toFixed(1)), higherIsBetter: true, suffix: '' },
+    { key: 'bans', label: 'Bans', icon: 'ph-prohibit', left: left.banCount, right: right.banCount, delta: left.banCount - right.banCount, higherIsBetter: false, suffix: '' },
+  ].map(metric => ({
+    ...metric,
+    deltaLabel: formatDiff(metric.delta, metric.suffix),
+    deltaClass: deltaClass(metric.delta, metric.higherIsBetter),
+  }));
 });
 
 const ordinal = (n: number): string => {
@@ -1410,9 +1629,190 @@ function perfIndicator(
       </div>
 
       <div v-if="activeTab === 'tournaments'" class="space-y-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 text-center text-slate-400">
-          <i class="ph ph-construction text-6xl mb-4"></i>
-          <p>Tournament comparison view coming soon...</p>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-5">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div>
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="ph-fill ph-scales text-amber-400"></i>
+                Tournament Comparison
+              </h3>
+              <p class="text-sm text-slate-400 mt-1">Compare two filtered tournaments side by side.</p>
+            </div>
+            <div class="text-xs text-slate-500 font-mono">
+              {{ comparisonTournamentOptions.length }} eligible events
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-4">
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 space-y-3">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-xs font-bold uppercase tracking-wider text-cyan-400">Slot A</div>
+                <select
+                    v-model="compareLeftId"
+                    class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 w-full max-w-md"
+                >
+                  <option v-for="option in comparisonTournamentOptions" :key="option.id" :value="option.id">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+
+              <div v-if="leftTournamentSummary" class="space-y-3">
+                <div>
+                  <div class="text-lg font-black text-white">{{ leftTournamentSummary.name }}</div>
+                  <div class="text-sm text-slate-400">{{ leftTournamentSummary.dateLabel }} · {{ leftTournamentSummary.formatLabel }}</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Track</div>
+                    <div class="text-slate-200 font-medium">{{ leftTournamentSummary.trackLabel }}</div>
+                  </div>
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Conditions</div>
+                    <div class="text-slate-200 font-medium">{{ leftTournamentSummary.conditionLabel }}</div>
+                  </div>
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Winner(s)</div>
+                    <div class="text-amber-400 font-medium">{{ leftTournamentSummary.winners.join(', ') || '—' }}</div>
+                  </div>
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Top Scorer</div>
+                    <div class="text-slate-200 font-medium">{{ leftTournamentSummary.topScorer }} <span class="text-slate-500">({{ leftTournamentSummary.topScorerPoints }} pts)</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 space-y-3">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-xs font-bold uppercase tracking-wider text-fuchsia-400">Slot B</div>
+                <select
+                    v-model="compareRightId"
+                    class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-fuchsia-500 w-full max-w-md"
+                >
+                  <option v-for="option in comparisonTournamentOptions" :key="option.id" :value="option.id">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
+
+              <div v-if="rightTournamentSummary" class="space-y-3">
+                <div>
+                  <div class="text-lg font-black text-white">{{ rightTournamentSummary.name }}</div>
+                  <div class="text-sm text-slate-400">{{ rightTournamentSummary.dateLabel }} · {{ rightTournamentSummary.formatLabel }}</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Track</div>
+                    <div class="text-slate-200 font-medium">{{ rightTournamentSummary.trackLabel }}</div>
+                  </div>
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Conditions</div>
+                    <div class="text-slate-200 font-medium">{{ rightTournamentSummary.conditionLabel }}</div>
+                  </div>
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Winner(s)</div>
+                    <div class="text-amber-400 font-medium">{{ rightTournamentSummary.winners.join(', ') || '—' }}</div>
+                  </div>
+                  <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                    <div class="text-xs uppercase tracking-wider text-slate-500 mb-1">Top Scorer</div>
+                    <div class="text-slate-200 font-medium">{{ rightTournamentSummary.topScorer }} <span class="text-slate-500">({{ rightTournamentSummary.topScorerPoints }} pts)</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="leftTournamentSummary && rightTournamentSummary" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div
+                v-for="metric in tournamentCompareMetrics"
+                :key="metric.key"
+                class="rounded-xl border border-slate-700 bg-slate-900/70 p-4"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-xs uppercase tracking-wider text-slate-500 font-bold">{{ metric.label }}</div>
+                <i :class="metric.icon" class="text-slate-500"></i>
+              </div>
+              <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
+                <div>
+                  <div class="text-xs text-cyan-400 uppercase tracking-wider font-bold mb-1">A</div>
+                  <div class="text-2xl font-black text-white">{{ metric.left }}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Delta</div>
+                  <div class="text-sm font-bold" :class="metric.deltaClass">{{ metric.deltaLabel }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-fuchsia-400 uppercase tracking-wider font-bold mb-1">B</div>
+                  <div class="text-2xl font-black text-white">{{ metric.right }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="leftTournamentSummary && rightTournamentSummary" class="grid xl:grid-cols-2 gap-4">
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl overflow-hidden">
+              <div class="px-4 py-3 border-b border-slate-700 bg-slate-950 flex items-center justify-between">
+                <h4 class="font-bold text-white">{{ leftTournamentSummary.name }}</h4>
+                <span class="text-xs text-slate-500 font-mono">{{ leftTournamentSummary.teams.length }} teams</span>
+              </div>
+              <div class="divide-y divide-slate-800">
+                <div
+                    v-for="team in leftTournamentSummary.teams"
+                    :key="team.id"
+                    class="px-4 py-3 flex items-start justify-between gap-3"
+                >
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-black uppercase tracking-wider text-slate-500">#{{ team.rank }}</span>
+                      <span class="font-bold text-white">{{ getTournamentTeamName(team) }}</span>
+                      <span v-if="team.inFinals" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase tracking-wider font-bold">Finals</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-1">Group {{ team.group }} · {{ team.rosterCount }} players</div>
+                    <div class="text-xs text-slate-500 mt-1">{{ team.rosterNames.join(', ') }}</div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <div class="text-lg font-black text-white">{{ team.totalPoints }}</div>
+                    <div class="text-xs text-slate-500">G {{ team.points }} · F {{ team.finalsPoints }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl overflow-hidden">
+              <div class="px-4 py-3 border-b border-slate-700 bg-slate-950 flex items-center justify-between">
+                <h4 class="font-bold text-white">{{ rightTournamentSummary.name }}</h4>
+                <span class="text-xs text-slate-500 font-mono">{{ rightTournamentSummary.teams.length }} teams</span>
+              </div>
+              <div class="divide-y divide-slate-800">
+                <div
+                    v-for="team in rightTournamentSummary.teams"
+                    :key="team.id"
+                    class="px-4 py-3 flex items-start justify-between gap-3"
+                >
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-black uppercase tracking-wider text-slate-500">#{{ team.rank }}</span>
+                      <span class="font-bold text-white">{{ getTournamentTeamName(team) }}</span>
+                      <span v-if="team.inFinals" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase tracking-wider font-bold">Finals</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-1">Group {{ team.group }} · {{ team.rosterCount }} players</div>
+                    <div class="text-xs text-slate-500 mt-1">{{ team.rosterNames.join(', ') }}</div>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <div class="text-lg font-black text-white">{{ team.totalPoints }}</div>
+                    <div class="text-xs text-slate-500">G {{ team.points }} · F {{ team.finalsPoints }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="bg-slate-900 border border-dashed border-slate-700 rounded-xl p-6 text-center text-slate-400">
+            Pick two tournaments from the selectors or use the archive buttons below to start comparing.
+          </div>
         </div>
         <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
           <div class="px-4 py-3 border-b border-slate-700 bg-slate-900 flex justify-between items-center">
@@ -1430,14 +1830,15 @@ function perfIndicator(
                   { key: 'track',   label: 'Track',    align: 'left'  },
                   { key: 'winners', label: 'Winner(s)', align: 'left' },
                   { key: 'players', label: 'Players',  align: 'right' },
+                  { key: 'compare', label: 'Compare',  align: 'right' },
                 ]" :key="col.key"
-                    @click="toggleTournamentSort(col.key)"
+                    @click="col.key !== 'compare' && toggleTournamentSort(col.key)"
                     class="px-4 py-2 text-xs font-bold text-slate-400 uppercase cursor-pointer hover:text-white transition-colors group select-none"
                     :class="col.align === 'right' ? 'text-right' : 'text-left'">
                   <div class="flex items-center gap-1" :class="col.align === 'right' ? 'justify-end' : ''">
                     {{ col.label }}
-                    <i v-if="tournamentSortKey === col.key" class="ph-bold text-indigo-400" :class="tournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
-                    <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
+                    <i v-if="col.key !== 'compare' && tournamentSortKey === col.key" class="ph-bold text-indigo-400" :class="tournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-else-if="col.key !== 'compare'" class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
               </tr>
@@ -1463,6 +1864,28 @@ function perfIndicator(
                 </td>
                 <td class="px-4 py-3 text-sm text-right text-slate-300">
                   {{ Object.keys(t.players).length }}
+                </td>
+                <td class="px-4 py-3 text-sm text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                        @click="assignTournamentSlot('left', t.id)"
+                        class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors"
+                        :class="compareLeftId === t.id
+                          ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
+                          : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500/40'"
+                    >
+                      A
+                    </button>
+                    <button
+                        @click="assignTournamentSlot('right', t.id)"
+                        class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors"
+                        :class="compareRightId === t.id
+                          ? 'bg-fuchsia-500/15 border-fuchsia-500/40 text-fuchsia-300'
+                          : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:border-fuchsia-500/40'"
+                    >
+                      B
+                    </button>
+                  </div>
                 </td>
               </tr>
               </tbody>
