@@ -20,7 +20,7 @@ export interface Player {
 
 export interface Wildcard {
     playerId: string;
-    group: 'A' | 'B' | 'C' | 'Finals';
+    group: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'Finals';
     points?: number;
 }
 
@@ -39,7 +39,7 @@ export interface Team {
     points: number;
     finalsPoints: number;
     adjustments?: PointAdjustment[];
-    group: 'A' | 'B' | 'C';
+    group: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I';
     inFinals?: boolean;
     color?: string;
     umaPool?: string[];
@@ -48,7 +48,7 @@ export interface Team {
 export interface Race {
     id: string;
     stage: 'groups' | 'finals';
-    group: 'A' | 'B' | 'C';
+    group: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I';
     raceNumber: number;
     timestamp: string;
     placements: Record<string, number>; // playerId: position

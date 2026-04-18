@@ -19,6 +19,8 @@ export function useTournamentFlow(
 
         try {
             const t = tournament.value;
+            // TODO: Replace this temporary tournament phase flow with the original
+            // upstream implementation once the actual change is pushed.
             const formatId = t.format || 'uma-ban'; // Fallback to ban format
             const isSmallTournament = t.teams.length < 6;
 

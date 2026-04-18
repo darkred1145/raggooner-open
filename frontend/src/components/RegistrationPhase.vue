@@ -247,12 +247,38 @@ const copyTrackImage = async () => {
 };
 
 // Registration status hint
-const VALID_TEAM_COUNTS = [3, 4, 5, 6, 8, 9];
-const VALID_PLAYER_TOTALS = [9, 12, 15, 18, 24, 27];
+const VALID_TEAM_COUNTS = [3, 4, 5, 6, 8, 9, 12, 15, 18, 24, 27, 36, 45, 54, 63, 81];
+const VALID_PLAYER_TOTALS = [9, 12, 15, 18, 24, 27, 36, 45, 54, 63, 81];
+
+const trackCapacityWarning = computed(() => {
+  if (!props.tournament.selectedTrack) return null;
+  const track = TRACK_DICT[props.tournament.selectedTrack];
+  if (!track) return null;
+  
+  const playerCount = Object.keys(props.tournament.players).length;
+  if (playerCount <= track.maxPlayers) return null;
+  
+  const excess = playerCount - track.maxPlayers;
+  return {
+    trackName: track.location,
+    maxPlayers: track.maxPlayers,
+    excessPlayers: excess,
+    warning: `This track can only handle ${track.maxPlayers} players, but you have ${playerCount} registered.`
+  };
+});
 
 const registrationHint = computed(() => {
   const playerCount = Object.keys(props.tournament.players).length;
   const captainCount = Object.values(props.tournament.players).filter(p => p.isCaptain).length;
+
+  // Check track capacity first
+  if (trackCapacityWarning.value) {
+    return {
+      type: 'track' as const,
+      text: trackCapacityWarning.value.warning,
+      options: `Reduce to ${trackCapacityWarning.value.maxPlayers} players or choose a different track`
+    };
+  }
 
   if (VALID_PLAYER_TOTALS.includes(playerCount)) {
     const expected = playerCount / 3;
@@ -267,9 +293,9 @@ const registrationHint = computed(() => {
       return { type: 'captain' as const, text: `Promote ${diff} captain${diff > 1 ? 's' : ''}`, options: canRemove ? `or remove ${removeCount} player${removeCount > 1 ? 's' : ''}` : null };
     }
 
-    // Too many captains. Can also fix by adding players up to captainCount*3 (if that's a valid total ≤ 27).
+    // Too many captains. Can also fix by adding players up to captainCount*3 (if that's a valid total ≤ 81).
     const targetTotal = captainCount * 3;
-    const canAdd = VALID_TEAM_COUNTS.includes(captainCount) && targetTotal > playerCount && targetTotal <= 27;
+    const canAdd = VALID_TEAM_COUNTS.includes(captainCount) && targetTotal > playerCount && targetTotal <= 81;
     const addCount = targetTotal - playerCount;
     const absDiff = Math.abs(diff);
     return { type: 'captain' as const, text: `Demote ${absDiff} captain${absDiff > 1 ? 's' : ''}`, options: canAdd ? `or add ${addCount} player${addCount > 1 ? 's' : ''}` : null };
@@ -279,8 +305,8 @@ const registrationHint = computed(() => {
   const prev = [...VALID_PLAYER_TOTALS].reverse().find(t => t < playerCount);
 
   if (!next) {
-    const removeCount = playerCount - 27;
-    return { type: 'over' as const, text: 'Over max (27)', options: `remove ${removeCount} player${removeCount > 1 ? 's' : ''}` };
+    const removeCount = playerCount - 81;
+    return { type: 'over' as const, text: 'Over max (81)', options: `remove ${removeCount} player${removeCount > 1 ? 's' : ''}` };
   }
 
   const needed = next - playerCount;
@@ -329,6 +355,25 @@ const isSelfSignedUp = computed(() =>
 const toggleSelfSignup = async () => {
   if (!props.isAdmin) return;
   await props.secureUpdate({ selfSignupEnabled: !props.tournament.selfSignupEnabled });
+};
+
+const toggleUmaDraftSetting = async (setting: string) => {
+  if (!props.isAdmin) return;
+  if (setting === 'umaDraftAllowSameGroupDuplicates') {
+    await props.secureUpdate({ umaDraftAllowSameGroupDuplicates: !props.tournament.umaDraftAllowSameGroupDuplicates });
+  }
+};
+
+const selectedMaxCopies = computed({
+  get: () => props.tournament.umaDraftMaxCopiesPerUma || 1,
+  set: (value: number) => {
+    void updateUmaDraftMaxCopies(value);
+  }
+});
+
+const updateUmaDraftMaxCopies = async (value: number) => {
+  if (!props.isAdmin) return;
+  await props.secureUpdate({ umaDraftMaxCopiesPerUma: value });
 };
 
 const selfSignup = async () => {
@@ -418,6 +463,7 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
                  'bg-amber-900/30 border-amber-500/40 text-amber-400':       registrationHint.type === 'captain',
                  'bg-slate-800 border-slate-700 text-slate-400':             registrationHint.type === 'players',
                  'bg-red-900/30 border-red-500/40 text-red-400':             registrationHint.type === 'over',
+                 'bg-purple-900/30 border-purple-500/40 text-purple-400':  registrationHint.type === 'track',
                }">
             <i class="ph-fill text-sm shrink-0"
                :class="{
@@ -425,6 +471,7 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
                  'ph-crown':          registrationHint.type === 'captain',
                  'ph-user-plus':      registrationHint.type === 'players',
                  'ph-warning-circle': registrationHint.type === 'over',
+                 'ph-warning':        registrationHint.type === 'track',
                }"></i>
             <div class="flex flex-col leading-tight">
               <span class="text-sm font-bold">{{ registrationHint.text }}</span>
@@ -436,7 +483,7 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
             <div class="text-sm text-slate-400">Total Players</div>
             <div class="text-2xl font-bold text-white font-mono">
               {{ Object.keys(tournament.players).length }}
-              <span class="text-sm font-normal text-slate-500">/ 27 max</span>
+              <span class="text-sm font-normal text-slate-500">/ 81 max</span>
             </div>
           </div>
         </div>
@@ -520,6 +567,29 @@ const handlePlayerSelect = async (globalPlayer: GlobalPlayer) => {
             </div>
             <span class="text-xs text-slate-400">Open Sign-up</span>
           </label>
+
+          <label class="flex items-center gap-2 cursor-pointer">
+            <div class="relative">
+              <input type="checkbox" class="sr-only peer"
+                     :checked="tournament.umaDraftAllowSameGroupDuplicates"
+                     @change="() => toggleUmaDraftSetting('umaDraftAllowSameGroupDuplicates')" />
+              <div class="w-9 h-5 bg-slate-700 rounded-full peer-checked:bg-indigo-600 transition-colors"></div>
+              <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4"></div>
+            </div>
+            <span class="text-xs text-slate-400">Allow Duplicate Umas</span>
+          </label>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-slate-400">Max Uma Copies:</label>
+            <select v-model="selectedMaxCopies"
+                    class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option :value="1">1</option>
+              <option :value="2">2</option>
+              <option :value="3">3</option>
+              <option :value="4">4</option>
+              <option :value="5">5</option>
+            </select>
+          </div>
 
           <button @click="openScheduleModal"
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors"
