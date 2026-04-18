@@ -13,6 +13,7 @@ import { useUserRoles } from '../composables/useUserRoles';
 import { TRACK_DICT } from '../utils/trackData';
 import { generateAnnouncementText } from '../utils/announcementUtils';
 import { useGlobalSettings } from '../composables/useGlobalSettings';
+import { getTrackCapacityWarning } from '../utils/trackCapacity';
 
 const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
 
@@ -251,20 +252,9 @@ const VALID_TEAM_COUNTS = [3, 4, 5, 6, 8, 9, 12, 15, 18, 24, 27, 36, 45, 54, 63,
 const VALID_PLAYER_TOTALS = [9, 12, 15, 18, 24, 27, 36, 45, 54, 63, 81];
 
 const trackCapacityWarning = computed(() => {
-  if (!props.tournament.selectedTrack) return null;
-  const track = TRACK_DICT[props.tournament.selectedTrack];
-  if (!track) return null;
-  
   const playerCount = Object.keys(props.tournament.players).length;
-  if (playerCount <= track.maxPlayers) return null;
-  
-  const excess = playerCount - track.maxPlayers;
-  return {
-    trackName: track.location,
-    maxPlayers: track.maxPlayers,
-    excessPlayers: excess,
-    warning: `This track can only handle ${track.maxPlayers} players, but you have ${playerCount} registered.`
-  };
+  const captainCount = Object.values(props.tournament.players).filter(p => p.isCaptain).length;
+  return getTrackCapacityWarning(props.tournament.selectedTrack, playerCount, captainCount);
 });
 
 const registrationHint = computed(() => {
@@ -276,7 +266,9 @@ const registrationHint = computed(() => {
     return {
       type: 'track' as const,
       text: trackCapacityWarning.value.warning,
-      options: `Reduce to ${trackCapacityWarning.value.maxPlayers} players or choose a different track`
+      options: trackCapacityWarning.value.groupCount > 1
+        ? `Spread players across ${trackCapacityWarning.value.groupCount} groups so each group stays at ${trackCapacityWarning.value.maxPlayers} or fewer, or choose a larger track`
+        : `Reduce to ${trackCapacityWarning.value.maxPlayers} players or choose a different track`
     };
   }
 
