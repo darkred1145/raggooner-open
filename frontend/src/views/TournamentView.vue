@@ -398,22 +398,13 @@ const openRenameTeamModal = () => {
           <h1 class="text-3xl font-black text-white text-center md:hidden mb-4">{{ tData.name }}</h1>
 
           <div v-if="captainTeam && (tournament.teamRenamingEnabled ?? true) && tournament.status !== 'completed'"
-               class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4 md:p-5 shadow-xl">
-            <div class="flex flex-col md:flex-row md:items-center gap-4">
-              <div class="flex-1">
-                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-indigo-400 mb-2">Captain Tools</p>
-                <h2 class="text-xl font-black text-white">Your Team</h2>
-                <p class="text-sm text-slate-400 mt-1">Captains can update their own team name without waiting for an admin.</p>
-              </div>
-              <div class="flex items-center gap-3 rounded-2xl bg-slate-800 border border-slate-700 px-4 py-3">
-                <span class="font-bold text-white text-sm truncate">{{ captainTeam.name }}</span>
-                <button @click="openRenameTeamModal"
-                        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-sm font-bold transition-colors">
-                  <i class="ph ph-pencil-simple"></i>
-                  Edit
-                </button>
-              </div>
-            </div>
+               class="flex items-center gap-2 mb-4">
+            <span class="font-bold text-white text-lg">{{ captainTeam.name }}</span>
+            <button @click="openRenameTeamModal"
+                    class="text-slate-400 hover:text-white transition-colors"
+                    title="Edit team name">
+              <i class="ph ph-pencil-simple text-lg"></i>
+            </button>
           </div>
 
           <div v-if="showRenameTeamModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
