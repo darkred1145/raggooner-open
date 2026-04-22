@@ -145,6 +145,7 @@ export function useTournamentFlow(
         try {
             await secureUpdate({
                 status: 'active',
+                stage: 'groups',
                 completedAt: null,
                 activeTimerStart: new Date().toISOString(),
                 activeTimerStopped: false

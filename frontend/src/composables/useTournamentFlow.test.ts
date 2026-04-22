@@ -232,7 +232,7 @@ describe('useTournamentFlow — guards', () => {
 
         await reopenTournament()
 
-        expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: 'active' }))
+        expect(secureUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: 'active', stage: 'groups' }))
     })
 
     it('reopenTournament does nothing when status is not completed', async () => {
