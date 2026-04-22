@@ -461,8 +461,8 @@ onMounted(() => {
                           :class="selectedFormat === key
                             ? 'border-indigo-500 bg-indigo-900/30'
                             : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
-                    <div class="text-sm font-bold" :class="selectedFormat === key ? 'text-indigo-300' : 'text-slate-300'">{{ fmt.name }}</div>
-                    <div class="text-[10px] mt-0.5" :class="selectedFormat === key ? 'text-indigo-400/70' : 'text-slate-500'">{{ fmt.description }}</div>
+                    <span class="block text-sm font-bold" :class="selectedFormat === key ? 'text-indigo-300' : 'text-slate-300'">{{ fmt.name }}</span>
+                    <span class="block text-[10px] mt-0.5" :class="selectedFormat === key ? 'text-indigo-400/70' : 'text-slate-500'">{{ fmt.description }}</span>
                   </button>
                 </div>
 
@@ -486,15 +486,15 @@ onMounted(() => {
                             :disabled="isCreating"
                             class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
                             :class="!isOfficial ? 'border-slate-500 bg-slate-800/60' : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
-                      <div class="text-sm font-bold" :class="!isOfficial ? 'text-slate-200' : 'text-slate-400'">Unofficial</div>
-                      <div class="text-[10px] mt-0.5 text-slate-500">Does not count in stats</div>
+                      <span class="block text-sm font-bold" :class="!isOfficial ? 'text-slate-200' : 'text-slate-400'">Unofficial</span>
+                      <span class="block text-[10px] mt-0.5 text-slate-500">Does not count in stats</span>
                     </button>
                     <button @click="isOfficial = true"
                             :disabled="isCreating"
                             class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
                             :class="isOfficial ? 'border-amber-500 bg-amber-900/20' : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
-                      <div class="text-sm font-bold" :class="isOfficial ? 'text-amber-300' : 'text-slate-400'">Official</div>
-                      <div class="text-[10px] mt-0.5" :class="isOfficial ? 'text-amber-400/70' : 'text-slate-500'">Counts toward player stats</div>
+                      <span class="block text-sm font-bold" :class="isOfficial ? 'text-amber-300' : 'text-slate-400'">Official</span>
+                      <span class="block text-[10px] mt-0.5" :class="isOfficial ? 'text-amber-400/70' : 'text-slate-500'">Counts toward player stats</span>
                     </button>
                   </div>
                   <p v-if="!isOfficialCreator" class="text-[11px] text-slate-500 flex items-center gap-1">
@@ -615,7 +615,6 @@ onMounted(() => {
                 </button>
               </div>
             </div>
-          </div>
 
           <div v-if="scheduledTournamentsList.length > 0">
             <div class="flex items-center gap-3 mb-6">

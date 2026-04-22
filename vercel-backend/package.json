@@ -7,5 +7,8 @@
   },
   "engines": {
     "node": "24"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.7.13"
   }
 }

@@ -7,6 +7,7 @@
     { "src": "api/captain.js", "use": "@vercel/node" },
     { "src": "api/signup.js", "use": "@vercel/node" },
     { "src": "api/queue.js", "use": "@vercel/node" },
+    { "src": "api/matchmaking.ts", "use": "@vercel/node" },
     { "src": "api/discord-post.js", "use": "@vercel/node" },
     { "src": "api/manage-roles.js", "use": "@vercel/node" }
   ],
@@ -25,6 +26,7 @@
     { "src": "/api/ban-vote", "dest": "/api/ban-vote.js" },
     { "src": "/api/captain", "dest": "/api/captain.js" },
     { "src": "/api/signup", "dest": "/api/signup.js" },
+    { "src": "/api/matchmaking", "dest": "/api/matchmaking.ts" },
     { "src": "/api/discord-post", "dest": "/api/discord-post.js" },
     { "src": "/api/manage-roles", "dest": "/api/manage-roles.js" }
   ]
