@@ -7,7 +7,7 @@ This is the monorepo for **Raccoon Open**, a tournament management web app for t
 | Directory | What it is |
 |---|---|
 | `frontend/` | Vue 3 + TypeScript SPA — the main app |
-| `functions/` | Firebase Cloud Functions (TypeScript) |
+| `vercel-backend/` | Vercel Serverless Functions (free tier) |
 | `tools/` | Standalone Python scripts for game data extraction (shelved) |
 
 > Each subdirectory has its own `CLAUDE.md` with specific commands, conventions, and gotchas. They are loaded automatically — do not duplicate their content here.
@@ -15,13 +15,13 @@ This is the monorepo for **Raccoon Open**, a tournament management web app for t
 ## How the Pieces Fit Together
 
 - The **frontend** is the entire user-facing product: tournament creation, player drafts, race scoring, analytics, and user management.
-- **Cloud Functions** run two server-side jobs: syncing player metadata when a tournament completes, and auto-assigning a `player` role when a new Discord user signs up.
+- **Vercel Serverless Functions** handle all backend operations: tournament signup/leave, captain actions, ban voting, Discord OAuth, and queue management.
 - The **tools** directory contains Frida-based memory scanning scripts for reading game state from the Windows client. This work is currently shelved.
 
 ## Firebase Project
 
 - Project ID: `raggooner-uma-2026`
-- Firestore, Firebase Auth (Discord OIDC via `oidc.discord.com`), Cloud Functions, Cloud Storage
+- Firestore, Firebase Auth (Discord OIDC via `oidc.discord.com`), Cloud Storage
 - All Firestore data lives under `artifacts/{APP_ID}/public/data/{collection}/{docId}` where `APP_ID` defaults to `raggooner-uma-2026` (configurable via `VITE_APP_ID` in `frontend/.env`)
 
 ## Git

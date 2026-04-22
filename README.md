@@ -24,8 +24,7 @@ Handles the full tournament lifecycle — player registration, team drafts, race
 | Layer | Technology |
 |---|---|
 | Frontend | Vue 3 (Composition API), TypeScript, Tailwind CSS v4, PrimeVue, Vite |
-| Backend | Firebase Cloud Functions (TypeScript) |
-| Discord OAuth | Vercel Serverless Functions (free tier) |
+| Backend | Vercel Serverless Functions (free tier) |
 | Database | Firestore |
 | Auth | Firebase Auth with custom Discord OIDC |
 | Hosting | Firebase Hosting |
@@ -47,7 +46,7 @@ Handles the full tournament lifecycle — player registration, team drafts, race
    git clone https://github.com/darkred1145/raggooner-open.git
    cd raggooner-open
    cd frontend && npm install
-   cd ../functions && npm install
+   cd ../vercel-backend && npm install
    ```
 
 2. Create `frontend/.env` with your Firebase config:

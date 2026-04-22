@@ -176,6 +176,30 @@ export interface TournamentCreator {
     avatarUrl?: string;
 }
 
+export interface QueueParty {
+    id: string;
+    leaderId: string;
+    memberIds: string[]; // including leader, should be 3
+    createdAt: string;
+}
+
+export interface QueueEntry {
+    id: string;
+    playerId: string;
+    partyId?: string; // if part of a party
+    joinedAt: string;
+}
+
+export interface Queue {
+    id: string;
+    name: string; // e.g., "Racc Open Queue"
+    parties: QueueParty[];
+    solos: QueueEntry[];
+    status: 'open' | 'forming' | 'closed';
+    createdAt: string;
+    tournamentId?: string; // when a tournament is created from this queue
+}
+
 export interface Tournament {
     id: string;
     name: string;

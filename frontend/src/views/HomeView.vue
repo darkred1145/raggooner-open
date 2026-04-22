@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { collection, doc, getDocs, orderBy, query, where, writeBatch, setDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, orderBy, query, where, writeBatch, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { APP_ID } from '../config';
-import type { Tournament, Season, TournamentCreator } from '../types';
+import type { Tournament, Season, TournamentCreator, Queue } from '../types';
 import { TOURNAMENT_FORMATS } from "../utils/constants.ts";
 import { getStatusColor } from "../utils/utils.ts";
 import { useUserRoles } from '../composables/useUserRoles';
@@ -54,6 +54,12 @@ const seasonLoaded = reactive<Record<string, boolean>>({});
 
 // All seasons start collapsed when history section opens
 const collapsedSeasons = ref<string[]>([]);
+
+// Queue state
+const queue = ref<Queue | null>(null);
+const isJoiningQueue = ref(false);
+const partyMembers = ref<string[]>([]);
+const partyMembersInput = ref('');
 
 watch(showHistory, (val) => {
   if (val) {
@@ -271,9 +277,142 @@ const formatTournamentStatus = (t: Tournament): string => {
   return statusMap[t.status] || t.status;
 };
 
+// Queue functions
+const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
+
+const subscribeToQueue = () => {
+  const queueRef = doc(db, 'artifacts', appId, 'public', 'data', 'queues', 'racc-open-queue');
+  onSnapshot(queueRef, (docSnap) => {
+    if (docSnap.exists()) {
+      queue.value = { id: docSnap.id, ...docSnap.data() } as Queue;
+    } else {
+      // Create queue if it doesn't exist
+      const newQueue: Queue = {
+        id: 'racc-open-queue',
+        name: 'Racc Open Queue',
+        parties: [],
+        solos: [],
+        status: 'open',
+        createdAt: new Date().toISOString(),
+      };
+      setDoc(queueRef, newQueue);
+      queue.value = newQueue;
+    }
+  });
+};
+
+const joinQueue = async () => {
+  if (isJoiningQueue.value || !linkedPlayer.value) return;
+  isJoiningQueue.value = true;
+
+  try {
+    const response = await fetch(`${VERCEL_API_URL}/api/queue`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'join',
+        queueId: 'racc-open-queue',
+        partyMembers: partyMembers.value.length > 0 ? partyMembers.value : undefined,
+        authToken: auth.currentUser?.uid,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to join queue');
+    }
+    partyMembers.value = []; // Reset
+  } catch (error: any) {
+    console.error('Failed to join queue:', error);
+    alert(error.message || 'Failed to join queue');
+  } finally {
+    isJoiningQueue.value = false;
+  }
+};
+
+const leaveQueue = async () => {
+  if (isJoiningQueue.value || !linkedPlayer.value) return;
+  isJoiningQueue.value = true;
+
+  try {
+    const response = await fetch(`${VERCEL_API_URL}/api/queue`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'leave',
+        queueId: 'racc-open-queue',
+        authToken: auth.currentUser?.uid,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to leave queue');
+    }
+  } catch (error: any) {
+    console.error('Failed to leave queue:', error);
+    alert(error.message || 'Failed to leave queue');
+  } finally {
+    isJoiningQueue.value = false;
+  }
+};
+
+const joinWithParty = async () => {
+  if (isJoiningQueue.value || !linkedPlayer.value || !partyMembersInput.value.trim()) return;
+  isJoiningQueue.value = true;
+
+  try {
+    const members = partyMembersInput.value.split(',').map(id => id.trim()).filter(id => id);
+    if (members.length !== 2) {
+      alert('Please enter exactly 2 additional player IDs (total 3 players)');
+      return;
+    }
+
+    const response = await fetch(`${VERCEL_API_URL}/api/queue`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'join',
+        queueId: 'racc-open-queue',
+        partyMembers: members,
+        authToken: auth.currentUser?.uid,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to join queue');
+    }
+    partyMembersInput.value = ''; // Reset
+  } catch (error: any) {
+    console.error('Failed to join queue with party:', error);
+    alert(error.message || 'Failed to join queue');
+  } finally {
+    isJoiningQueue.value = false;
+  }
+};
+
+const isInQueue = computed(() => {
+  if (!queue.value || !linkedPlayer.value) return false;
+  return queue.value.solos.some(s => s.playerId === linkedPlayer.value!.id) ||
+         queue.value.parties.some(p => p.memberIds.includes(linkedPlayer.value!.id));
+});
+
+const totalQueuedPlayers = computed(() => {
+  if (!queue.value) return 0;
+  return queue.value.parties.reduce((sum, p) => sum + p.memberIds.length, 0) + queue.value.solos.length;
+});
+
 onMounted(() => {
   fetchSeasons();
   fetchActiveTournaments();
+  subscribeToQueue();
 });
 </script>
 
@@ -386,9 +525,86 @@ onMounted(() => {
 
               <div class="relative">
                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
-                <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-800 text-slate-500 rounded">Or join existing</span></div>
+                <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-800 text-slate-500 rounded">Or queue for instant play</span></div>
               </div>
             </div>
+
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-white">Racc Open Queue</h2>
+                <div class="text-sm text-slate-400">
+                  {{ totalQueuedPlayers }} / 9 players
+                </div>
+              </div>
+              <div v-if="queue && queue.status === 'open'" class="space-y-3">
+                <div v-if="!isInQueue" class="space-y-3">
+                  <div class="text-sm text-slate-300">
+                    Join the queue to play Racc Opens instantly. Solo or with friends!
+                  </div>
+                  <div class="space-y-2">
+                    <button @click="joinQueue"
+                            :disabled="isJoiningQueue || !linkedPlayer"
+                            class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                      <template v-if="isJoiningQueue">
+                        <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Joining...
+                      </template>
+                      <template v-else>
+                        <i class="ph-bold ph-users"></i>
+                        Join Solo
+                      </template>
+                    </button>
+                    <div class="text-center text-slate-500 text-sm">or</div>
+                    <div class="space-y-2">
+                      <div class="text-sm text-slate-300">Create party (enter player IDs, comma-separated):</div>
+                      <input v-model="partyMembersInput"
+                             type="text"
+                             placeholder="player1,player2"
+                             class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-green-500 focus:outline-none text-sm">
+                      <button @click="joinWithParty"
+                              :disabled="isJoiningQueue || !linkedPlayer || !partyMembersInput.trim()"
+                              class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                        <template v-if="isJoiningQueue">
+                          <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Joining...
+                        </template>
+                        <template v-else>
+                          <i class="ph-bold ph-user-plus"></i>
+                          Join with Party
+                        </template>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="text-center py-4">
+                  <div class="text-green-400 font-semibold mb-2">You're in the queue!</div>
+                  <button @click="leaveQueue"
+                          :disabled="isJoiningQueue"
+                          class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-colors">
+                    Leave Queue
+                  </button>
+                </div>
+              </div>
+              <div v-else-if="queue && queue.status === 'forming'" class="text-center py-4 text-yellow-400">
+                <i class="ph-bold ph-spinner animate-spin text-2xl mb-2"></i>
+                <div>Forming tournament...</div>
+              </div>
+              <div v-else-if="queue && queue.status === 'closed'" class="text-center py-4 text-slate-400">
+                Queue closed - tournament created!
+              </div>
+            </div>
+
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
+              <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-800 text-slate-500 rounded">Or join existing</span></div>
+            </div>
+          </div>
 
             <div class="space-y-4">
               <h2 class="text-2xl font-bold text-white mb-4">Join by ID</h2>

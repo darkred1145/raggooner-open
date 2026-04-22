@@ -6,6 +6,7 @@
     { "src": "api/ban-vote.js", "use": "@vercel/node" },
     { "src": "api/captain.js", "use": "@vercel/node" },
     { "src": "api/signup.js", "use": "@vercel/node" },
+    { "src": "api/queue.js", "use": "@vercel/node" },
     { "src": "api/discord-post.js", "use": "@vercel/node" },
     { "src": "api/manage-roles.js", "use": "@vercel/node" }
   ],
