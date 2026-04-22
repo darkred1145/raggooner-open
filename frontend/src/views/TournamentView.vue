@@ -258,6 +258,7 @@ const editedTeamRenamingEnabled = ref(true);
 const editedUmaDraftMaxCopies = ref(1);
 const editedUmaDraftAllowSameGroupDuplicates = ref(false);
 const captainTeamName = ref('');
+const showRenameTeamModal = ref(false);
 const adminTeamNames = ref<Record<string, string>>({});
 
 watch(showAdminModal, (isOpen) => {
@@ -272,6 +273,7 @@ watch(showAdminModal, (isOpen) => {
 
 watch(captainTeam, (team) => {
   captainTeamName.value = team?.name ?? '';
+  showRenameTeamModal.value = false;
 }, { immediate: true });
 
 const saveUmaDraftSettings = async () => {
@@ -312,9 +314,21 @@ const saveCaptainTeamName = async () => {
   try {
     await captainRenameTeam(nextName);
     alert('Team name updated!');
+    showRenameTeamModal.value = false;
   } catch (error: any) {
     alert(error.message || 'Failed to rename team.');
   }
+};
+
+const cancelRenameTeam = () => {
+  captainTeamName.value = captainTeam.value?.name ?? '';
+  showRenameTeamModal.value = false;
+};
+
+const openRenameTeamModal = () => {
+  if (!captainTeam.value) return;
+  captainTeamName.value = captainTeam.value.name;
+  showRenameTeamModal.value = true;
 };
 </script>
 
@@ -383,23 +397,53 @@ const saveCaptainTeamName = async () => {
         <div v-else-if="tournament" class="space-y-6 animate-fade-in">
           <h1 class="text-3xl font-black text-white text-center md:hidden mb-4">{{ tData.name }}</h1>
 
-          <div v-if="captainTeam && (tournament.teamRenamingEnabled ?? true)"
+          <div v-if="captainTeam && (tournament.teamRenamingEnabled ?? true) && tournament.status !== 'completed'"
                class="bg-slate-900/90 border border-slate-700 rounded-2xl p-4 md:p-5 shadow-xl">
-            <div class="flex flex-col md:flex-row md:items-end gap-4">
+            <div class="flex flex-col md:flex-row md:items-center gap-4">
               <div class="flex-1">
                 <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-indigo-400 mb-2">Captain Tools</p>
-                <h2 class="text-xl font-black text-white">Rename Your Team</h2>
+                <h2 class="text-xl font-black text-white">Your Team</h2>
                 <p class="text-sm text-slate-400 mt-1">Captains can update their own team name without waiting for an admin.</p>
               </div>
-              <div class="flex-1 flex gap-2">
-                <input v-model="captainTeamName"
-                       type="text"
-                       maxlength="32"
-                       class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                       placeholder="Enter team name" />
+              <div class="flex items-center gap-3 rounded-2xl bg-slate-800 border border-slate-700 px-4 py-3">
+                <span class="font-bold text-white text-sm truncate">{{ captainTeam.name }}</span>
+                <button @click="openRenameTeamModal"
+                        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-sm font-bold transition-colors">
+                  <i class="ph ph-pencil-simple"></i>
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="showRenameTeamModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
+            <div class="w-full max-w-xl bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl">
+              <div class="flex items-start justify-between gap-4 mb-5">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.24em] text-indigo-400 mb-2">Rename Team</p>
+                  <h3 class="text-2xl font-black text-white">Edit team name</h3>
+                </div>
+                <button @click="cancelRenameTeam"
+                        class="text-slate-400 hover:text-white text-xl">
+                  <i class="ph ph-x"></i>
+                </button>
+              </div>
+
+              <p class="text-sm text-slate-400 mb-4">Enter a new team name (2–32 characters).</p>
+              <input v-model="captainTeamName"
+                     type="text"
+                     maxlength="32"
+                     class="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                     placeholder="Team name" />
+
+              <div class="mt-5 flex justify-end gap-3">
+                <button @click="cancelRenameTeam"
+                        class="px-4 py-2 rounded-2xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition-colors">
+                  Cancel
+                </button>
                 <button @click="saveCaptainTeamName"
                         :disabled="!captainTeamName.trim() || captainTeamName.trim() === captainTeam?.name"
-                        class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl font-bold transition-colors">
+                        class="px-4 py-2 rounded-2xl bg-indigo-600 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-500 transition-colors">
                   Save
                 </button>
               </div>
