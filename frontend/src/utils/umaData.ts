@@ -302,6 +302,12 @@ export const UMA_DICT: Record<string, UmaData> = {
         statBonus: 'STA +10% / POW +20%',
         aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'F', medium: 'A', long: 'B' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'G' } }
     },
+    'Yaeno Muteki': {
+        id: 'yaeno-muteki', name: 'Yaeno Muteki', stars: 3, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 107201,
+        gametoraId: 107201,
+        statBonus: 'POW +20% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'E' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'E' }, style: { frontRunner: 'F', paceChaser: 'A', lateSurger: 'A', endCloser: 'G' } }
+    },
     // --- Variant Characters ---
     'Fuji Kiseki': {
         id: 'fuji-kiseki', name: 'Fuji Kiseki', stars: 3, releaseDate: '2025-10-02T22:00:00.000Z', characterId: 100501,
