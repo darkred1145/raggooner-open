@@ -23,19 +23,20 @@ Handles the full tournament lifecycle — player registration, team drafts, race
 
 | Layer | Technology |
 |---|---|
-| Frontend | Vue 3 (Composition API), TypeScript, Tailwind CSS v4, PrimeVue |
+| Frontend | Vue 3 (Composition API), TypeScript, Tailwind CSS v4, PrimeVue, Vite |
 | Backend | Firebase Cloud Functions (TypeScript) |
 | Discord OAuth | Vercel Serverless Functions (free tier) |
 | Database | Firestore |
 | Auth | Firebase Auth with custom Discord OIDC |
 | Hosting | Firebase Hosting |
 | CI/CD | GitHub Actions (deploy on push to `main`) |
+| Testing | Vitest |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js v18+
+- Node.js v20+
 - Firebase CLI — `npm install -g firebase-tools`
 - Java (required for Firebase Emulators)
 
