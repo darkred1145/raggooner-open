@@ -55,7 +55,7 @@ const isNextRace = computed(() => {
 
 const canEdit = computed(() => {
   if (!props.isAdmin && !props.canCaptainEdit) return false;
-  if (props.stageId === 'groups' && props.tournament.stage !== 'groups') return false;
+  if (props.stageId === 'groups' && props.tournament.status !== 'active') return false;
   if (props.stageId === 'finals' && props.tournament.status !== 'active') return false;
   return hasResults.value || isNextRace.value;
 });

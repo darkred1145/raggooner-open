@@ -68,6 +68,18 @@ const visibleStages = computed(() => {
     }
   } else {
     stages.push({ id: 'Finals', title: 'Finals', stageId: 'finals' as const, color: 'text-amber-500', focusColor: 'focus:border-amber-500 focus:ring-amber-500' });
+    // Allow editing groups for corrections when tournament is reopened (active status)
+    if (t.status === 'active') {
+      if (t.teams.length < 6) {
+        stages.push({ id: 'A', title: 'Race', stageId: 'groups' as const, color: 'text-indigo-400', focusColor: 'focus:border-indigo-500 focus:ring-indigo-500' });
+      } else {
+        stages.push({ id: 'A', title: 'Group A', stageId: 'groups' as const, color: 'text-indigo-400', focusColor: 'focus:border-indigo-500 focus:ring-indigo-500' });
+        stages.push({ id: 'B', title: 'Group B', stageId: 'groups' as const, color: 'text-rose-400', focusColor: 'focus:border-rose-500 focus:ring-rose-500' });
+        if (t.teams.length === 9) {
+          stages.push({ id: 'C', title: 'Group C', stageId: 'groups' as const, color: 'text-emerald-400', focusColor: 'focus:border-emerald-500 focus:ring-emerald-500' });
+        }
+      }
+    }
   }
 
   return stages;
