@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "firebase-admin": "^13.8.0",
-    "puppeteer": "^24.40.0"
+    "puppeteer": "^24.40.0",
+    "vue-virtual-scroller": "^3.0.0"
   }
 }

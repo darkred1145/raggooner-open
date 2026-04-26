@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, toRef, computed } from 'vue';
-import type { Tournament, FirestoreUpdate, GlobalPlayer, Season, Team } from '../types';
+import type { Tournament, FirestoreUpdate, GlobalPlayer, Season, Team, Player } from '../types';
 import { usePlayerDraft } from '../composables/usePlayerDraft';
 import { useTournamentFlow } from '../composables/useTournamentFlow';
-import {getPlayerName} from "../utils/utils";
+import { getPlayerName } from "../utils/utils";
 import { voicelineVolume, playLocalSfx } from '../composables/useVoicelines';
 import PlayerProfileModal from './PlayerProfileModal.vue';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
+import DraftHeader from './DraftHeader.vue';
+import PlayerCard from './PlayerCard.vue';
 
 // 1. Define Props
 const props = defineProps<{
@@ -35,10 +37,10 @@ const getDominance = (playerId: string): number | null => {
   let beaten: number | undefined;
 
   if (selectedSeasonId.value === 'all') {
-    faced = gp.metadata.opponentsFaced;
-    beaten = gp.metadata.opponentsBeaten;
+    faced = gp.metadata?.opponentsFaced;
+    beaten = gp.metadata?.opponentsBeaten;
   } else {
-    const seasonData = gp.metadata.seasons?.[selectedSeasonId.value];
+    const seasonData = gp.metadata?.seasons?.[selectedSeasonId.value];
     if (!seasonData) return null;
     faced = seasonData.opponentsFaced;
     beaten = seasonData.opponentsBeaten;
@@ -49,8 +51,6 @@ const getDominance = (playerId: string): number | null => {
 };
 
 // 2. Convert Prop to Ref for the Composable
-// The composable expects a Ref<Tournament>, but props.tournament is a reactive object.
-// toRef allows us to bridge that gap.
 const tournamentRef = toRef(props, 'tournament');
 const isAdminRef = toRef(props, 'isAdmin');
 
@@ -100,140 +100,93 @@ const sortedAvailablePlayers = computed(() => {
   });
 });
 
+// Draft handling
+const isDrafting = ref(false);
+const pickError = ref('');
+
+const handleDraftClick = async (player: Player) => {
+  if (isDrafting.value || isAdvancing.value) return;
+
+  if (!props.isAdmin && !isCaptainTurn.value) {
+    pickError.value = "It's not your turn to pick!";
+    setTimeout(() => { pickError.value = ''; }, 3000);
+    return;
+  }
+
+  isDrafting.value = true;
+  try {
+    if (isCaptainTurn.value && props.onCaptainDraftPlayer) {
+      await props.onCaptainDraftPlayer(player.id);
+    } else {
+      await draftPlayer(player);
+    }
+  } catch (err) {
+    console.error("Draft error:", err);
+  } finally {
+    isDrafting.value = false;
+  }
+};
+
+const handleRandomDraft = () => {
+  if (!props.isAdmin && !isCaptainTurn.value) return;
+  startRandomDraft(isCaptainTurn.value ? props.onCaptainDraftPlayer : undefined);
+};
+
 </script>
 
 <template>
   <div>
     <div class="space-y-6">
-      <!-- Draft in progress: order bar + player grid + sidebar -->
+      
+      <!-- Error Message Toast -->
+      <transition name="fade">
+        <div v-if="pickError" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white px-4 py-2 rounded-lg shadow-lg backdrop-blur-sm border border-red-400 font-bold flex items-center gap-2">
+          <i class="ph-bold ph-warning-circle text-xl"></i>
+          {{ pickError }}
+        </div>
+      </transition>
+
+      <!-- Draft in progress -->
       <template v-if="!isDraftComplete">
-        <!-- Header Bar -->
-<!--        <div class="sticky top-20 z-30 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-700 shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">-->
-<!--          <div>-->
-<!--            <h2 class="text-3xl font-bold text-white flex items-center gap-3">-->
-<!--              <i class="ph-fill ph-users-three text-indigo-400"></i>-->
-<!--              Player Draft-->
-<!--            </h2>-->
-<!--            <p class="text-slate-400 text-sm">Captains draft their team members.</p>-->
-<!--          </div>-->
-
-<!--          <div class="flex items-center gap-4 w-full sm:w-auto">-->
-<!--            <button v-if="isAdmin && tournament.draft && tournament.draft.currentIdx > 0"-->
-<!--                    @click="undoLastPick"-->
-<!--                    class="text-slate-500 hover:text-white flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 transition-colors">-->
-<!--              <i class="ph-bold ph-arrow-u-up-left"></i>-->
-<!--              <span class="hidden sm:inline">Undo</span>-->
-<!--            </button>-->
-
-<!--            <div class="text-right hidden sm:block">-->
-<!--              <div class="text-2xl font-mono font-bold text-indigo-400">-->
-<!--                {{ remainingPicks.length }}-->
-<!--              </div>-->
-<!--              <div class="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Remaining</div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        &lt;!&ndash; Draft Order Preview &ndash;&gt;-->
-<!--        <div class="bg-slate-800 p-4 rounded-xl border border-indigo-500/30 flex flex-col md:flex-row items-center gap-4 shadow-lg shadow-indigo-900/10 overflow-hidden">-->
-<!--          <div class="flex-1 flex items-center gap-3 overflow-x-auto overflow-y-hidden hide-scrollbar">-->
-<!--            <span class="text-slate-400 uppercase text-xs font-bold tracking-wider shrink-0">Lineup:</span>-->
-
-<!--            <div v-for="(pick, idx) in remainingPicks" :key="pick.id"-->
-<!--                 class="flex items-center shrink-0 transition-all duration-300"-->
-<!--                 :class="pick.isCurrent ? 'scale-110 mx-3 opacity-100' : 'scale-90 opacity-50'">-->
-
-<!--              <span class="font-bold whitespace-nowrap tracking-wide"-->
-<!--                    :class="pick.isCurrent ? 'text-xl drop-shadow-md' : 'text-sm'"-->
-<!--                    :style="{ color: pick.color }">-->
-<!--                {{ pick.captainName }}-->
-<!--              </span>-->
-
-<!--              <i v-if="idx < remainingPicks.length - 1"-->
-<!--                 class="ph-bold ph-caret-right text-slate-600 ml-3"-->
-<!--                 :class="pick.isCurrent ? 'text-lg' : 'text-xs'"></i>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
         <div v-if="isCaptainTurn"
-             class="mb-3 px-4 py-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/50 text-indigo-300 text-sm font-bold flex items-center gap-2 animate-pulse">
+             class="mb-3 px-4 py-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/50 text-indigo-300 text-sm font-bold flex items-center gap-2 animate-pulse"
+             role="alert">
           <i class="ph-fill ph-crown text-indigo-400"></i>
           It's your turn to pick! Select a player below.
         </div>
 
-        <div class="sticky top-20 z-30 flex flex-col shadow-xl rounded-xl overflow-hidden border border-slate-700 bg-slate-900/95 backdrop-blur-md transition-all">
-
-          <div class="p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-              <h2 class="text-3xl font-bold text-white flex items-center gap-3">
-                <i class="ph-fill ph-users-three text-indigo-400"></i>
-                Player Draft
-              </h2>
-              <p class="text-slate-400 text-sm">Captains draft their team members.</p>
-            </div>
-
-            <div class="flex items-center gap-4 w-full sm:w-auto">
-              <button v-if="isAdmin && tournament.draft && tournament.draft.currentIdx > 0"
-                      @click="undoLastPick"
-                      class="text-slate-500 hover:text-white flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 transition-colors">
-                <i class="ph-bold ph-arrow-u-up-left"></i>
-                <span class="hidden sm:inline">Undo</span>
-              </button>
-
-              <div class="flex items-center gap-1.5 text-slate-500">
-                <i class="ph-bold text-lg shrink-0"
-                   :class="voicelineVolume === 0 ? 'ph-speaker-x' : voicelineVolume < 0.5 ? 'ph-speaker-low' : 'ph-speaker-high'"></i>
-                <input type="range" min="0" max="1" step="0.05" v-model.number="voicelineVolume"
-                       class="w-20 accent-indigo-500 cursor-pointer" />
-              </div>
-
-              <div class="text-right hidden sm:block">
-                <div class="text-2xl font-mono font-bold text-indigo-400">
-                  {{ remainingPicks.length }}
-                </div>
-                <div class="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Remaining</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-slate-800/50 px-4 py-3 flex flex-col md:flex-row items-center gap-4 border-t border-slate-700/50 shadow-inner">
-            <div class="flex-1 flex items-center gap-3 overflow-x-auto overflow-y-hidden hide-scrollbar w-full">
-              <span class="text-slate-400 uppercase text-xs font-bold tracking-wider shrink-0">Draft Order:</span>
-
-              <div v-for="(pick, idx) in remainingPicks" :key="pick.id"
-                   class="flex items-center shrink-0 transition-all duration-300"
-                   :class="pick.isCurrent ? 'scale-110 mx-3 opacity-100' : 'scale-90 opacity-50'">
-
-                <span class="font-bold whitespace-nowrap tracking-wide"
-                      :class="pick.isCurrent ? 'text-xl drop-shadow-md' : 'text-sm'"
-                      :style="{ color: pick.color }">
-                  {{ pick.captainName }}
-                </span>
-
-                <i v-if="idx < remainingPicks.length - 1"
-                   class="ph-bold ph-caret-right text-slate-600 ml-3"
-                   :class="pick.isCurrent ? 'text-lg' : 'text-xs'"></i>
-              </div>
-            </div>
-          </div>
-
-        </div>
+        <DraftHeader
+          :can-undo="!!(tournament.draft && tournament.draft.currentIdx > 0)"
+          :is-admin="isAdmin"
+          :is-busy="isDrafting"
+          :remaining-picks="remainingPicks"
+          :voiceline-volume="voicelineVolume"
+          @undo="undoLastPick"
+          @update:voicelineVolume="voicelineVolume = $event"
+        />
 
         <div class="grid md:grid-cols-12 gap-6">
-          <div class="md:col-span-8">
-            <div class="flex items-center justify-between mb-3">
+          
+          <!-- Players Grid -->
+          <div class="md:col-span-8 flex flex-col">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
               <h3 class="text-lg font-bold text-slate-300">Available Players</h3>
               <select v-model="selectedSeasonId"
-                      class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500">
-                <option value="all">All Time</option>
+                      aria-label="Filter by Season"
+                      title="Filter Dominance Stat by Season"
+                      class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 w-full sm:w-auto">
+                <option value="all">All Time (Dominance)</option>
                 <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
               </select>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
-              <button @click="startRandomDraft(isCaptainTurn ? onCaptainDraftPlayer : undefined)"
+            
+            <!-- Virtual scroll container alternative (fixed height + overflow) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar pb-4" role="list" aria-label="List of available players">
+              <button @click="handleRandomDraft"
                       @mouseenter="(isAdmin || isCaptainTurn) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
-                      :disabled="!isAdmin && !isCaptainTurn"
-                      class="bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 p-4 rounded-lg shadow-lg border-2 border-amber-300 flex items-center justify-between group relative overflow-hidden transition-all transform hover:scale-[1.02]">
+                      :disabled="(!isAdmin && !isCaptainTurn) || isDrafting"
+                      aria-label="Draft a random player"
+                      class="bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 p-4 rounded-lg shadow-lg border-2 border-amber-300 flex items-center justify-between group relative overflow-hidden transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed">
 
                 <div class="relative z-10 text-left">
                   <div class="font-black text-amber-900 text-lg uppercase tracking-wider">Random</div>
@@ -241,69 +194,62 @@ const sortedAvailablePlayers = computed(() => {
                 </div>
 
                 <div class="relative z-10 text-amber-900 p-2 bg-white/20 rounded-full">
-                  <i class="ph-bold ph-dice-five text-3xl group-hover:rotate-180 transition-transform duration-500"></i>
+                  <i class="ph-bold ph-dice-five text-3xl group-hover:rotate-180 transition-transform duration-500" aria-hidden="true"></i>
                 </div>
 
-                <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full shine-effect"></div>
+                <div class="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full shine-effect pointer-events-none"></div>
               </button>
-              <div v-for="player in sortedAvailablePlayers" :key="player.id" class="relative min-h-[80px]">
-                <button @click="isCaptainTurn ? onCaptainDraftPlayer?.(player.id) : draftPlayer(player)"
-                        @mouseenter="(isAdmin || isCaptainTurn) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
-                        :disabled="!isAdmin && !isCaptainTurn"
-                        class="h-full w-full bg-slate-800 hover:bg-indigo-600 border border-slate-700 hover:border-indigo-400 p-3 rounded-xl transition-all text-left group relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-indigo-500/20">
 
-                  <div class="relative z-10 flex items-center gap-2 w-full pr-4 min-w-0">
-                    <PlayerAvatar :name="player.name" :avatar-url="getAvatarUrl(player.id)" size="md" class="shrink-0" />
-                    <span class="font-bold text-slate-200 group-hover:text-white truncate">{{ player.name }}</span>
-                  </div>
-
-                  <div v-if="getDominance(player.id) !== null"
-                       class="relative z-10 mt-3 flex items-center gap-1.5 w-fit px-2 py-1 rounded-md bg-slate-900/60 group-hover:bg-indigo-900/40 border border-slate-700/50 group-hover:border-indigo-400/30 transition-colors">
-                    <i class="ph-fill ph-sword text-indigo-400 group-hover:text-indigo-300 text-xs"></i>
-                    <span class="text-xs font-bold text-slate-300 group-hover:text-white tracking-wide">
-                      {{ getDominance(player.id)!.toFixed(1) }}%
-                    </span>
-                  </div>
-
-                  <div class="absolute -bottom-2 -right-2 p-2 text-slate-700 group-hover:text-indigo-400 opacity-20 transition-colors">
-                    <i class="ph-fill ph-steering-wheel text-5xl"></i>
-                  </div>
-                </button>
-                <button @click.stop="openProfile(player.id)"
-                        class="absolute top-1.5 right-1.5 z-10 w-6 h-6 flex items-center justify-center rounded text-indigo-400/60 hover:text-indigo-400 hover:bg-slate-700 transition-colors">
-                  <i class="ph-bold ph-user-circle text-sm"></i>
-                </button>
-              </div>
+              <PlayerCard
+                v-for="player in sortedAvailablePlayers"
+                :key="player.id"
+                :avatar-url="getAvatarUrl(player.id)"
+                :disabled="isDrafting"
+                :dominance-pct="getDominance(player.id)"
+                :player="player"
+                @selected="handleDraftClick(player)"
+                @view-profile="openProfile"
+                @mouseenter="(isAdmin || isCaptainTurn) && playLocalSfx('/assets/sound-effects/sfx-button-hover.mp3')"
+              />
             </div>
           </div>
 
+          <!-- Squads Sidebar -->
           <div class="md:col-span-4 space-y-4">
             <h3 class="text-lg font-bold mb-3 text-slate-300">Squads</h3>
-            <div v-for="team in tournament.teams" :key="team.id"
-                 class="bg-slate-900 border rounded-lg p-4 transition-colors"
-                 :class="currentDrafter?.id === team.id ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-800'">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-bold text-white" :style="{ color: team.color }">{{ team.name }}</span>
-                <i v-if="currentDrafter?.id === team.id" class="ph-fill ph-crosshair text-indigo-400 animate-pulse"></i>
-              </div>
-              <div class="space-y-2">
-                <div class="flex items-center gap-2 text-sm text-amber-400">
-                  <PlayerAvatar :name="getPlayerName(tournament, team.captainId)" :avatar-url="getAvatarUrl(team.captainId)" size="sm" />
-                  <i class="ph-fill ph-crown text-xs shrink-0"></i>
-                  <span class="flex-1 truncate">{{ getPlayerName(tournament, team.captainId) }}</span>
-                  <button @click="openProfile(team.captainId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
-                    <i class="ph-bold ph-user-circle text-sm"></i>
-                  </button>
+            <div class="flex flex-col gap-3">
+              <div v-for="team in tournament.teams" :key="team.id"
+                   class="bg-slate-900 border rounded-lg p-4 transition-colors relative overflow-hidden"
+                   :class="currentDrafter?.id === team.id ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-slate-800'">
+                
+                <div v-if="currentDrafter?.id === team.id" class="absolute top-0 right-0 p-1 bg-indigo-500 rounded-bl-lg pointer-events-none">
+                  <span class="text-[10px] font-bold text-white uppercase px-1">Picking</span>
                 </div>
-                <div v-for="memberId in team.memberIds" :key="memberId" class="flex items-center gap-2 text-sm text-slate-300">
-                  <PlayerAvatar :name="getPlayerName(tournament, memberId)" :avatar-url="getAvatarUrl(memberId)" size="sm" />
-                  <span class="flex-1 truncate">{{ getPlayerName(tournament, memberId) }}</span>
-                  <button @click="openProfile(memberId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
-                    <i class="ph-bold ph-user-circle text-sm"></i>
-                  </button>
+
+                <div class="flex justify-between items-center mb-2 pr-6">
+                  <span class="font-bold text-white" :style="{ color: team.color }">{{ team.name }}</span>
+                  <i v-if="currentDrafter?.id === team.id" class="ph-fill ph-crosshair text-indigo-400 animate-pulse" aria-hidden="true"></i>
                 </div>
-                <div v-for="n in (2 - team.memberIds.length)" :key="n" class="flex items-center gap-2 text-sm text-slate-700 border-dashed border border-slate-800 p-1 rounded">
-                  <span class="text-xs">Empty Slot</span>
+
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2 text-sm text-amber-400" title="Captain">
+                    <PlayerAvatar :name="getPlayerName(tournament, team.captainId)" :avatar-url="getAvatarUrl(team.captainId)" size="sm" />
+                    <i class="ph-fill ph-crown text-xs shrink-0" aria-hidden="true"></i>
+                    <span class="flex-1 truncate">{{ getPlayerName(tournament, team.captainId) }}</span>
+                    <button @click="openProfile(team.captainId)" aria-label="View Captain Profile" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                      <i class="ph-bold ph-user-circle text-sm" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <div v-for="memberId in team.memberIds" :key="memberId" class="flex items-center gap-2 text-sm text-slate-300">
+                    <PlayerAvatar :name="getPlayerName(tournament, memberId)" :avatar-url="getAvatarUrl(memberId)" size="sm" />
+                    <span class="flex-1 truncate">{{ getPlayerName(tournament, memberId) }}</span>
+                    <button @click="openProfile(memberId)" aria-label="View Player Profile" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                      <i class="ph-bold ph-user-circle text-sm" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <div v-for="n in (2 - team.memberIds.length)" :key="n" class="flex items-center gap-2 text-sm text-slate-700 border-dashed border border-slate-800 p-1 rounded" aria-hidden="true">
+                    <span class="text-xs">Empty Slot</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -311,30 +257,31 @@ const sortedAvailablePlayers = computed(() => {
         </div>
       </template>
 
-      <!-- Draft complete: full-width team overview + confirm button -->
+      <!-- Draft complete -->
       <template v-else>
         <div class="bg-slate-800/50 border border-emerald-500/30 rounded-xl p-6 text-center space-y-4">
           <div class="flex items-center justify-center gap-3">
-            <i class="ph-fill ph-check-circle text-emerald-400 text-3xl"></i>
+            <i class="ph-fill ph-check-circle text-emerald-400 text-3xl" aria-hidden="true"></i>
             <h3 class="text-2xl font-bold text-white">Player Draft Complete</h3>
           </div>
           <p class="text-slate-400">All players have been drafted. Review the squads below, then continue.</p>
 
-          <div class="flex items-center justify-center gap-3">
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button v-if="isAdmin"
-                    @click="undoLastPick"
-                    class="text-slate-500 hover:text-white flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors border border-slate-700">
-              <i class="ph-bold ph-arrow-u-up-left"></i> Undo Last Pick
+                    @click="undoLastPick" :disabled="isAdvancing" role="button" tabindex="0" aria-label="Undo last draft pick"
+                    class="text-slate-500 hover:text-white flex items-center justify-center gap-2 px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors border border-slate-700 w-full sm:w-auto disabled:opacity-50">
+              <i class="ph-bold ph-arrow-u-up-left" aria-hidden="true"></i> Undo Last Pick
             </button>
             <button @click="advancePhase"
                     :disabled="!isAdmin || isAdvancing"
-                    class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-indigo-900/20 transition-all flex items-center gap-2">
+                    aria-label="Advance to Next Phase"
+                    class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold shadow-lg shadow-indigo-900/20 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
               <template v-if="isAdvancing">
-                <i class="ph ph-spinner animate-spin"></i> Advancing...
+                <i class="ph ph-spinner animate-spin" aria-hidden="true"></i> Advancing...
               </template>
               <template v-else>
                 <span>Continue</span>
-                <i class="ph-bold ph-arrow-right"></i>
+                <i class="ph-bold ph-arrow-right" aria-hidden="true"></i>
               </template>
             </button>
           </div>
@@ -349,21 +296,21 @@ const sortedAvailablePlayers = computed(() => {
                }">
 
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700/50">
-              <h4 class="text-xl font-black tracking-wide drop-shadow-sm" :style="{ color: team.color }">
+              <h4 class="text-xl font-black tracking-wide drop-shadow-sm truncate pr-2" :style="{ color: team.color }" :title="team.name">
                 {{ team.name }}
               </h4>
-              <div class="text-[10px] font-bold text-slate-400 bg-slate-900/80 px-2 py-1 rounded border border-slate-700 uppercase tracking-wider">
+              <div class="text-[10px] font-bold text-slate-400 bg-slate-900/80 px-2 py-1 rounded border border-slate-700 uppercase tracking-wider shrink-0" aria-label="Team Size">
                 {{ team.memberIds.length + 1 }} Players
               </div>
             </div>
 
             <div class="space-y-2">
-              <div class="flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-transparent border-l-2 border-amber-500 px-3 py-2 rounded-r-lg">
+              <div class="flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-transparent border-l-2 border-amber-500 px-3 py-2 rounded-r-lg" title="Captain">
                 <PlayerAvatar :name="getPlayerName(tournament, team.captainId)" :avatar-url="getAvatarUrl(team.captainId)" size="md" />
-                <i class="ph-fill ph-crown text-amber-400 text-sm drop-shadow-[0_0_5px_rgba(251,191,36,0.5)] shrink-0"></i>
+                <i class="ph-fill ph-crown text-amber-400 text-sm drop-shadow-[0_0_5px_rgba(251,191,36,0.5)] shrink-0" aria-hidden="true"></i>
                 <span class="text-sm font-bold text-amber-100 flex-1 truncate">{{ getPlayerName(tournament, team.captainId) }}</span>
-                <button @click="openProfile(team.captainId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
-                  <i class="ph-bold ph-user-circle text-sm"></i>
+                <button @click="openProfile(team.captainId)" aria-label="View Captain Profile" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                  <i class="ph-bold ph-user-circle text-sm" aria-hidden="true"></i>
                 </button>
               </div>
 
@@ -371,9 +318,9 @@ const sortedAvailablePlayers = computed(() => {
                 <div v-for="memberId in team.memberIds" :key="memberId"
                      class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-700/30">
                   <PlayerAvatar :name="getPlayerName(tournament, memberId)" :avatar-url="getAvatarUrl(memberId)" size="sm" />
-                  <span class="text-sm font-medium text-slate-300 truncate flex-1">{{ getPlayerName(tournament, memberId) }}</span>
-                  <button @click="openProfile(memberId)" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
-                    <i class="ph-bold ph-user-circle text-sm"></i>
+                  <span class="text-sm font-medium text-slate-300 truncate flex-1" :title="getPlayerName(tournament, memberId)">{{ getPlayerName(tournament, memberId) }}</span>
+                  <button @click="openProfile(memberId)" aria-label="View Player Profile" class="text-indigo-400/50 hover:text-indigo-400 transition-colors shrink-0">
+                    <i class="ph-bold ph-user-circle text-sm" aria-hidden="true"></i>
                   </button>
                 </div>
               </div>
@@ -391,7 +338,8 @@ const sortedAvailablePlayers = computed(() => {
         @close="profileModalOpen = false"
     />
 
-    <div v-if="showRandomModal" class="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
+    <!-- Random Draft Modal Overlay -->
+    <div v-if="showRandomModal" class="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/90 backdrop-blur-md" role="dialog" aria-modal="true" aria-label="Randomly Selecting Player">
 
       <h2 class="text-3xl font-bold text-white mb-8 animate-pulse text-center">
         <span class="text-amber-400">Fate</span> is deciding...
@@ -399,7 +347,7 @@ const sortedAvailablePlayers = computed(() => {
 
       <div class="relative">
         <div class="absolute -top-8 left-1/2 -translate-x-1/2 z-20 drop-shadow-xl filter">
-          <i class="ph-fill ph-caret-down text-6xl text-white"></i>
+          <i class="ph-fill ph-caret-down text-6xl text-white" aria-hidden="true"></i>
         </div>
 
         <div class="w-80 h-80 sm:w-96 sm:h-96 rounded-full border-8 border-slate-800 shadow-[0_0_60px_rgba(245,158,11,0.3)] relative overflow-hidden transition-transform duration-[4000ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
@@ -422,7 +370,7 @@ const sortedAvailablePlayers = computed(() => {
         </div>
       </div>
 
-      <p class="text-slate-500 mt-8 font-mono text-xs">
+      <p class="text-slate-500 mt-8 font-mono text-xs" aria-live="polite">
         Choosing from {{ availablePlayers.length }} Players
       </p>
     </div>
@@ -430,7 +378,7 @@ const sortedAvailablePlayers = computed(() => {
 </template>
 
 <style scoped>
-/* Move draft-specific styles here if any (like .animate-shine) */
+/* Scoped styles are used here for specific animation keyframes and scrollbar hiding that are not easily mapped to standard Tailwind arbitrary classes without cluttering the template. */
 @keyframes shine {
   0% { transform: translateX(-150%) skewX(-12deg); }
   100% { transform: translateX(150%) skewX(-12deg); }
@@ -444,5 +392,26 @@ const sortedAvailablePlayers = computed(() => {
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5); 
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5); 
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.8); 
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -10px);
 }
 </style>
