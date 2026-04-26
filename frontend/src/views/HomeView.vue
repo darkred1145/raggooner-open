@@ -12,6 +12,7 @@ import { useAuth } from '../composables/useAuth';
 import { useGlobalSettings } from '../composables/useGlobalSettings';
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
+import QuickMatchQueue from '../components/QuickMatchQueue.vue';
 
 
 const router = useRouter();
@@ -523,9 +524,27 @@ onMounted(() => {
                 </button>
               </div>
 
-              <div class="relative">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
-                <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-800 text-slate-500 rounded">Or queue for instant play</span></div>
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
+              <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-800 text-slate-500 rounded">Quick Play</span></div>
+            </div>
+          </div>
+
+            <div class="space-y-4">
+              <div class="text-center space-y-2">
+                <h2 class="text-2xl font-bold text-white">3v3v3 Quick Play</h2>
+                <p class="text-sm text-slate-400">
+                  Fast queue, instant teams, no tournament setup.
+                </p>
+              </div>
+
+              <QuickMatchQueue
+                  v-if="linkedPlayer"
+                  :current-user="linkedPlayer"
+              />
+
+              <div v-else class="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-sm text-amber-200 text-center">
+                Link your player profile first to use Quick Play.
               </div>
             </div>
 

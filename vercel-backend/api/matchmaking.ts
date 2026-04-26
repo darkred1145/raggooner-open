@@ -1,4 +1,8 @@
+import admin from 'firebase-admin';
 import { VercelRequest, VercelResponse } from '@vercel/node';
+
+const APP_ID = process.env.APP_ID || 'raggooner-uma-2026';
+const QUEUE_SIZE = 9;
 
 type Player = {
   id: string;
@@ -14,39 +18,78 @@ type MatchResult = {
 
 type QueueAction = 'join' | 'leave' | 'status' | 'clear_match';
 
-const QUEUE_SIZE = 9;
-let globalQueue: Player[] = [];
-const pendingMatches = new Map<string, MatchResult>();
+type QueueState = {
+  queue: Player[];
+  matches: Record<string, MatchResult>;
+  updatedAt: string;
+};
 
-const setCorsHeaders = (res: VercelResponse) => {
+function setCorsHeaders(res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
   );
-};
+}
 
-const isPlayer = (value: unknown): value is Player => {
-  if (!value || typeof value !== 'object') return false;
+async function getDb() {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_BASE64');
+  }
 
-  const candidate = value as Record<string, unknown>;
-  return typeof candidate.id === 'string' && candidate.id.trim().length > 0;
-};
+  if (!admin.apps.length) {
+    const serviceAccount = JSON.parse(
+      Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8')
+    );
+    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  }
 
-const buildPlayerResponse = (playerId?: string) => {
-  const queuedCount = globalQueue.length;
-  const matchResult = playerId ? pendingMatches.get(playerId) ?? null : null;
+  return admin.firestore();
+}
 
+function getPlayersCollection(db: admin.firestore.Firestore) {
+  return db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('players');
+}
+
+function getStateRef(db: admin.firestore.Firestore) {
+  return db.collection('artifacts').doc(APP_ID).collection('public').doc('data').collection('quickPlay').doc('matchmaking');
+}
+
+function getDefaultState(): QueueState {
   return {
-    status: matchResult ? 'match_found' : 'searching',
-    queuedCount,
-    matchResult,
+    queue: [],
+    matches: {},
+    updatedAt: new Date().toISOString(),
   };
-};
+}
 
-const shufflePlayers = (players: Player[]) => {
+async function resolvePlayer(db: admin.firestore.Firestore, authToken?: string, discordId?: string): Promise<Player | null> {
+  const playersRef = getPlayersCollection(db);
+
+  if (authToken) {
+    const snap = await playersRef.where('firebaseUid', '==', authToken).limit(1).get();
+    if (!snap.empty) {
+      const doc = snap.docs[0]!;
+      const data = doc.data();
+      return { id: doc.id, name: data.name || 'Player', avatarUrl: data.avatarUrl };
+    }
+  }
+
+  if (discordId) {
+    const snap = await playersRef.where('discordId', '==', discordId).limit(1).get();
+    if (!snap.empty) {
+      const doc = snap.docs[0]!;
+      const data = doc.data();
+      return { id: doc.id, name: data.name || 'Player', avatarUrl: data.avatarUrl };
+    }
+  }
+
+  return null;
+}
+
+function shufflePlayers(players: Player[]) {
   const shuffled = [...players];
 
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
@@ -55,22 +98,25 @@ const shufflePlayers = (players: Player[]) => {
   }
 
   return shuffled;
-};
+}
 
-const createMatch = () => {
-  const selectedPlayers = shufflePlayers(globalQueue.splice(0, QUEUE_SIZE));
-  const matchResult: MatchResult = {
-    teamA: selectedPlayers.slice(0, 3),
-    teamB: selectedPlayers.slice(3, 6),
-    teamC: selectedPlayers.slice(6, 9),
+function buildMatchResult(players: Player[]): MatchResult {
+  return {
+    teamA: players.slice(0, 3),
+    teamB: players.slice(3, 6),
+    teamC: players.slice(6, 9),
   };
+}
 
-  for (const player of selectedPlayers) {
-    pendingMatches.set(player.id, matchResult);
-  }
+function buildPlayerResponse(state: QueueState, playerId: string) {
+  const matchResult = state.matches[playerId] ?? null;
 
-  return matchResult;
-};
+  return {
+    status: matchResult ? 'match_found' : 'searching',
+    queuedCount: state.queue.length,
+    matchResult,
+  };
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCorsHeaders(res);
@@ -83,7 +129,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { action, player } = req.body as { action?: QueueAction; player?: unknown };
+  const { action, authToken, discordId } = req.body as {
+    action?: QueueAction;
+    authToken?: string;
+    discordId?: string;
+  };
 
   if (!action) {
     return res.status(400).json({ error: 'Action is required' });
@@ -93,34 +143,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Invalid action' });
   }
 
-  if (!isPlayer(player)) {
-    return res.status(400).json({ error: 'A valid player is required' });
+  if (!authToken && !discordId) {
+    return res.status(401).json({ error: 'Authentication is required' });
   }
 
   try {
+    const db = await getDb();
+    const player = await resolvePlayer(db, authToken, discordId);
+
+    if (!player) {
+      return res.status(404).json({ error: 'Linked player not found' });
+    }
+
+    const stateRef = getStateRef(db);
+
+    if (action === 'status') {
+      const snap = await stateRef.get();
+      const state = snap.exists ? ({ ...getDefaultState(), ...snap.data() } as QueueState) : getDefaultState();
+      return res.status(200).json(buildPlayerResponse(state, player.id));
+    }
+
     if (action === 'clear_match') {
-      pendingMatches.delete(player.id);
-      return res.status(200).json({ status: 'cleared' });
+      const payload = await db.runTransaction(async (tx) => {
+        const snap = await tx.get(stateRef);
+        const state = snap.exists ? ({ ...getDefaultState(), ...snap.data() } as QueueState) : getDefaultState();
+
+        delete state.matches[player.id];
+        state.updatedAt = new Date().toISOString();
+
+        tx.set(stateRef, state, { merge: true });
+        return { status: 'cleared', queuedCount: state.queue.length };
+      });
+
+      return res.status(200).json(payload);
     }
 
     if (action === 'leave') {
-      globalQueue = globalQueue.filter((queuedPlayer) => queuedPlayer.id !== player.id);
-      return res.status(200).json({ status: 'left', queuedCount: globalQueue.length });
+      const payload = await db.runTransaction(async (tx) => {
+        const snap = await tx.get(stateRef);
+        const state = snap.exists ? ({ ...getDefaultState(), ...snap.data() } as QueueState) : getDefaultState();
+
+        state.queue = state.queue.filter((queuedPlayer) => queuedPlayer.id !== player.id);
+        state.updatedAt = new Date().toISOString();
+
+        tx.set(stateRef, state, { merge: true });
+        return { status: 'left', queuedCount: state.queue.length };
+      });
+
+      return res.status(200).json(payload);
     }
 
-    if (action === 'status') {
-      return res.status(200).json(buildPlayerResponse(player.id));
-    }
+    const payload = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(stateRef);
+      const state = snap.exists ? ({ ...getDefaultState(), ...snap.data() } as QueueState) : getDefaultState();
 
-    if (!globalQueue.some((queuedPlayer) => queuedPlayer.id === player.id) && !pendingMatches.has(player.id)) {
-      globalQueue.push(player);
-    }
+      if (!state.matches[player.id] && !state.queue.some((queuedPlayer) => queuedPlayer.id === player.id)) {
+        state.queue.push(player);
+      }
 
-    if (!pendingMatches.has(player.id) && globalQueue.length >= QUEUE_SIZE) {
-      createMatch();
-    }
+      while (state.queue.length >= QUEUE_SIZE) {
+        const selectedPlayers = shufflePlayers(state.queue.slice(0, QUEUE_SIZE));
+        state.queue = state.queue.slice(QUEUE_SIZE);
 
-    return res.status(200).json(buildPlayerResponse(player.id));
+        const matchResult = buildMatchResult(selectedPlayers);
+        for (const selectedPlayer of selectedPlayers) {
+          state.matches[selectedPlayer.id] = matchResult;
+        }
+      }
+
+      state.updatedAt = new Date().toISOString();
+      tx.set(stateRef, state, { merge: true });
+
+      return buildPlayerResponse(state, player.id);
+    });
+
+    return res.status(200).json(payload);
   } catch (error) {
     console.error('Matchmaking error:', error);
     return res.status(500).json({ error: 'Internal Server Error' });

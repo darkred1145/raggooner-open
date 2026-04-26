@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from 'vue';
+import { useAuth } from '../composables/useAuth';
 import type { GlobalPlayer } from '../types';
 
 const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
@@ -12,6 +13,8 @@ type QueueAction = 'join' | 'leave' | 'status' | 'clear_match';
 const props = defineProps<{
   currentUser: GlobalPlayer;
 }>();
+
+const { user } = useAuth();
 
 const queueStatus = ref<QueueStatus>('idle');
 const queuedCount = ref(0);
@@ -36,7 +39,11 @@ const pingBackend = async (action: QueueAction) => {
     const res = await fetch(`${VERCEL_API_URL}/api/matchmaking`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, player: props.currentUser }),
+      body: JSON.stringify({
+        action,
+        authToken: user.value?.uid,
+        discordId: props.currentUser.discordId,
+      }),
     });
 
     const data = await res.json().catch(() => null);
