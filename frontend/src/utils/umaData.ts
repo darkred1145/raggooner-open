@@ -447,6 +447,18 @@ export const UMA_DICT: Record<string, UmaData> = {
         statBonus: 'SPD +10% / STA +10% / WIT +10%',
         aptitudes: { surface: { turf: 'A', dirt: 'E' }, distance: { sprint: 'D', mile: 'D', medium: 'A', long: 'A' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'B', endCloser: 'B' } }
     },
+    'Cheerleader King Halo': {
+        id: 'cheerleader-king-halo', name: 'Cheerleader King Halo', stars: 3, releaseDate: '2026-04-26T22:00:00.000Z', characterId: 106102,
+        gametoraId: 106102,
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'B', medium: 'B', long: 'C' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'D' } }
+    },
+    'Cheerleader Nice Nature': {
+        id: 'cheerleader-nice-nature', name: 'Cheerleader Nice Nature', stars: 3, releaseDate: '2026-04-26T22:00:00.000Z', characterId: 106002,
+        gametoraId: 106002,
+        statBonus: 'STA +10% / POW +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'A' }, style: { frontRunner: 'F', paceChaser: 'B', lateSurger: 'A', endCloser: 'D' } }
+    },
     'Anime Tokai Teio': {
         id: 'anime-tokai-teio', name: 'Anime Tokai Teio', stars: 3, releaseDate: '2025-07-16T22:00:00.000Z', characterId: 100302,
         gametoraId: 100302,
