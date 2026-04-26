@@ -455,9 +455,6 @@ function perfIndicator(
         </div>
       </div>
 
-      <div class="flex gap-2 border-b border-slate-700 mb-6">
-      </div>
-
       <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 mb-6 flex flex-col lg:flex-row flex-wrap gap-8 lg:items-center">
         <div class="flex flex-col gap-2 flex-1 max-w-xl">
           <div class="flex items-center justify-between">

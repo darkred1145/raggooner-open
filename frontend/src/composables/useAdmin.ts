@@ -9,6 +9,7 @@ import { useUserRoles } from './useUserRoles';
 type SecureUpdateFn = (data: FirestoreUpdate<Tournament>) => Promise<void>;
 type FetchTournamentsFn = () => Promise<void>;
 
+const SUPERADMIN_PASSWORD = 'SUPERADMIN';
 
 export function useAdmin(
     tournament: Ref<Tournament | null>,
@@ -16,7 +17,7 @@ export function useAdmin(
     fetchPublicTournaments: FetchTournamentsFn,
     appId: string
 ) {
-    const { isSuperAdmin } = useUserRoles(); // <-- Hook into existing role logic
+    const { isSuperAdmin } = useUserRoles();
 
     // --- STATE ---
     const adminPasswordInput = ref('');
@@ -52,12 +53,24 @@ export function useAdmin(
         }
     });
 
+    const grantAdminAccess = async (tId: string, uid: string) => {
+        try {
+            const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${uid}`);
+            await setDoc(adminRef, { tournamentId: tId, userId: uid, password: SUPERADMIN_PASSWORD });
+        } catch (e) {
+            console.error('Grant access failed:', e);
+        }
+
+        localAdminPassword.value = SUPERADMIN_PASSWORD;
+        localStorage.setItem(`admin_pwd_${tId}`, SUPERADMIN_PASSWORD);
+    };
+
     // Automatically grant Firestore access when role loads
     watch(
         [() => tournament.value?.id, isSuperAdmin, () => auth.currentUser?.uid],
         async ([tId, isSA, uid]) => {
-            if (tId && isSA === true && uid && localAdminPassword.value !== 'SA') {
-                await _grantAccess(tId, uid);
+            if (tId && isSA === true && uid && localAdminPassword.value !== SUPERADMIN_PASSWORD) {
+                await grantAdminAccess(tId, uid);
             }
         },
         { immediate: true }
@@ -94,18 +107,11 @@ export function useAdmin(
     };
 
     const autoLoginIfSuperAdmin = async () => {
-        // Handled automatically by reactivity.
-    };
-
-    const _grantAccess = async (tId: string, uid: string) => {
-        try {
-            const adminRef = doc(db, 'artifacts', appId, 'public', 'data', 'admins', `${tId}_${uid}`);
-            await setDoc(adminRef, { tournamentId: tId, userId: uid, password: 'SA' });
-        } catch (e) {
-            console.error('Grant access failed:', e);
+        if (!tournament.value?.id || !auth.currentUser?.uid || !isSuperAdmin.value) {
+            return;
         }
-        localAdminPassword.value = 'SA';
-        localStorage.setItem(`admin_pwd_${tId}`, 'SA');
+
+        await grantAdminAccess(tournament.value.id, auth.currentUser.uid);
     };
 
     const revalidateAdminSlip = async (): Promise<boolean> => {
@@ -206,6 +212,6 @@ export function useAdmin(
         togglePlacementTiebreaker,
         deleteTournament,
         autoLoginIfSuperAdmin,
-        grantAdminAccess: _grantAccess,
+        grantAdminAccess,
     };
 }

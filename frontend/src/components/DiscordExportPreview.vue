@@ -228,9 +228,8 @@ const displayMessages = computed<string[]>(() => {
 
 // Messages shown in the preview
 const previewMessages = computed<string[]>(() => {
-  // if (tier.value === 'single') return [fullSingle.value];
-  // return displayMessages.value;
-  return [fullSingle.value];
+  if (tier.value === 'single') return [fullSingle.value];
+  return displayMessages.value;
 });
 
 // Helper for Preview Rendering

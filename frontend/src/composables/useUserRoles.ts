@@ -84,7 +84,7 @@ export function useUserRoles() {
     const isSuperAdmin = computed(() => {
         if (currentUserRole.value === 'superadmin') return true;
         const session = JSON.parse(localStorage.getItem('discord_session') || '{}');
-        return session.discordId && session.discordId === import.meta.env.VITE_OWNER_DISCORD_ID;
+        return Boolean(session.discordId && session.discordId === import.meta.env.VITE_OWNER_DISCORD_ID);
     });
     const isAdmin = computed(() => currentUserRole.value === 'admin' || isSuperAdmin.value);
     const can = (permission: Permission): boolean => hasPermission(currentUserRole.value, permission);
@@ -108,7 +108,7 @@ export function useUserRoles() {
                 appId,
                 targetUid,
                 role,
-                displayName,
+                displayName: displayName ?? '',
                 authToken: currentUid.value,
                 discordId: session.discordId
             })

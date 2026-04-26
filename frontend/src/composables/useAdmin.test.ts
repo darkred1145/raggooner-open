@@ -50,6 +50,7 @@ describe('useAdmin', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIsSuperAdmin.value = false;
     localStorage.clear();
     sessionStorage.clear();
     (auth as any).currentUser = { uid: 'user-123' };

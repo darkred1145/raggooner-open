@@ -89,7 +89,8 @@ export function useUmaDraft(
 
     // Available for the current picker (used for random selection and UI state)
     const availableUmas = computed(() => {
-        return allUmas.value.filter(uma => canPickUma(uma));
+        const activeTeamId = currentPicker.value?.id ?? tournament.value?.teams[0]?.id ?? '';
+        return allUmas.value.filter(uma => canPickUma(uma, activeTeamId));
     });
 
     const remainingPicks = computed(() => {
