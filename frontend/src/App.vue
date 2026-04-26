@@ -8,12 +8,14 @@ import ChangelogModal from './components/ChangelogModal.vue';
 import SuperAdminPanel from "./components/admin/SuperAdminPanel.vue";
 import DiscordAuthModal from "./components/auth/DiscordAuthModal.vue";
 import { useAuth, checkDiscordSession } from './composables/useAuth';
+import { useSignupNotifications } from './composables/useSignupNotifications';
 import { useUserRoles } from './composables/useUserRoles';
 
 // Load Discord session BEFORE useAuth so it's available when auth state fires
 checkDiscordSession();
 
 const { user, linkedPlayer, loading: authLoading, isDiscordUser } = useAuth();
+const { initializeSignupNotifications } = useSignupNotifications();
 const { isSuperAdmin } = useUserRoles();
 
 const showChangelog = ref(false);
@@ -59,6 +61,7 @@ provide('activeTournament', activeTournament);
 
 onMounted(() => {
   init();
+  initializeSignupNotifications();
   const lastSeen = localStorage.getItem('last_seen_version');
   if (lastSeen) previousVersion.value = lastSeen;
   if (lastSeen !== APP_VERSION) hasNewUpdates.value = true;

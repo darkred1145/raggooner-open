@@ -136,6 +136,11 @@ export interface RecentResult {
     umaPlayed?: string;
 }
 
+export interface NotificationPreferences {
+    allOfficialSignups?: boolean;
+    watchedTournamentIds?: string[];
+}
+
 export interface GlobalPlayer {
     id: string;
     name: string;
@@ -146,6 +151,7 @@ export interface GlobalPlayer {
     avatarUrl?: string;             // Discord CDN avatar URL
     roster?: string[];              // Uma names owned by this player (keys of UMA_DICT)
     supportCards?: ProfileSupportCard[];
+    notificationPreferences?: NotificationPreferences;
     metadata: {
         totalTournaments: number;
         totalRaces: number;

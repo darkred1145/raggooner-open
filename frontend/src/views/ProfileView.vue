@@ -13,8 +13,19 @@ import type { ProfileSupportCard, SupportCardType } from '../types';
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 import PlayerAvatar from '../components/shared/PlayerAvatar.vue';
+import { useSignupNotifications } from '../composables/useSignupNotifications';
 
 const { user, linkedPlayer, updatePlayerProfile, unlinkOwnAccount } = useAuth();
+const {
+    browserNotificationSupported,
+    browserPermission,
+    allOfficialSignups,
+    watchedOfficialTournaments,
+    watchedOpenSignupTournaments,
+    requestBrowserPermission,
+    toggleAllOfficialSignups,
+    toggleTournamentWatch,
+} = useSignupNotifications();
 
 const showUnlinkConfirm = ref(false);
 const unlinking = ref(false);
@@ -187,6 +198,86 @@ const sortedOwnedCards = computed(() =>
                     <i class="ph-bold ph-link-break"></i>
                     Unlink
                 </button>
+            </div>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden mb-6">
+                <div class="px-5 py-4 border-b border-slate-700 bg-slate-900 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="font-bold text-white uppercase tracking-wider text-sm">Signup Notifications</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Watch official tournaments and get browser alerts when self-signups open.
+                        </p>
+                    </div>
+                    <button
+                        v-if="browserNotificationSupported && browserPermission !== 'granted'"
+                        @click="requestBrowserPermission"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold border border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 transition-colors"
+                    >
+                        {{ browserPermission === 'denied' ? 'Notifications Blocked' : 'Enable Browser Alerts' }}
+                    </button>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    <div class="flex items-center justify-between gap-4 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-4">
+                        <div>
+                            <div class="text-sm font-bold text-white">All Official Tournaments</div>
+                            <div class="text-xs text-slate-500 mt-1">
+                                Automatically watch every active official event.
+                            </div>
+                        </div>
+                        <button
+                            @click="toggleAllOfficialSignups"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                            :class="allOfficialSignups ? 'bg-indigo-600' : 'bg-slate-700'"
+                        >
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                  :class="allOfficialSignups ? 'translate-x-6' : 'translate-x-1'"/>
+                        </button>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+                            <div class="text-2xl font-black text-emerald-300">{{ watchedOpenSignupTournaments.length }}</div>
+                            <div class="text-xs uppercase tracking-wider text-emerald-200/80 mt-1">Watched and Open</div>
+                        </div>
+                        <div class="rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-3">
+                            <div class="text-2xl font-black text-white">{{ watchedOfficialTournaments.length }}</div>
+                            <div class="text-xs uppercase tracking-wider text-slate-400 mt-1">Currently Watched</div>
+                        </div>
+                    </div>
+
+                    <div v-if="watchedOfficialTournaments.length > 0" class="space-y-2">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Watched Official Tournaments</div>
+                        <div class="grid gap-2">
+                            <div v-for="tournament in watchedOfficialTournaments" :key="tournament.id"
+                                 class="flex items-center justify-between gap-3 rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-3">
+                                <div class="min-w-0">
+                                    <div class="font-bold text-white truncate">{{ tournament.name }}</div>
+                                    <div class="text-xs text-slate-500 mt-1 font-mono">{{ tournament.id }}</div>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                                          :class="tournament.selfSignupEnabled
+                                            ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                                            : 'border-slate-700 bg-slate-800 text-slate-400'">
+                                        {{ tournament.selfSignupEnabled ? 'Open' : 'Closed' }}
+                                    </span>
+                                    <button
+                                        v-if="!allOfficialSignups"
+                                        @click="toggleTournamentWatch(tournament.id)"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+                                    >
+                                        Unwatch
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="rounded-xl border border-dashed border-slate-700 px-4 py-6 text-center text-sm text-slate-500">
+                        No watched official tournaments yet. Use the bell on an official tournament page to follow one.
+                    </div>
+                </div>
             </div>
 
             <!-- ── Uma Roster ─────────────────────────────────────────── -->

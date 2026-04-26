@@ -26,6 +26,8 @@ export function useAnalyticsData() {
   const tierCriterion = ref<TierCriterion>('dominance');
   const selectedSeasons = ref<string[]>(['season-3']);
   const selectedFormats = ref<string[]>([]);
+  const selectedOfficiality = ref<'official' | 'unofficial' | 'all'>('official');
+  const ratingSeasonId = ref<string>('season-3');
   const selectedSurfaces = ref<string[]>([]);
   const selectedDistanceTypes = ref<string[]>([]);
   const selectedLocations = ref<string[]>([]);
@@ -79,8 +81,8 @@ export function useAnalyticsData() {
           const snap = await getDocs(col('players'));
           return snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as GlobalPlayer));
         }),
-        fetchOrCache('tournaments-official', async () => {
-          const snap = await getDocs(query(col('tournaments'), where('status', '==', 'completed'), where('isOfficial', '==', true)));
+        fetchOrCache('tournaments-completed', async () => {
+          const snap = await getDocs(query(col('tournaments'), where('status', '==', 'completed')));
           return snap.docs.map(doc => {
             const data = { id: doc.id, ...doc.data() } as Tournament;
             data.races = migrateRaces(data.races);
@@ -94,6 +96,9 @@ export function useAnalyticsData() {
       seasons.value = s;
       players.value = p;
       tournaments.value = t;
+      if (!s.some(season => season.id === ratingSeasonId.value)) {
+        ratingSeasonId.value = s[0]?.id ?? '';
+      }
 
       if (fetchCount > 0) trackUsage(fetchCount, readOps);
     } catch (e) {
@@ -106,7 +111,7 @@ export function useAnalyticsData() {
   const forceRefreshAnalytics = async () => {
     localStorage.removeItem(`cache:${CACHE_KEY}:seasons`);
     localStorage.removeItem(`cache:${CACHE_KEY}:players`);
-    localStorage.removeItem(`cache:${CACHE_KEY}:tournaments-official`);
+    localStorage.removeItem(`cache:${CACHE_KEY}:tournaments-completed`);
     await loadData();
   };
 
@@ -115,11 +120,15 @@ export function useAnalyticsData() {
     return tournaments.value.filter(t => {
       const matchesSeason = selectedSeasons.value.length === 0 || (t.seasonId && selectedSeasons.value.includes(t.seasonId));
       const matchesFormat = selectedFormats.value.length === 0 || (t.format && selectedFormats.value.includes(t.format));
+      const matchesOfficiality =
+        selectedOfficiality.value === 'all' ||
+        (selectedOfficiality.value === 'official' && Boolean(t.isOfficial)) ||
+        (selectedOfficiality.value === 'unofficial' && !t.isOfficial);
       const track = t.selectedTrack ? findTrackById(t.selectedTrack) : null;
       const matchesSurface = selectedSurfaces.value.length === 0 || (track && selectedSurfaces.value.includes(track.surface));
       const matchesDistanceType = selectedDistanceTypes.value.length === 0 || (track && selectedDistanceTypes.value.includes(track.distanceType));
       const matchesLocation = selectedLocations.value.length === 0 || (track && selectedLocations.value.includes(track.location));
-      return matchesSeason && matchesFormat && matchesSurface && matchesDistanceType && matchesLocation;
+      return matchesSeason && matchesFormat && matchesOfficiality && matchesSurface && matchesDistanceType && matchesLocation;
     });
   });
 
@@ -188,6 +197,8 @@ export function useAnalyticsData() {
     
     selectedSeasons,
     selectedFormats,
+    selectedOfficiality,
+    ratingSeasonId,
     selectedSurfaces,
     selectedDistanceTypes,
     selectedLocations,

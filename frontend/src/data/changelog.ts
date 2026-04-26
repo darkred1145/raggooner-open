@@ -9,9 +9,19 @@ export interface ChangeLogEntry {
     }[];
 }
 
-export const APP_VERSION = '4.1.1'; // Update this manually when you deploy
+export const APP_VERSION = '4.2.0'; // Update this manually when you deploy
 
 export const changelogData: ChangeLogEntry[] = [
+    {
+        version: '4.2.0',
+        date: '2026-04-26',
+        title: 'Signup Watches & Analytics Filters',
+        changes: [
+            { type: 'new', text: 'Added official tournament signup watches with profile-level notification preferences.' },
+            { type: 'new', text: 'Official tournament pages now include a watch bell for self-signup openings.' },
+            { type: 'improvement', text: 'Analytics can now switch between official-only, unofficial-only, or all completed tournaments.' },
+        ]
+    },
     {
         version: '4.1.1',
         date: '2026-04-17',

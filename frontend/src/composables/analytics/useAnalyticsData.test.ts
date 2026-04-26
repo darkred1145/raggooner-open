@@ -82,11 +82,11 @@ describe('useAnalyticsData', () => {
   });
 
   it('filters tournaments correctly', () => {
-    const { tournaments, selectedSeasons, filteredTournaments } = useAnalyticsData();
+    const { tournaments, selectedSeasons, selectedOfficiality, filteredTournaments } = useAnalyticsData();
     
     tournaments.value = [
-      { id: 't1', seasonId: 'season-1', status: 'completed', races: {}, players: {}, teams: [] } as any,
-      { id: 't2', seasonId: 'season-2', status: 'completed', races: {}, players: {}, teams: [] } as any,
+      { id: 't1', seasonId: 'season-1', status: 'completed', isOfficial: true, races: {}, players: {}, teams: [] } as any,
+      { id: 't2', seasonId: 'season-2', status: 'completed', isOfficial: false, races: {}, players: {}, teams: [] } as any,
     ];
     
     selectedSeasons.value = ['season-1'];
@@ -94,12 +94,33 @@ describe('useAnalyticsData', () => {
     expect(filteredTournaments.value[0].id).toBe('t1');
 
     selectedSeasons.value = [];
+    selectedOfficiality.value = 'all';
+    expect(filteredTournaments.value).toHaveLength(2);
+  });
+
+  it('filters tournaments by officiality', () => {
+    const { tournaments, selectedOfficiality, selectedSeasons, filteredTournaments } = useAnalyticsData();
+    selectedSeasons.value = [];
+
+    tournaments.value = [
+      { id: 't1', isOfficial: true, teams: [], races: {}, players: {} } as any,
+      { id: 't2', isOfficial: false, teams: [], races: {}, players: {} } as any,
+    ];
+
+    selectedOfficiality.value = 'official';
+    expect(filteredTournaments.value.map(t => t.id)).toEqual(['t1']);
+
+    selectedOfficiality.value = 'unofficial';
+    expect(filteredTournaments.value.map(t => t.id)).toEqual(['t2']);
+
+    selectedOfficiality.value = 'all';
     expect(filteredTournaments.value).toHaveLength(2);
   });
 
   it('filters tournaments by surface and distance type', () => {
-    const { tournaments, selectedSurfaces, selectedDistanceTypes, filteredTournaments, selectedSeasons } = useAnalyticsData();
+    const { tournaments, selectedSurfaces, selectedDistanceTypes, selectedOfficiality, filteredTournaments, selectedSeasons } = useAnalyticsData();
     selectedSeasons.value = [];
+    selectedOfficiality.value = 'all';
     
     tournaments.value = [
       { id: 't1', selectedTrack: 'tokyo-1600-turf-left', teams: [] } as any, // Turf, Mile
@@ -118,8 +139,9 @@ describe('useAnalyticsData', () => {
   });
 
   it('filters tournaments by location', () => {
-    const { tournaments, selectedLocations, filteredTournaments, selectedSeasons } = useAnalyticsData();
+    const { tournaments, selectedLocations, selectedOfficiality, filteredTournaments, selectedSeasons } = useAnalyticsData();
     selectedSeasons.value = [];
+    selectedOfficiality.value = 'all';
     
     tournaments.value = [
       { id: 't1', selectedTrack: 'tokyo-1600-turf-left', teams: [] } as any, // Tokyo
@@ -132,9 +154,10 @@ describe('useAnalyticsData', () => {
   });
 
   it('overviewStats correctly calculates stats', () => {
-    const { tournaments, overviewStats, selectedSeasons } = useAnalyticsData();
+    const { tournaments, overviewStats, selectedSeasons, selectedOfficiality } = useAnalyticsData();
 
     selectedSeasons.value = [];
+    selectedOfficiality.value = 'all';
     tournaments.value = [
       {
         id: 't1', teams: [], races: { r1: { stage: 'group', group: 'A', raceNumber: 1, placements: { p1: 2, p2: 1 } } },

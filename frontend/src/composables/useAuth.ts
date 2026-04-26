@@ -217,6 +217,10 @@ export function useAuth() {
             firebaseUid: user.value?.uid || session?.uid,
             discordId: sessionDiscordId,
             avatarUrl: user.value?.photoURL || session?.photoURL,
+            notificationPreferences: {
+                allOfficialSignups: false,
+                watchedTournamentIds: [],
+            },
             metadata: {
                 totalTournaments: 0,
                 totalRaces: 0
@@ -252,7 +256,7 @@ export function useAuth() {
         saveSession(null);
     };
 
-    const updatePlayerProfile = async (fields: Partial<Pick<GlobalPlayer, 'roster' | 'supportCards'>>) => {
+    const updatePlayerProfile = async (fields: Partial<Pick<GlobalPlayer, 'roster' | 'supportCards' | 'notificationPreferences'>>) => {
         if (!linkedPlayer.value) throw new Error('No linked player');
         const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', linkedPlayer.value.id);
         await updateDoc(playerRef, fields);

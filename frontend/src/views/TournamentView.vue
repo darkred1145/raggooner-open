@@ -9,9 +9,11 @@ import { recalculateTournamentScores, migrateRaces, migratePlayers } from "../ut
 import { POINTS_SYSTEM } from "../utils/constants.ts";
 import { useAdmin } from '../composables/useAdmin';
 import { useCaptainActions } from '../composables/useCaptainActions';
+import { useAuth } from '../composables/useAuth';
 import { useGameLogic } from "../composables/useGameLogic";
 import { useEasterEgg } from "../composables/useEasterEgg.ts";
 import { useVoicelines } from '../composables/useVoicelines';
+import { useSignupNotifications } from '../composables/useSignupNotifications';
 
 import TrackSelectionPhase from "../components/TrackSelectionPhase.vue";
 import TrackViewerPanel from "../components/TrackViewerPanel.vue";
@@ -86,6 +88,13 @@ const {
 const { currentView } = useGameLogic(tournament, secureUpdate);
 const { activeVisualEgg } = useEasterEgg(tournament);
 const { setBaseline } = useVoicelines(tournament);
+const {
+  browserPermission,
+  isWatchingTournament,
+  requestBrowserPermission,
+  toggleTournamentWatch,
+} = useSignupNotifications();
+const { linkedPlayer } = useAuth();
 
 // --- PHASE TRANSITION OVERLAY ---
 const PHASE_NAMES: Record<string, { label: string; icon: string }> = {
@@ -330,6 +339,22 @@ const openRenameTeamModal = () => {
   captainTeamName.value = captainTeam.value.name;
   showRenameTeamModal.value = true;
 };
+
+const canWatchTournamentSignups = computed(() =>
+  Boolean(linkedPlayer.value && tournament.value?.isOfficial)
+);
+
+const isWatchingCurrentTournament = computed(() =>
+  tournament.value ? isWatchingTournament(tournament.value.id) : false
+);
+
+const toggleCurrentTournamentWatch = async () => {
+  if (!tournament.value || !canWatchTournamentSignups.value) return;
+  if (browserPermission.value === 'default') {
+    await requestBrowserPermission();
+  }
+  await toggleTournamentWatch(tournament.value.id);
+};
 </script>
 
 <template>
@@ -355,6 +380,17 @@ const openRenameTeamModal = () => {
             </button>
 
             <template v-if="tournament">
+              <button
+                  v-if="canWatchTournamentSignups"
+                  @click="toggleCurrentTournamentWatch"
+                  class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border transition-colors"
+                  :class="isWatchingCurrentTournament
+                    ? 'bg-amber-900/30 border-amber-500/50 text-amber-300 hover:bg-amber-900/50'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'">
+                <i class="ph-bold" :class="isWatchingCurrentTournament ? 'ph-bell-ringing' : 'ph-bell'"></i>
+                {{ isWatchingCurrentTournament ? 'Watching Signups' : 'Watch Signups' }}
+              </button>
+
               <button @click="showAdminModal = true"
                       class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border transition-colors mr-2"
                       :class="isAdmin ? 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'">

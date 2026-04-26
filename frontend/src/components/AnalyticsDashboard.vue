@@ -36,7 +36,7 @@ const umaSearchQuery = ref('');
 // 1. Data Layer
 const {
   loading, players, seasons, minTournaments, tierCriterion,
-  selectedSeasons, selectedFormats, selectedSurfaces, selectedDistanceTypes, selectedLocations, allTrackLocations,
+  selectedSeasons, selectedFormats, selectedOfficiality, ratingSeasonId, selectedSurfaces, selectedDistanceTypes, selectedLocations, allTrackLocations,
   filteredTournaments, filteredParticipations, filteredRaces, overviewStats,
   loadData, forceRefreshAnalytics, toggleSeason, toggleFormat, toggleSurface, toggleDistanceType, toggleLocation
 } = useAnalyticsData();
@@ -52,7 +52,7 @@ const {
   playerRaceSortKey, playerRaceSortDesc,
   topPlayerCriterion,
   togglePlayerSort, togglePlayerExpand, togglePlayerUmaSort, togglePlayerTournamentSort, togglePlayerRaceSort
-} = usePlayerRankings(players, filteredTournaments, filteredParticipations, filteredRaces, minTournaments, tierCriterion, stageView);
+} = usePlayerRankings(players, filteredTournaments, filteredParticipations, filteredRaces, minTournaments, tierCriterion, ratingSeasonId, stageView);
 
 // 3. Uma Stats Layer
 const {
@@ -366,6 +366,10 @@ const getRankIcon = (index: number) => {
   return 'ph-fill ph-user-circle';
 };
 
+const ratingSeasonName = computed(() =>
+  seasons.value.find(season => season.id === ratingSeasonId.value)?.name ?? 'No season selected'
+);
+
 // ── Stage selector (global) ───────────────────────────────────────────────────
 function setStage(s: 'total' | 'groups' | 'finals') {
   stageView.value = s;
@@ -550,12 +554,37 @@ function perfIndicator(
           </div>
         </div>
 
-        <div class="hidden lg:block w-px h-16 bg-slate-700"></div>
-        <div class="lg:hidden w-full h-px bg-slate-700"></div>
+          <div class="hidden lg:block w-px h-16 bg-slate-700"></div>
+          <div class="lg:hidden w-full h-px bg-slate-700"></div>
 
-        <div class="flex flex-col flex-1 min-w-[200px]">
-          <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-            Surface
+          <div class="flex flex-col flex-1 min-w-[220px]">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Counting
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <button
+                  v-for="option in [
+                    { id: 'official', label: 'Official Only' },
+                    { id: 'unofficial', label: 'Unofficial Only' },
+                    { id: 'all', label: 'All Events' },
+                  ]"
+                  :key="option.id"
+                  @click="selectedOfficiality = option.id as 'official' | 'unofficial' | 'all'"
+                  class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
+                  :class="selectedOfficiality === option.id
+                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                    : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="hidden lg:block w-px h-16 bg-slate-700"></div>
+          <div class="lg:hidden w-full h-px bg-slate-700"></div>
+
+          <div class="flex flex-col flex-1 min-w-[200px]">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Surface
           </label>
           <div class="flex flex-wrap gap-2">
             <button
@@ -719,16 +748,27 @@ function perfIndicator(
 
           <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="ph-fill ph-trophy text-amber-400"></i>
-                Top 5 Players
-              </h3>
-              <select
-                  v-model="topPlayerCriterion"
-                  class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
-              >
-                <option v-for="(cfg, key) in TOP5_CRITERIA" :key="key" :value="key">{{ cfg.label }}</option>
-              </select>
+              <div>
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                  <i class="ph-fill ph-trophy text-amber-400"></i>
+                  Top 5 Players
+                </h3>
+                <p class="text-xs text-slate-500 mt-1">TrueSkill season: {{ ratingSeasonName }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <select
+                    v-model="ratingSeasonId"
+                    class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
+                >
+                  <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
+                </select>
+                <select
+                    v-model="topPlayerCriterion"
+                    class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
+                >
+                  <option v-for="(cfg, key) in TOP5_CRITERIA" :key="key" :value="key">{{ cfg.label }}</option>
+                </select>
+              </div>
             </div>
 
             <div class="space-y-3">
@@ -746,7 +786,12 @@ function perfIndicator(
                 <div class="flex-1 min-w-0">
                   <div class="font-bold text-white truncate">{{ player.player.name }}</div>
                   <div class="text-xs text-slate-400">
-                    {{ player.tournaments }} tournaments • {{ player.races }} races
+                    <template v-if="topPlayerCriterion === 'trueSkillScore'">
+                      {{ player.trueSkillEpithet }} • {{ player.trueSkillMatches }} rated events
+                    </template>
+                    <template v-else>
+                      {{ player.tournaments }} tournaments • {{ player.races }} races
+                    </template>
                   </div>
                 </div>
 
@@ -804,6 +849,19 @@ function perfIndicator(
 
       <div v-if="activeTab === 'players'" class="space-y-4">
 
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-sm font-bold text-white">Season TrueSkill</div>
+            <div class="text-xs text-slate-500 mt-1">Ratings are calculated from official completed tournaments in the selected season.</div>
+          </div>
+          <select
+              v-model="ratingSeasonId"
+              class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
+          >
+            <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
+          </select>
+        </div>
+
         <input
             v-model="playerSearchQuery"
             type="text"
@@ -828,6 +886,7 @@ function perfIndicator(
 
                 <th v-for="col in [
                   { key: 'tournaments', label: 'Tourneys' },
+                  { key: 'trueSkillScore', label: 'TS Rating' },
                   { key: 'tournamentWins', label: 'T. Wins' },
                   { key: 'tournamentWinRate', label: 'T. Win Rate' },
                   { key: 'races', label: 'Races' },
@@ -872,6 +931,12 @@ function perfIndicator(
                   </td>
 
                   <td class="px-4 py-3 text-sm text-right text-slate-300">{{ player.tournaments }}</td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    <div class="flex flex-col items-end leading-tight">
+                      <span class="font-black" :class="player.trueSkillProvisional ? 'text-slate-300' : 'text-cyan-300'">{{ player.trueSkillScore }}</span>
+                      <span class="text-[10px]" :class="player.trueSkillProvisional ? 'text-amber-400' : 'text-slate-500'">{{ player.trueSkillEpithet }}</span>
+                    </div>
+                  </td>
                   <td class="px-4 py-3 text-sm text-right font-bold text-amber-400">{{ player.tournamentWins }}</td>
                   <td class="px-4 py-3 text-sm text-right font-bold text-amber-400">{{ player.tournamentWinRate }}%</td>
 
@@ -913,8 +978,35 @@ function perfIndicator(
                 </tr>
 
                 <tr v-if="expandedPlayerId === player.player.id" class="bg-slate-900/50">
-                  <td colspan="11" class="p-0 border-b-2 border-indigo-500/30">
+                  <td colspan="13" class="p-0 border-b-2 border-indigo-500/30">
                     <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-in-down">
+
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                          <i class="ph-fill ph-stars text-cyan-400"></i> Season TrueSkill
+                        </div>
+                        <div class="flex items-end gap-3">
+                          <div class="text-3xl font-black text-cyan-300">{{ player.trueSkillScore }}</div>
+                          <div class="text-xs text-slate-500 pb-1">{{ player.trueSkillMatches }} events</div>
+                        </div>
+                        <div class="text-sm font-bold mt-2" :class="player.trueSkillProvisional ? 'text-amber-400' : 'text-white'">
+                          {{ player.trueSkillEpithet }}
+                        </div>
+                        <div class="mt-3 space-y-2 text-sm">
+                          <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Exposure</span>
+                            <span class="font-mono text-white">{{ player.trueSkillExposure.toFixed(2) }}</span>
+                          </div>
+                          <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Mu / Sigma</span>
+                            <span class="font-mono text-slate-300">{{ player.trueSkillMu.toFixed(2) }} / {{ player.trueSkillSigma.toFixed(2) }}</span>
+                          </div>
+                          <div class="flex justify-between items-center">
+                            <span class="text-slate-400">Penalty</span>
+                            <span class="font-mono text-slate-300">{{ player.trueSkillPenalty }}</span>
+                          </div>
+                        </div>
+                      </div>
 
                       <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -1057,6 +1149,7 @@ function perfIndicator(
                                     { key: 'wins', label: 'Wins' },
                                     { key: 'winRate', label: 'Win %' },
                                     { key: 'totalPoints', label: 'Points' },
+                                    { key: 'trueSkillScore', label: 'TS' },
                                     { key: 'avgPoints', label: 'Avg Pts' },
                                     { key: 'dominance', label: 'Dominance' },
                                     { key: 'avgPosition', label: 'Avg Pos' },
@@ -1112,6 +1205,15 @@ function perfIndicator(
                                 </div>
                               </td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-white">{{ (t as any)[stageKey('totalPoints')] }}</td>
+                              <td class="px-3 py-2 text-sm text-right">
+                                <div v-if="t.trueSkillScore !== null" class="flex flex-col items-end leading-tight">
+                                  <span class="font-bold text-cyan-300">{{ t.trueSkillScore }}</span>
+                                  <span v-if="t.trueSkillDelta !== null" class="text-[10px]" :class="t.trueSkillDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'">
+                                    {{ t.trueSkillDelta >= 0 ? '+' : '' }}{{ t.trueSkillDelta }}
+                                  </span>
+                                </div>
+                                <span v-else class="text-slate-600">—</span>
+                              </td>
                               <td class="px-3 py-2 text-sm text-right text-indigo-400">
                                 <div class="flex items-center justify-end gap-1">
                                   {{ (t as any)[stageKey('avgPoints')] }}

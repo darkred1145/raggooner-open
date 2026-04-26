@@ -14,6 +14,7 @@ import {
   createSortState,
   getWinningTeam
 } from '../../utils/analyticsUtils';
+import { computeSeasonTrueSkill } from '../../utils/trueskill';
 
 export interface PlayerStats {
   player: GlobalPlayer;
@@ -60,6 +61,14 @@ export interface PlayerStats {
   bestTournament: { tId: string; tName: string; points: number } | null;
   mostPickedUmas: { name: string; count: number; wins: number; avgPosition: number }[];
   mostWinningUmas: { name: string; count: number; wins: number; winRate: number }[];
+  trueSkillScore: number;
+  trueSkillExposure: number;
+  trueSkillMu: number;
+  trueSkillSigma: number;
+  trueSkillPenalty: number;
+  trueSkillMatches: number;
+  trueSkillEpithet: string;
+  trueSkillProvisional: boolean;
 }
 
 const PLAYER_STAGE_KEY: Record<string, Record<string, string>> = {
@@ -90,6 +99,7 @@ export function usePlayerRankings(
   filteredRaces: Ref<DerivedRace[]>,
   minTournaments: Ref<number>,
   tierCriterion: Ref<TierCriterion>,
+  ratingSeasonId: Ref<string>,
   stageView: Ref<'total' | 'groups' | 'finals'> = ref<'total' | 'groups' | 'finals'>('total')
 ) {
   // Sort states
@@ -121,6 +131,7 @@ export function usePlayerRankings(
   const expandedDetailTab = ref<'umas' | 'tournaments' | 'races'>('tournaments');
 
   const topPlayerCriterion = ref<Top5Key>('totalPoints');
+  const seasonTrueSkill = computed(() => computeSeasonTrueSkill(filteredTournaments.value, ratingSeasonId.value));
 
   // Actions
   const togglePlayerExpand = (playerId: string) => {
@@ -156,7 +167,9 @@ export function usePlayerRankings(
           finalsTotalPosition: 0, finalsAvgPosition: 0, finalsOpponentsFaced: 0, finalsOpponentsBeaten: 0,
           finalsDominance: 0, finalsWinRate: 0,
           tournamentsRecord: [], umas: new Map(), bestTournament: null,
-          mostPickedUmas: [], mostWinningUmas: []
+          mostPickedUmas: [], mostWinningUmas: [],
+          trueSkillScore: 0, trueSkillExposure: 0, trueSkillMu: 25, trueSkillSigma: 25 / 3,
+          trueSkillPenalty: 1000, trueSkillMatches: 0, trueSkillEpithet: 'Provisional', trueSkillProvisional: true,
         });
       }
 
@@ -301,6 +314,18 @@ export function usePlayerRankings(
           stats.mostWinningUmas.push({ name: key, count: val.racesPlayed, wins: val.wins, winRate: val.racesPlayed > 0 ? Math.round((val.wins / val.racesPlayed) * 100) : 0 });
         }
       });
+
+      const trueSkill = seasonTrueSkill.value.ratings.get(stats.player.id);
+      if (trueSkill) {
+        stats.trueSkillScore = trueSkill.score;
+        stats.trueSkillExposure = trueSkill.exposure;
+        stats.trueSkillMu = trueSkill.mu;
+        stats.trueSkillSigma = trueSkill.sigma;
+        stats.trueSkillPenalty = trueSkill.penalty;
+        stats.trueSkillMatches = trueSkill.matches;
+        stats.trueSkillEpithet = trueSkill.epithet;
+        stats.trueSkillProvisional = trueSkill.isProvisional;
+      }
     });
 
     return Array.from(playerStats.values())
@@ -426,6 +451,7 @@ export function usePlayerRankings(
       const t = filteredTournaments.value.find(tourney => tourney.id === part.tournamentId);
       const grp = overrides.groupRowStats ?? emptyStats;
       const fin = overrides.finalsRowStats ?? emptyStats;
+      const trueSkillHistory = seasonTrueSkill.value.histories.get(playerId)?.find(entry => entry.tournamentId === part.tournamentId);
       return {
         rowKey, tournamentId: part.tournamentId, tournamentName: t?.name || part.tournamentId,
         playedAt: t?.playedAt ?? t?.createdAt ?? '', status: t?.status || 'unknown', selectedTrack: t?.selectedTrack || null,
@@ -448,6 +474,9 @@ export function usePlayerRankings(
         avgFinalsPoints: fin.races > 0 ? Math.round((fin.totalPoints / fin.races) * 10) / 10 : 0,
         finalsDominance: fin.opponentsFaced > 0 ? Math.round((fin.opponentsBeaten / fin.opponentsFaced) * 100 * 10) / 10 : 0,
         finalsAvgPosition: fin.races > 0 ? Math.round((fin.totalPosition / fin.races) * 10) / 10 : 0,
+        trueSkillScore: trueSkillHistory?.score ?? null,
+        trueSkillDelta: trueSkillHistory?.deltaScore ?? null,
+        trueSkillEpithet: trueSkillHistory?.epithet ?? null,
       };
     };
 

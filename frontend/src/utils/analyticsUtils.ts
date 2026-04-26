@@ -44,6 +44,7 @@ export const TOP5_CRITERIA = {
   tournamentWinRate: { label: 'Tournament Win Rate', suffix: '%',    playerKey: 'tournamentWinRate', umaKey: 'tournamentWinRate' },
   tournaments:       { label: 'Tournaments Played', suffix: '',      playerKey: 'tournaments',       umaKey: 'tournamentsPicked' },
   dominance:         { label: 'Dominance',          suffix: '%',     playerKey: 'dominance',         umaKey: 'dominance' },
+  trueSkillScore:    { label: 'TrueSkill',          suffix: '',      playerKey: 'trueSkillScore',    umaKey: 'dominance' },
 } as const;
 
 export type Top5Key = keyof typeof TOP5_CRITERIA;
