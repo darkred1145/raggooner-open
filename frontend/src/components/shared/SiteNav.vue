@@ -33,25 +33,25 @@ function isActive(to: string) {
 </script>
 
 <template>
-    <div class="max-w-3xl mx-auto flex flex-wrap gap-2 mt-4 mb-12 border-b border-cyber-border/50 pb-12 animate-fade-in">
+    <div class="max-w-3xl mx-auto flex flex-wrap gap-2 mt-4 mb-12 border-b border-cyber-border/40 pb-12 animate-fade-in">
 
         <router-link
             v-for="item in nav"
             :key="item.to"
             :to="item.to"
-            class="group relative flex-1 basis-12 rounded-xl p-2 md:p-4 flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 transition-all duration-300 border overflow-hidden"
+            class="group flex-1 basis-12 rounded-lg p-2 md:p-4 flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 transition-all duration-200 border"
             :class="isActive(item.to)
-                ? 'bg-cyber-panel border-cyber-glow/40 shadow-neon-cyan cursor-default pointer-events-none'
-                : 'bg-cyber-dark border-cyber-border hover:border-cyber-glow/30 hover:bg-cyber-panel cursor-pointer hover:shadow-[0_0_15px_rgba(0,240,255,0.08)]'"
+                ? 'bg-cyber-panel border-cyber-glow/30 cursor-default pointer-events-none'
+                : 'bg-cyber-dark border-transparent hover:border-cyber-border hover:bg-cyber-panel cursor-pointer'"
         >
-            <i :class="[item.icon, 'text-2xl', isActive(item.to) ? 'text-cyber-glow' : 'text-cyber-glow/60 group-hover:text-cyber-glow']"></i>
+            <i :class="[item.icon, 'text-2xl', isActive(item.to) ? 'text-cyber-glow' : 'text-slate-400 group-hover:text-cyber-glow/80']"></i>
             <div class="hidden md:block">
-                <div class="text-sm font-bold uppercase tracking-widest"
-                     :class="isActive(item.to) ? 'text-white' : 'text-white group-hover:text-cyber-glow/90'">
+                <div class="text-sm font-semibold uppercase tracking-wide"
+                     :class="isActive(item.to) ? 'text-white' : 'text-slate-300 group-hover:text-white'">
                     {{ item.label }}
                 </div>
                 <div class="text-[10px]"
-                     :class="isActive(item.to) ? 'text-cyber-glow/60' : 'text-slate-500 group-hover:text-slate-400'">
+                     :class="isActive(item.to) ? 'text-cyber-glow/50' : 'text-slate-500'">
                     {{ item.sub }}
                 </div>
             </div>
