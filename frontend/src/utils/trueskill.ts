@@ -255,52 +255,49 @@ export function computeFFATrueSkill(
 
   for (const tournament of ratedTournaments) {
     const races = tournament.races || {};
-    for (const [, stageRaces] of Object.entries(races)) {
-      const raceList = Array.isArray(stageRaces) ? stageRaces : Object.values(stageRaces);
-      for (const race of raceList) {
-        const placements = race.placements || {};
-        const playerEntries = Object.entries(placements)
-          .map(([playerId, position]) => ({ playerId, position: position as number }))
-          .filter(e => e.position > 0);
+    for (const race of Object.values(races)) {
+      const placements = race.placements || {};
+      const playerEntries = Object.entries(placements)
+        .map(([playerId, position]) => ({ playerId, position: position as number }))
+        .filter(e => e.position > 0);
 
-        if (playerEntries.length <= 1) continue;
+      if (playerEntries.length <= 1) continue;
 
-        playerEntries.forEach(e => inflateUncertainty(ensureRating(ratings, e.playerId)));
+      playerEntries.forEach(e => inflateUncertainty(ensureRating(ratings, e.playerId)));
 
-        for (let i = 0; i < playerEntries.length - 1; i++) {
-          for (let j = i + 1; j < playerEntries.length; j++) {
-            const higher = playerEntries[i]!;
-            const lower = playerEntries[j]!;
-            if (higher.position < lower.position) {
-              updateAdjacentFFA(ratings, higher.playerId, lower.playerId);
-            } else if (higher.position > lower.position) {
-              updateAdjacentFFA(ratings, lower.playerId, higher.playerId);
-            }
+      for (let i = 0; i < playerEntries.length - 1; i++) {
+        for (let j = i + 1; j < playerEntries.length; j++) {
+          const higher = playerEntries[i]!;
+          const lower = playerEntries[j]!;
+          if (higher.position < lower.position) {
+            updateAdjacentFFA(ratings, higher.playerId, lower.playerId);
+          } else if (higher.position > lower.position) {
+            updateAdjacentFFA(ratings, lower.playerId, higher.playerId);
           }
         }
-
-        const tournamentName = tournament.name;
-        const playedAt = tournament.playedAt ?? tournament.createdAt;
-        playerEntries.forEach(e => {
-          const rating = ensureRating(ratings, e.playerId);
-          const previousEntries = histories.get(e.playerId) ?? [];
-          const previousScore = previousEntries[previousEntries.length - 1]?.score
-            ?? Math.round((DEFAULT_MU - 3 * DEFAULT_SIGMA + 25) * 40);
-
-          rating.matches += 1;
-          const snapshot = toSnapshot(rating);
-          const historyEntry: TrueSkillHistoryEntry = {
-            ...snapshot,
-            playerId: e.playerId,
-            tournamentId: tournament.id,
-            tournamentName,
-            seasonId,
-            playedAt,
-            deltaScore: snapshot.score - previousScore,
-          };
-          histories.set(e.playerId, [...previousEntries, historyEntry]);
-        });
       }
+
+      const tournamentName = tournament.name;
+      const playedAt = tournament.playedAt ?? tournament.createdAt;
+      playerEntries.forEach(e => {
+        const rating = ensureRating(ratings, e.playerId);
+        const previousEntries = histories.get(e.playerId) ?? [];
+        const previousScore = previousEntries[previousEntries.length - 1]?.score
+          ?? Math.round((DEFAULT_MU - 3 * DEFAULT_SIGMA + 25) * 40);
+
+        rating.matches += 1;
+        const snapshot = toSnapshot(rating);
+        const historyEntry: TrueSkillHistoryEntry = {
+          ...snapshot,
+          playerId: e.playerId,
+          tournamentId: tournament.id,
+          tournamentName,
+          seasonId,
+          playedAt,
+          deltaScore: snapshot.score - previousScore,
+        };
+        histories.set(e.playerId, [...previousEntries, historyEntry]);
+      });
     }
   }
 
