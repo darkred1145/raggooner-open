@@ -361,9 +361,9 @@ const toggleCurrentTournamentWatch = async () => {
   <div>
     <div :class="activeVisualEgg?.visual?.rootClass" class="w-full relative flex flex-col min-h-full">
 
-      <header class="border-b border-cyber-border/60 bg-cyber-dark/90 backdrop-blur-md sticky top-0 z-50">
+      <header class="border-b border-slate-700 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-[1800px] mx-auto px-4 h-16 md:px-8 flex items-center justify-between relative">
-          <router-link to="/" class="flex items-center gap-2 text-cyber-glow hover:text-cyber-glow/70 transition-colors z-10">
+          <router-link to="/" class="flex items-center gap-2 text-indigo-500 hover:text-indigo-400 transition-colors z-10">
             <i class="ph-fill ph-flag-checkered text-3xl"></i>
             <span class="text-2xl font-bold text-white heading tracking-widest hidden sm:block">Raccoon Open</span>
             <span class="text-2xl font-bold text-white heading tracking-widest sm:hidden">RO</span>
@@ -374,9 +374,9 @@ const toggleCurrentTournamentWatch = async () => {
           </div>
 
           <div class="flex items-center gap-4 z-10">
-            <button @click="openChangelog" class="relative text-slate-400 hover:text-cyber-glow transition-colors mr-2">
+            <button @click="openChangelog" class="relative text-slate-400 hover:text-white transition-colors mr-2">
               <i class="ph-bold ph-bell text-xl"></i>
-              <span v-if="hasNewUpdates" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-cyber-dark animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
+              <span v-if="hasNewUpdates" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
             </button>
 
             <template v-if="tournament">
@@ -386,14 +386,14 @@ const toggleCurrentTournamentWatch = async () => {
                   class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border transition-colors"
                   :class="isWatchingCurrentTournament
                     ? 'bg-amber-900/30 border-amber-500/50 text-amber-300 hover:bg-amber-900/50'
-                    : 'bg-cyber-panel border-cyber-border text-slate-400 hover:bg-cyber-panel/80 hover:border-cyber-glow/30 hover:text-white'">
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'">
                 <i class="ph-bold" :class="isWatchingCurrentTournament ? 'ph-bell-ringing' : 'ph-bell'"></i>
                 {{ isWatchingCurrentTournament ? 'Watching Signups' : 'Watch Signups' }}
               </button>
 
               <button @click="showAdminModal = true"
                       class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border transition-colors mr-2"
-                      :class="isAdmin ? 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50' : 'bg-cyber-panel border-cyber-border text-slate-400 hover:bg-cyber-panel/80 hover:border-cyber-glow/30'">
+                      :class="isAdmin ? 'bg-emerald-900/30 border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'">
                 <i class="ph-bold" :class="isAdmin ? 'ph-lock-open' : 'ph-lock'"></i>
                 {{ isAdmin ? 'Admin' : 'Viewer' }}
               </button>
@@ -403,7 +403,7 @@ const toggleCurrentTournamentWatch = async () => {
                         class="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border transition-all"
                         :class="showCopyIdSuccess
                           ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40'
-                          : 'bg-cyber-panel text-slate-400 hover:text-white border-cyber-border hover:border-cyber-glow/30'">
+                          : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'">
                   <i :class="showCopyIdSuccess ? 'ph-bold ph-check' : 'ph-bold ph-copy'" class="text-xs"></i>
                   {{ showCopyIdSuccess ? 'Copied!' : 'ID' }}
                 </button>
@@ -411,13 +411,13 @@ const toggleCurrentTournamentWatch = async () => {
                         class="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border transition-all"
                         :class="showCopyLinkSuccess
                           ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40'
-                          : 'bg-cyber-panel text-slate-400 hover:text-white border-cyber-border hover:border-cyber-glow/30'">
+                          : 'bg-slate-800 text-slate-400 hover:text-white border-slate-700'">
                   <i :class="showCopyLinkSuccess ? 'ph-bold ph-check' : 'ph-bold ph-share'" class="text-xs"></i>
                   {{ showCopyLinkSuccess ? 'Copied!' : 'Link' }}
                 </button>
               </div>
 
-              <button @click="exitTournament" class="text-slate-400 hover:text-cyber-glow" title="Go to Home">
+              <button @click="exitTournament" class="text-slate-400 hover:text-white" title="Go to Home">
                 <i class="ph ph-sign-out text-xl"></i>
               </button>
             </template>
@@ -427,7 +427,7 @@ const toggleCurrentTournamentWatch = async () => {
 
       <main class="flex-grow p-4 md:p-6 max-w-[1800px] mx-auto w-full">
         <div v-if="loading" class="flex justify-center items-center h-96">
-          <i class="ph ph-spinner animate-spin text-5xl text-cyber-glow animate-pulse-neon"></i>
+          <i class="ph ph-spinner animate-spin text-5xl text-indigo-500"></i>
         </div>
 
         <div v-else-if="tournament" class="space-y-6 animate-fade-in">
@@ -443,15 +443,15 @@ const toggleCurrentTournamentWatch = async () => {
             </button>
           </div>
 
-          <div v-if="showRenameTeamModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cyber-black/90 backdrop-blur-sm">
-            <div class="w-full max-w-xl cyber-panel rounded-3xl p-6 shadow-neon-cyan relative">
+          <div v-if="showRenameTeamModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80">
+            <div class="w-full max-w-xl bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl">
               <div class="flex items-start justify-between gap-4 mb-5">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.24em] text-cyber-glow mb-2">Rename Team</p>
+                  <p class="text-xs uppercase tracking-[0.24em] text-indigo-400 mb-2">Rename Team</p>
                   <h3 class="text-2xl font-black text-white">Edit team name</h3>
                 </div>
                 <button @click="cancelRenameTeam"
-                        class="text-slate-400 hover:text-cyber-glow text-xl">
+                        class="text-slate-400 hover:text-white text-xl">
                   <i class="ph ph-x"></i>
                 </button>
               </div>
@@ -460,17 +460,17 @@ const toggleCurrentTournamentWatch = async () => {
               <input v-model="captainTeamName"
                      type="text"
                      maxlength="32"
-                     class="w-full bg-cyber-dark border border-cyber-border rounded-2xl px-4 py-3 text-white text-sm focus:outline-none transition-colors"
+                     class="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
                      placeholder="Team name" />
 
               <div class="mt-5 flex justify-end gap-3">
                 <button @click="cancelRenameTeam"
-                        class="px-4 py-2 rounded-2xl border border-cyber-border text-slate-300 hover:bg-cyber-panel transition-colors">
+                        class="px-4 py-2 rounded-2xl border border-slate-700 text-slate-300 hover:bg-slate-800 transition-colors">
                   Cancel
                 </button>
                 <button @click="saveCaptainTeamName"
                         :disabled="!captainTeamName.trim() || captainTeamName.trim() === captainTeam?.name"
-                        class="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyber-electricBlue to-cyber-glow text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:from-cyber-glow hover:to-cyber-magenta transition-all shadow-neon-cyan">
+                        class="px-4 py-2 rounded-2xl bg-indigo-600 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-500 transition-colors">
                   Save
                 </button>
               </div>
@@ -499,40 +499,40 @@ const toggleCurrentTournamentWatch = async () => {
         </div>
       </main>
 
-      <div v-if="showAdminModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cyber-black/90 backdrop-blur-sm">
-        <div class="cyber-panel rounded-xl max-w-2xl w-full p-6 shadow-neon-cyan relative max-h-[90vh] overflow-y-auto">
+      <div v-if="showAdminModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
 
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-white">
               {{ isAdmin ? 'Admin Settings' : 'Admin Access' }}
             </h3>
-            <button @click="showAdminModal = false" class="text-slate-500 hover:text-cyber-glow"><i class="ph-bold ph-x"></i></button>
+            <button @click="showAdminModal = false" class="text-slate-500 hover:text-white"><i class="ph-bold ph-x"></i></button>
           </div>
 
           <div v-if="!isAdmin">
             <p class="text-sm text-slate-400 mb-4">Enter the tournament password to enable editing.</p>
             <input v-model="adminPasswordInput" type="password" placeholder="Password"
                    @keyup.enter="loginAsAdmin"
-                   class="w-full bg-cyber-dark border border-cyber-border rounded p-3 text-white mb-6 focus:outline-none text-center font-mono text-lg tracking-widest uppercase">
-            <button @click="loginAsAdmin" class="w-full bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:from-cyber-glow hover:to-cyber-magenta text-white px-4 py-3 rounded-lg font-bold shadow-neon-cyan transition-all">
+                   class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-white mb-6 focus:outline-none focus:border-indigo-500 text-center font-mono text-lg tracking-widest uppercase">
+            <button @click="loginAsAdmin" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-lg font-bold">
               Unlock Editing
             </button>
           </div>
 
           <div v-else>
-            <div class="bg-cyber-dark rounded-lg p-4 mb-4 border border-cyber-border text-center">
+            <div class="bg-slate-800 rounded-lg p-4 mb-4 border border-slate-700 text-center">
               <p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-2">Tournament Password</p>
-              <div class="text-3xl font-mono text-cyber-glow tracking-widest font-bold mb-1">
+              <div class="text-3xl font-mono text-emerald-400 tracking-widest font-bold mb-1">
                 {{ "****" }}
               </div>
               <p class="text-xs text-slate-500">Share this with co-commentators.</p>
             </div>
 
-            <button @click="copyPassword" class="w-full bg-cyber-panel hover:bg-cyber-panel/80 border border-cyber-border hover:border-cyber-glow/30 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all mb-6">
+            <button @click="copyPassword" class="w-full bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors mb-6">
               <i class="ph-bold ph-copy"></i> Copy Password
             </button>
 
-            <div class="border-t border-cyber-border pt-6 mb-6">
+            <div class="border-t border-slate-700 pt-6 mb-6">
               <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                 <i class="ph-bold ph-sliders"></i> Settings
               </h4>
@@ -542,30 +542,31 @@ const toggleCurrentTournamentWatch = async () => {
                 <div class="flex gap-2">
                   <input v-model="editedName"
                          type="text"
-                         class="flex-1 bg-cyber-dark border border-cyber-border rounded px-3 py-2 text-white text-sm focus:outline-none transition-colors"
+                         class="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
                          placeholder="Enter name...">
 
                   <button @click="updateTournamentName"
                           :disabled="editedName === tournament?.name || !editedName"
-                          class="bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:from-cyber-glow hover:to-cyber-magenta disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded font-bold transition-all">
+                          class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded font-bold transition-colors">
                     <i class="ph-bold ph-check"></i>
                   </button>
                 </div>
               </div>
-              <div class="pt-4 mt-4 border-t border-cyber-border/50">
+              <div class="pt-4 mt-4 border-t border-slate-700/50">
                 <div class="flex items-center justify-between">
                   <div class="flex flex-col">
                     <div class="flex items-center gap-2">
                       <label class="text-xs text-slate-500 uppercase font-bold">Placement Tiebreaker</label>
 
                       <div class="group relative flex items-center">
-                        <i class="ph-fill ph-info text-cyber-glow/70 hover:text-cyber-glow cursor-help text-sm"></i>
-                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 cyber-panel border border-cyber-border rounded-lg shadow-neon-cyan text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                        <i class="ph-fill ph-info text-indigo-400 hover:text-indigo-300 cursor-help text-sm"></i>
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 border border-slate-600 rounded-lg shadow-xl text-xs text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                           <div class="font-bold text-white mb-1">How it works:</div>
                           <p><strong>Enabled:</strong> If points are tied, the team with more 1st places wins. If still tied, 2nd places, etc.</p>
-                          <div class="mt-2 border-t border-cyber-border pt-2">
+                          <div class="mt-2 border-t border-slate-700 pt-2">
                             <p><strong>Disabled:</strong> Only total points matter. Ties must be resolved via Admin selection.</p>
                           </div>
+                          <div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-600"></div>
                         </div>
                       </div>
                     </div>
@@ -575,15 +576,15 @@ const toggleCurrentTournamentWatch = async () => {
                   </div>
 
                   <button @click="togglePlacementTiebreaker"
-                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                          :class="editedTiebreaker ? 'bg-cyber-glow/70 shadow-neon-cyan' : 'bg-cyber-border'">
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                          :class="editedTiebreaker ? 'bg-indigo-600' : 'bg-slate-700'">
                     <span class="sr-only">Enable Tiebreaker</span>
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                           :class="editedTiebreaker ? 'translate-x-6' : 'translate-x-1'"/>
                   </button>
                 </div>
               </div>
-              <div class="pt-4 mt-4 border-t border-cyber-border/50">
+              <div class="pt-4 mt-4 border-t border-slate-700/50">
                 <div class="flex items-center justify-between">
                   <div class="flex flex-col">
                     <label class="text-xs text-slate-500 uppercase font-bold">Captain Actions</label>
@@ -593,15 +594,15 @@ const toggleCurrentTournamentWatch = async () => {
                   </div>
 
                   <button @click="secureUpdate({ captainActionsEnabled: !tournament?.captainActionsEnabled })"
-                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                          :class="tournament?.captainActionsEnabled ? 'bg-cyber-glow/70 shadow-neon-cyan' : 'bg-cyber-border'">
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                          :class="tournament?.captainActionsEnabled ? 'bg-indigo-600' : 'bg-slate-700'">
                     <span class="sr-only">Enable Captain Actions</span>
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                           :class="tournament?.captainActionsEnabled ? 'translate-x-6' : 'translate-x-1'"/>
                   </button>
                 </div>
               </div>
-              <div class="pt-4 mt-4 border-t border-cyber-border/50">
+              <div class="pt-4 mt-4 border-t border-slate-700/50">
                 <div class="flex items-center justify-between">
                   <div class="flex flex-col">
                     <label class="text-xs text-slate-500 uppercase font-bold">Captain Team Renames</label>
@@ -611,15 +612,15 @@ const toggleCurrentTournamentWatch = async () => {
                   </div>
 
                   <button @click="editedTeamRenamingEnabled = !editedTeamRenamingEnabled; secureUpdate({ teamRenamingEnabled: editedTeamRenamingEnabled })"
-                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                          :class="editedTeamRenamingEnabled ? 'bg-cyber-glow/70 shadow-neon-cyan' : 'bg-cyber-border'">
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                          :class="editedTeamRenamingEnabled ? 'bg-indigo-600' : 'bg-slate-700'">
                     <span class="sr-only">Enable Team Renaming</span>
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                           :class="editedTeamRenamingEnabled ? 'translate-x-6' : 'translate-x-1'"/>
                   </button>
                 </div>
               </div>
-              <div class="pt-4 mt-4 border-t border-cyber-border/50 space-y-3">
+              <div class="pt-4 mt-4 border-t border-slate-700/50 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                   <div class="flex flex-col">
                     <label class="text-xs text-slate-500 uppercase font-bold">Uma Draft Rules</label>
@@ -628,7 +629,7 @@ const toggleCurrentTournamentWatch = async () => {
                     </span>
                   </div>
                   <button @click="saveUmaDraftSettings"
-                          class="bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:from-cyber-glow hover:to-cyber-magenta text-white px-3 py-2 rounded font-bold transition-all shadow-neon-cyan">
+                          class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded font-bold transition-colors">
                     Save
                   </button>
                 </div>
@@ -639,10 +640,10 @@ const toggleCurrentTournamentWatch = async () => {
                          type="number"
                          min="1"
                          max="9"
-                         class="bg-cyber-dark border border-cyber-border rounded px-3 py-2 text-white text-sm focus:outline-none transition-colors">
+                         class="bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors">
                 </div>
 
-                <div class="flex items-center justify-between bg-cyber-dark/50 border border-cyber-border rounded-lg px-3 py-3">
+                <div class="flex items-center justify-between bg-slate-800/70 border border-slate-700 rounded-lg px-3 py-3">
                   <div class="flex flex-col">
                     <label class="text-xs text-slate-500 uppercase font-bold">Allow Same-Group Duplicates</label>
                     <span class="text-[10px] text-slate-500">
@@ -650,21 +651,21 @@ const toggleCurrentTournamentWatch = async () => {
                     </span>
                   </div>
                   <button @click="editedUmaDraftAllowSameGroupDuplicates = !editedUmaDraftAllowSameGroupDuplicates"
-                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                          :class="editedUmaDraftAllowSameGroupDuplicates ? 'bg-cyber-glow/70 shadow-neon-cyan' : 'bg-cyber-border'">
+                          class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                          :class="editedUmaDraftAllowSameGroupDuplicates ? 'bg-indigo-600' : 'bg-slate-700'">
                     <span class="sr-only">Allow same group duplicates</span>
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                           :class="editedUmaDraftAllowSameGroupDuplicates ? 'translate-x-6' : 'translate-x-1'"/>
                   </button>
                 </div>
               </div>
-              <div class="pt-4 mt-4 border-t border-cyber-border/50 space-y-3">
+              <div class="pt-4 mt-4 border-t border-slate-700/50 space-y-3">
                 <div>
                   <label class="text-xs text-slate-500 uppercase font-bold">Rename Teams</label>
                   <p class="text-[10px] text-slate-500 mt-1">Admins can still rename any team directly here.</p>
                 </div>
                 <div class="grid md:grid-cols-2 gap-3">
-                  <div v-for="team in tournament?.teams" :key="team.id" class="bg-cyber-dark/50 border border-cyber-border rounded-lg p-3">
+                  <div v-for="team in tournament?.teams" :key="team.id" class="bg-slate-800/70 border border-slate-700 rounded-lg p-3">
                     <div class="text-[10px] uppercase tracking-widest font-bold mb-2" :style="{ color: team.color || '#94a3b8' }">
                       Group {{ team.group }}
                     </div>
@@ -672,10 +673,10 @@ const toggleCurrentTournamentWatch = async () => {
                       <input v-model="adminTeamNames[team.id]"
                              type="text"
                              maxlength="32"
-                             class="flex-1 bg-cyber-dark border border-cyber-border rounded px-3 py-2 text-white text-sm focus:outline-none transition-colors">
+                             class="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors">
                       <button @click="saveAdminTeamName(team.id)"
                               :disabled="!adminTeamNames[team.id]?.trim() || adminTeamNames[team.id]?.trim() === team.name"
-                              class="bg-cyber-panel hover:bg-cyber-panel/80 border border-cyber-border disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded font-bold transition-colors hover:border-cyber-glow/30">
+                              class="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-2 rounded font-bold transition-colors">
                         Save
                       </button>
                     </div>
@@ -683,12 +684,12 @@ const toggleCurrentTournamentWatch = async () => {
                 </div>
               </div>
 
-              <div class="border-t border-cyber-border pt-6 mb-6">
+              <div class="border-t border-slate-700 pt-6 mb-6">
                 <div class="flex items-center justify-between mb-3">
                   <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <i class="ph-bold ph-list-numbers"></i> Points System
                   </h4>
-                  <button v-if="!isEditingPoints" @click="startEditingPoints" class="text-xs text-cyber-glow/70 hover:text-cyber-glow font-bold">
+                  <button v-if="!isEditingPoints" @click="startEditingPoints" class="text-xs text-indigo-400 hover:text-white font-bold">
                     Edit
                   </button>
                   <div v-else class="flex gap-2">
@@ -697,7 +698,7 @@ const toggleCurrentTournamentWatch = async () => {
                   </div>
                 </div>
 
-                <div v-if="!isEditingPoints" class="grid grid-cols-6 gap-2 bg-cyber-dark p-3 rounded-lg border border-cyber-border">
+                <div v-if="!isEditingPoints" class="grid grid-cols-6 gap-2 bg-slate-800 p-3 rounded-lg border border-slate-700">
                   <div v-for="pos in 18" :key="pos" class="text-center">
                     <div class="text-[10px] text-slate-500 font-bold mb-0.5">{{ pos }}</div>
                     <div class="text-sm font-mono text-white">
@@ -706,13 +707,13 @@ const toggleCurrentTournamentWatch = async () => {
                   </div>
                 </div>
 
-                <div v-else class="grid grid-cols-4 gap-2 bg-cyber-dark p-3 rounded-lg border border-cyber-border">
+                <div v-else class="grid grid-cols-4 gap-2 bg-slate-800 p-3 rounded-lg border border-slate-700">
                   <div v-for="pos in 18" :key="pos" class="flex flex-col">
                     <label class="text-[10px] text-slate-500 font-bold text-center mb-1">Pos {{ pos }}</label>
                     <input
                         v-model.number="localPointsSystem[pos]"
                         type="number"
-                        class="bg-cyber-dark border border-cyber-border rounded px-1 py-1 text-center text-white text-sm focus:outline-none"
+                        class="bg-slate-900 border border-slate-600 rounded px-1 py-1 text-center text-white text-sm focus:border-indigo-500 focus:outline-none"
                     >
                   </div>
                 </div>
@@ -723,7 +724,7 @@ const toggleCurrentTournamentWatch = async () => {
               </div>
             </div>
 
-            <div class="border-t border-cyber-border mt-6 pt-2">
+            <div class="border-t border-slate-700 mt-6 pt-2">
 
               <button @click="isDangerZoneOpen = !isDangerZoneOpen"
                       class="w-full flex items-center justify-between py-2 text-xs font-bold text-red-500 uppercase tracking-widest hover:text-red-400 transition-colors group">
@@ -760,9 +761,9 @@ const toggleCurrentTournamentWatch = async () => {
          :class="isTrackPanelOpen ? 'right-full md:right-2/3' : 'right-0'">
       <button
           @click="isTrackPanelOpen = !isTrackPanelOpen"
-          class="bg-cyber-glow/30 w-0.5 hover:bg-cyber-glow/60 text-white p-2 rounded-l-lg shadow-neon-cyan border-y border-l border-cyber-glow/40 flex items-center justify-center transition-all hover:pl-4 group">
-        <i class="ph-bold ph-map-trifold text-cyber-glow"></i>
-        <div class="absolute right-full mr-2 px-2 py-1 cyber-panel border border-cyber-border rounded text-[10px] font-bold text-white uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+          class="bg-indigo-600 w-0.5 hover:bg-indigo-500 text-white p-2 rounded-l-lg shadow-lg border-y border-l border-indigo-400/50 flex items-center justify-center transition-all hover:pl-4 group">
+        <i class="ph-bold ph-map-trifold"></i>
+        <div class="absolute right-full mr-2 px-2 py-1 bg-slate-900 border border-slate-700 rounded text-[10px] font-bold text-white uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
           View Track
         </div>
       </button>
@@ -781,14 +782,14 @@ const toggleCurrentTournamentWatch = async () => {
     <Teleport to="body">
       <Transition name="phase-overlay">
         <div v-if="phaseOverlay"
-             class="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-cyber-black/95 backdrop-blur-md pointer-events-none select-none">
+             class="fixed inset-0 z-[150] flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md pointer-events-none select-none">
           <div class="flex flex-col items-center gap-6 text-center px-8">
             <div class="phase-overlay-icon-ring">
               <i class="ph-fill text-5xl text-white" :class="phaseOverlay.icon"></i>
             </div>
 
             <div>
-              <div class="text-xs font-bold uppercase tracking-[0.3em] text-cyber-glow mb-2">Now Entering</div>
+              <div class="text-xs font-bold uppercase tracking-[0.3em] text-indigo-400 mb-2">Now Entering</div>
               <h2 class="text-5xl sm:text-7xl font-black text-white tracking-tight drop-shadow-2xl">
                 {{ phaseOverlay.label }}
               </h2>
@@ -798,7 +799,7 @@ const toggleCurrentTournamentWatch = async () => {
               <div class="text-xs font-bold uppercase tracking-[0.25em] text-slate-400">Draft Order</div>
               <div class="flex flex-wrap justify-center gap-3">
                 <div v-for="(team, idx) in phaseOverlay.draftOrder" :key="team.name"
-                     class="flex items-center gap-2 cyber-panel border border-cyber-border rounded-full px-4 py-2 shadow-neon-cyan">
+                     class="flex items-center gap-2 bg-slate-800/80 border border-slate-700 rounded-full px-4 py-2 shadow-lg">
                   <span class="text-slate-500 font-bold text-sm tabular-nums">{{ idx + 1 }}</span>
                   <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: team.color }"></span>
                   <span class="font-bold text-white text-sm">{{ team.name }}</span>
@@ -844,16 +845,16 @@ const toggleCurrentTournamentWatch = async () => {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00f0ff, #a855f7);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 12px rgba(0, 240, 255, 0.1), 0 0 40px rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 0 12px rgba(99, 102, 241, 0.15), 0 0 40px rgba(99, 102, 241, 0.4);
   animation: icon-ring-pulse 2s ease-in-out infinite;
 }
 @keyframes icon-ring-pulse {
-  0%, 100% { box-shadow: 0 0 0 12px rgba(0, 240, 255, 0.1), 0 0 40px rgba(0, 240, 255, 0.3); }
-  50%       { box-shadow: 0 0 0 20px rgba(0, 240, 255, 0.05), 0 0 60px rgba(0, 240, 255, 0.5); }
+  0%, 100% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0.15), 0 0 40px rgba(99, 102, 241, 0.4); }
+  50%       { box-shadow: 0 0 0 20px rgba(99, 102, 241, 0.08), 0 0 60px rgba(99, 102, 241, 0.6); }
 }
 
 /* EASTER EGG STYLES */

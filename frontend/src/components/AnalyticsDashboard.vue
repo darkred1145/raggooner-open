@@ -450,7 +450,7 @@ function perfIndicator(
           <button
               v-else
               @click="forceRefreshAnalytics"
-              class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-400 hover:text-white bg-slate-800 hover:bg-cyber-panel rounded-lg transition-colors"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
               title="Refresh analytics data"
           >
             <i class="ph ph-arrows-clockwise"></i>
@@ -459,7 +459,7 @@ function perfIndicator(
         </div>
       </div>
 
-      <div class="bg-cyber-dark border border-cyber-border rounded-xl p-5 mb-6 flex flex-col lg:flex-row flex-wrap gap-8 lg:items-center">
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 mb-6 flex flex-col lg:flex-row flex-wrap gap-8 lg:items-center">
         <div class="flex flex-col gap-2 flex-1 max-w-xl">
           <div class="flex items-center justify-between">
             <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -472,7 +472,7 @@ function perfIndicator(
                   min="1"
                   max="20"
                   @change="minTournaments = Math.min(20, Math.max(1, minTournaments || 1))"
-                  class="w-14 bg-cyber-dark border border-cyber-border rounded-lg px-2 py-1 text-white text-sm font-mono font-bold text-center focus:outline-none focus:border-cyber-glow transition-colors"
+                  class="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white text-sm font-mono font-bold text-center focus:outline-none focus:border-indigo-500 transition-colors"
               />
               <span class="text-xs text-slate-500">played</span>
             </div>
@@ -482,7 +482,7 @@ function perfIndicator(
               type="range"
               min="1"
               max="20"
-              class="w-full h-2 bg-cyber-dark rounded-lg appearance-none cursor-pointer accent-cyber-glow hover:accent-cyber-glow transition-all"
+              class="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
           />
           <div class="flex justify-between text-[10px] text-slate-500 font-bold px-1">
             <span>1</span>
@@ -503,8 +503,8 @@ function perfIndicator(
                 @click="selectedSeasons = []"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedSeasons.length === 0
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               All Time
             </button>
 
@@ -514,8 +514,8 @@ function perfIndicator(
                 @click="toggleSeason(season.id)"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedSeasons.includes(season.id)
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               {{ season.name }}
             </button>
 
@@ -535,8 +535,8 @@ function perfIndicator(
                 @click="selectedFormats = []"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedFormats.length === 0
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               All Formats
             </button>
 
@@ -546,8 +546,8 @@ function perfIndicator(
                 @click="toggleFormat(id as string)"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedFormats.includes(id as string)
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               {{ format.name }}
             </button>
 
@@ -572,8 +572,8 @@ function perfIndicator(
                   @click="selectedOfficiality = option.id as 'official' | 'unofficial' | 'all'"
                   class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                   :class="selectedOfficiality === option.id
-                    ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                    : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                    : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
                 {{ option.label }}
               </button>
             </div>
@@ -591,8 +591,8 @@ function perfIndicator(
                 @click="selectedSurfaces = []"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedSurfaces.length === 0
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               All
             </button>
             <button
@@ -601,8 +601,8 @@ function perfIndicator(
                 @click="toggleSurface(s)"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedSurfaces.includes(s)
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               {{ s }}
             </button>
           </div>
@@ -620,8 +620,8 @@ function perfIndicator(
                 @click="selectedDistanceTypes = []"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedDistanceTypes.length === 0
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               All
             </button>
             <button
@@ -630,8 +630,8 @@ function perfIndicator(
                 @click="toggleDistanceType(d)"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedDistanceTypes.includes(d)
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               {{ d }}
             </button>
           </div>
@@ -649,8 +649,8 @@ function perfIndicator(
                 @click="selectedLocations = []"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedLocations.length === 0
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               All
             </button>
             <button
@@ -659,8 +659,8 @@ function perfIndicator(
                 @click="toggleLocation(loc)"
                 class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border"
                 :class="selectedLocations.includes(loc)
-                ? 'bg-cyber-glow border-cyber-glow text-white shadow-md'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'">
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'">
               {{ loc }}
             </button>
           </div>
@@ -673,13 +673,13 @@ function perfIndicator(
           <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
             Tournament Stage
           </label>
-          <div class="flex items-center gap-1 bg-cyber-dark rounded-lg p-1">
+          <div class="flex items-center gap-1 bg-slate-900 rounded-lg p-1">
             <button v-for="s in [{ key: 'total', label: 'Total' }, { key: 'groups', label: 'Groups' }, { key: 'finals', label: 'Finals' }]"
                     :key="s.key"
                     @click="setStage(s.key as 'total' | 'groups' | 'finals')"
                     class="px-3 py-1.5 text-xs font-bold rounded transition-colors"
                     :class="stageView === s.key
-                      ? 'bg-cyber-glow text-white'
+                      ? 'bg-indigo-600 text-white'
                       : 'text-slate-400 hover:text-white'">
               {{ s.label }}
             </button>
@@ -687,7 +687,7 @@ function perfIndicator(
         </div>
       </div>
 
-      <div class="flex justify-center gap-2 border-b border-cyber-border overflow-x-auto hide-scrollbar">
+      <div class="flex justify-center gap-2 border-b border-slate-700 overflow-x-auto hide-scrollbar">
         <button
             v-for="tab in [
             { id: 'overview', label: 'Overview', icon: 'ph-chart-line' },
@@ -702,7 +702,7 @@ function perfIndicator(
             @click="activeTab = tab.id as any"
             class="px-4 py-3 font-bold transition-all relative whitespace-nowrap shrink-0"
             :class="activeTab === tab.id
-            ? 'text-cyber-glow border-b-2 border-cyber-glow'
+            ? 'text-indigo-400 border-b-2 border-indigo-400'
             : 'text-slate-400 hover:text-white'"
         >
           <i :class="tab.icon" class="mr-2"></i>
@@ -713,32 +713,32 @@ function perfIndicator(
       <div v-if="activeTab === 'overview'" class="space-y-6">
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
             <div class="text-3xl font-black text-white">{{ overviewStats.totalPlayers }}</div>
             <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Players</div>
           </div>
 
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-4">
-            <div class="text-3xl font-black text-cyber-glow">{{ overviewStats.totalTournaments }}</div>
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
+            <div class="text-3xl font-black text-indigo-400">{{ overviewStats.totalTournaments }}</div>
             <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Tournaments</div>
           </div>
 
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
             <div class="text-3xl font-black text-emerald-400">{{ overviewStats.totalRaces }}</div>
             <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Races</div>
           </div>
 
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
             <div class="text-3xl font-black text-amber-400">{{ overviewStats.totalParticipations }}</div>
             <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Participations</div>
           </div>
 
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
             <div class="text-3xl font-black text-purple-400">{{ overviewStats.avgPlayersPerTournament }}</div>
             <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Avg Players</div>
           </div>
 
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
             <div class="text-3xl font-black text-cyan-400">{{ overviewStats.avgRacesPerTournament }}</div>
             <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">Avg Races</div>
           </div>
@@ -746,7 +746,7 @@ function perfIndicator(
 
         <div class="grid lg:grid-cols-2 gap-6">
 
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-6">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-xl font-bold text-white flex items-center gap-2">
@@ -758,13 +758,13 @@ function perfIndicator(
               <div class="flex items-center gap-2">
                 <select
                     v-model="ratingSeasonId"
-                    class="bg-cyber-dark border border-cyber-border rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-cyber-glow"
+                    class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
                 >
                   <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
                 </select>
                 <select
                     v-model="topPlayerCriterion"
-                    class="bg-cyber-dark border border-cyber-border rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-cyber-glow"
+                    class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
                 >
                   <option v-for="(cfg, key) in TOP5_CRITERIA" :key="key" :value="key">{{ cfg.label }}</option>
                 </select>
@@ -775,7 +775,7 @@ function perfIndicator(
               <div
                   v-for="(player, idx) in topPlayers"
                   :key="player.player.id"
-                  class="flex items-center gap-3 p-3 bg-cyber-dark rounded-lg border border-cyber-border"
+                  class="flex items-center gap-3 p-3 bg-slate-900 rounded-lg border border-slate-700"
               >
                 <div class="text-2xl" :class="getRankColor(idx)">
                   <i :class="getRankIcon(idx)"></i>
@@ -803,15 +803,15 @@ function perfIndicator(
             </div>
           </div>
 
-          <div class="bg-cyber-dark border border-cyber-border rounded-xl p-6">
+          <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="ph-fill ph-horse text-cyber-glow"></i>
+                <i class="ph-fill ph-horse text-indigo-400"></i>
                 Top 5 Umas
               </h3>
               <select
                   v-model="topUmaCriterion"
-                  class="bg-cyber-dark border border-cyber-border rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-cyber-glow"
+                  class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
               >
                 <option v-for="(cfg, key) in TOP5_CRITERIA" :key="key" :value="key">{{ cfg.label }}</option>
               </select>
@@ -821,7 +821,7 @@ function perfIndicator(
               <div
                   v-for="(uma, idx) in topUmas"
                   :key="uma.name"
-                  class="flex items-center gap-3 p-3 bg-cyber-dark rounded-lg border border-cyber-border"
+                  class="flex items-center gap-3 p-3 bg-slate-900 rounded-lg border border-slate-700"
               >
                 <div class="text-2xl" :class="getRankColor(idx)">
                   {{ idx + 1 }}
@@ -849,14 +849,14 @@ function perfIndicator(
 
       <div v-if="activeTab === 'players'" class="space-y-4">
 
-        <div class="bg-cyber-dark border border-cyber-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div class="text-sm font-bold text-white">Season TrueSkill</div>
             <div class="text-xs text-slate-500 mt-1">Ratings are calculated from official completed tournaments in the selected season.</div>
           </div>
           <select
               v-model="ratingSeasonId"
-              class="bg-cyber-dark border border-cyber-border rounded-lg px-3 py-2 text-sm font-bold text-slate-300 focus:outline-none focus:border-cyber-glow"
+              class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-300 focus:outline-none focus:border-indigo-500"
           >
             <option v-for="season in seasons" :key="season.id" :value="season.id">{{ season.name }}</option>
           </select>
@@ -866,13 +866,13 @@ function perfIndicator(
             v-model="playerSearchQuery"
             type="text"
             placeholder="Search players..."
-            class="w-full bg-cyber-dark border border-cyber-border rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyber-glow"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
         />
 
-        <div class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-cyber-dark border-b border-cyber-border">
+              <thead class="bg-slate-900 border-b border-slate-700">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-12">#</th>
 
@@ -887,7 +887,7 @@ function perfIndicator(
                 <th @click="togglePlayerSort('tournaments')" class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none whitespace-nowrap">
                   <div class="flex items-center justify-end gap-1">
                     Tourneys
-                    <i v-if="playerSortKey === 'tournaments'" class="ph-bold text-cyber-glow" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-if="playerSortKey === 'tournaments'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                     <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
@@ -896,7 +896,7 @@ function perfIndicator(
                   <div class="flex items-center justify-end gap-1">
                     TS Rating
                     <i class="ph-fill ph-info text-slate-500 hover:text-violet-400 transition-colors cursor-help normal-case font-normal" title="Bayesian skill rating (μ − 2σ) × 100. μ is your estimated skill level; σ is uncertainty, which decreases as you play more tournaments. The displayed value is a conservative estimate — a higher σ means a larger penalty until the system is more confident in your rating."></i>
-                    <i v-if="playerSortKey === 'trueSkillScore'" class="ph-bold text-cyber-glow" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-if="playerSortKey === 'trueSkillScore'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                     <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
@@ -905,7 +905,7 @@ function perfIndicator(
                   <div class="flex items-center justify-end gap-1">
                     FFA
                     <i class="ph-fill ph-info text-slate-500 hover:text-violet-400 transition-colors cursor-help normal-case font-normal" title="Pure individual (FFA) TrueSkill rating — no team component. Ranked solely by average race placement per group."></i>
-                    <i v-if="playerSortKey === 'ffaTrueSkillScore'" class="ph-bold text-cyber-glow" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-if="playerSortKey === 'ffaTrueSkillScore'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                     <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
@@ -914,7 +914,7 @@ function perfIndicator(
                   <div class="flex items-center justify-end gap-1">
                     Team
                     <i class="ph-fill ph-info text-slate-500 hover:text-violet-400 transition-colors cursor-help normal-case font-normal" title="Pure team TrueSkill rating — no individual/FFA component. Teams are ranked by stage points (tiebreak: placement histogram)."></i>
-                    <i v-if="playerSortKey === 'teamTrueSkillScore'" class="ph-bold text-cyber-glow" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-if="playerSortKey === 'teamTrueSkillScore'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                     <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
@@ -935,13 +935,13 @@ function perfIndicator(
                     class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none whitespace-nowrap">
                   <div class="flex items-center justify-end gap-1">
                     {{ col.label }}
-                    <i v-if="playerSortKey === col.key" class="ph-bold text-cyber-glow" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-if="playerSortKey === col.key" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                     <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
               </tr>
               </thead>
-              <tbody class="divide-y divide-cyber-border border-t border-cyber-border">
+              <tbody class="divide-y divide-slate-700 border-t border-slate-700">
               <template
                   v-for="(player, idx) in playerRankings.filter(p =>
                         !playerSearchQuery || p.player.name.toLowerCase().includes(playerSearchQuery.toLowerCase())
@@ -950,16 +950,16 @@ function perfIndicator(
               >
                 <tr
                     @click="togglePlayerExpand(player.player.id)"
-                    class="hover:bg-cyber-panel/50 transition-colors cursor-pointer group"
-                    :class="{'bg-cyber-dark/80': expandedPlayerId === player.player.id}"
+                    class="hover:bg-slate-700/50 transition-colors cursor-pointer group"
+                    :class="{'bg-slate-800/80': expandedPlayerId === player.player.id}"
                 >
                   <td class="px-4 py-3 text-sm" :class="getRankColor(idx)">
                     <i v-if="idx < 3" :class="getRankIcon(idx)"></i>
                     <span v-else>{{ idx + 1 }}</span>
                   </td>
                   <td class="px-4 py-3 text-sm font-bold text-white flex items-center gap-2">
-                    <i class="ph-bold text-slate-500 group-hover:text-cyber-glow transition-transform duration-200"
-                       :class="expandedPlayerId === player.player.id ? 'ph-caret-down text-cyber-glow' : 'ph-caret-right'"></i>
+                    <i class="ph-bold text-slate-500 group-hover:text-indigo-400 transition-transform duration-200"
+                       :class="expandedPlayerId === player.player.id ? 'ph-caret-down text-indigo-400' : 'ph-caret-right'"></i>
                     {{ player.player.name }}
                   </td>
 
@@ -996,7 +996,7 @@ function perfIndicator(
                     </div>
                   </td>
                   <td class="px-4 py-3 text-sm text-right font-bold text-white">{{ (player as any)[stageKey('totalPoints')] }}</td>
-                  <td class="px-4 py-3 text-sm text-right text-cyber-glow">
+                  <td class="px-4 py-3 text-sm text-right text-indigo-400">
                     <div class="flex items-center justify-end gap-1">
                       {{ (player as any)[stageKey('avgPoints')] }}
                       <template v-for="pf in [perfIndicator(player.avgGroupPoints, player.avgFinalsPoints, false, [3, 1, -1, -3])]">
@@ -1022,11 +1022,11 @@ function perfIndicator(
                   </td>
                 </tr>
 
-                <tr v-if="expandedPlayerId === player.player.id" class="bg-cyber-dark/50">
-                  <td colspan="15" class="p-0 border-b-2 border-cyber-glow/30">
+                <tr v-if="expandedPlayerId === player.player.id" class="bg-slate-900/50">
+                  <td colspan="15" class="p-0 border-b-2 border-indigo-500/30">
                     <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-in-down">
 
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                           <i class="ph-fill ph-stars text-cyan-400"></i> Season TrueSkill
                         </div>
@@ -1053,7 +1053,7 @@ function perfIndicator(
                         </div>
                       </div>
 
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                           <i class="ph-fill ph-user text-emerald-400"></i> FFA TrueSkill
                         </div>
@@ -1065,7 +1065,7 @@ function perfIndicator(
                         </div>
                       </div>
 
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                           <i class="ph-fill ph-users text-violet-400"></i> Team TrueSkill
                         </div>
@@ -1077,7 +1077,7 @@ function perfIndicator(
                         </div>
                       </div>
 
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                           <i class="ph-fill ph-trophy text-amber-400"></i> Best Tournament
                         </div>
@@ -1085,17 +1085,17 @@ function perfIndicator(
                           <div class="font-bold text-white truncate" :title="player.bestTournament.tName">
                             {{ player.bestTournament.tName }}
                           </div>
-                          <div class="text-2xl font-black text-cyber-glow mt-1">
+                          <div class="text-2xl font-black text-indigo-400 mt-1">
                             {{ player.bestTournament.points }} <span class="text-xs text-slate-500 font-medium">pts</span>
                           </div>
-                          <router-link :to="'/t/' + player.bestTournament.tId" class="text-xs text-cyber-glow hover:text-cyber-glow/80 mt-2 inline-flex items-center gap-1">
+                          <router-link :to="'/t/' + player.bestTournament.tId" class="text-xs text-indigo-400 hover:text-indigo-300 mt-2 inline-flex items-center gap-1">
                             View Results <i class="ph-bold ph-arrow-right"></i>
                           </router-link>
                         </div>
                         <div v-else class="text-slate-500 text-sm italic">No data yet</div>
                       </div>
 
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                           <i class="ph-fill ph-horse text-purple-400"></i> Most Picked Uma
                         </div>
@@ -1115,7 +1115,7 @@ function perfIndicator(
                         <div v-else class="text-slate-500 text-sm italic">No data yet</div>
                       </div>
 
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                           <i class="ph-fill ph-medal text-emerald-400"></i> Best Performing Uma
                         </div>
@@ -1135,7 +1135,7 @@ function perfIndicator(
                         <div v-else class="text-slate-500 text-sm italic">No wins recorded yet</div>
                       </div>
 
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
                         <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                           <i class="ph-fill ph-trend-up text-blue-400"></i> Career Averages
                         </div>
@@ -1155,14 +1155,14 @@ function perfIndicator(
                         </div>
                       </div>
 
-                      <div class="col-span-full bg-cyber-dark border border-cyber-border rounded-lg overflow-hidden">
-                        <div class="px-4 py-3 border-b border-cyber-border flex items-center gap-3">
+                      <div class="col-span-full bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-700 flex items-center gap-3">
                           <button
                               @click="expandedDetailTab = 'tournaments'"
                               class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5"
                               :class="expandedDetailTab === 'tournaments'
-                                  ? 'bg-cyber-glow border-cyber-glow text-white'
-                                  : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'"
+                                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'"
                           >
                             <i class="ph-fill ph-trophy"></i>
                             Tournaments
@@ -1172,8 +1172,8 @@ function perfIndicator(
                               @click="expandedDetailTab = 'umas'"
                               class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5"
                               :class="expandedDetailTab === 'umas'
-                                  ? 'bg-cyber-glow border-cyber-glow text-white'
-                                  : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'"
+                                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'"
                           >
                             <i class="ph-fill ph-horse"></i>
                             Umas
@@ -1183,8 +1183,8 @@ function perfIndicator(
                               @click="expandedDetailTab = 'races'"
                               class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5"
                               :class="expandedDetailTab === 'races'
-                                  ? 'bg-cyber-glow border-cyber-glow text-white'
-                                  : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'"
+                                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'"
                           >
                             <i class="ph-fill ph-flag-checkered"></i>
                             Races
@@ -1194,7 +1194,7 @@ function perfIndicator(
 
                         <div v-if="expandedDetailTab === 'tournaments'" class="overflow-x-auto">
                           <table class="w-full">
-                            <thead class="bg-cyber-dark border-b border-cyber-border">
+                            <thead class="bg-slate-900 border-b border-slate-700">
                             <tr>
                               <th class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-8">#</th>
                               <th @click="togglePlayerTournamentSort('tournamentName')" class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none">
@@ -1207,7 +1207,7 @@ function perfIndicator(
                               <th @click="togglePlayerTournamentSort('playedAt')" class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none whitespace-nowrap">
                                 <div class="flex items-center gap-1">
                                   Date
-                                  <i v-if="playerTournamentSortKey === 'playedAt'" class="ph-bold text-cyber-glow" :class="playerTournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                                  <i v-if="playerTournamentSortKey === 'playedAt'" class="ph-bold text-indigo-400" :class="playerTournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                                   <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                                 </div>
                               </th>
@@ -1229,15 +1229,15 @@ function perfIndicator(
                               >
                                 <div class="flex items-center justify-start gap-1">
                                   {{ col.label }}
-                                  <i v-if="playerTournamentSortKey === col.key" class="ph-bold text-cyber-glow" :class="playerTournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                                  <i v-if="playerTournamentSortKey === col.key" class="ph-bold text-indigo-400" :class="playerTournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                                   <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                                 </div>
                               </th>
                               <th class="px-3 py-2 w-8"></th>
                             </tr>
                             </thead>
-                            <tbody class="divide-y divide-cyber-border">
-                            <tr v-for="(t, tIdx) in expandedPlayerTournaments" :key="t.rowKey" class="hover:bg-cyber-panel/50 transition-colors">
+                            <tbody class="divide-y divide-slate-700">
+                            <tr v-for="(t, tIdx) in expandedPlayerTournaments" :key="t.rowKey" class="hover:bg-slate-700/50 transition-colors">
                               <td class="px-3 py-2 text-xs text-slate-500">{{ tIdx + 1 }}</td>
                               <td class="px-3 py-2 text-sm font-bold text-white">
                                 {{ t.tournamentName }}
@@ -1257,7 +1257,7 @@ function perfIndicator(
                                 <div class="flex items-center justify-end gap-1 flex-wrap">
                                   <span v-if="t.isWildcard" class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-bold uppercase">WC {{ t.wildcardGroup }}</span>
                                   <span v-if="t.finalsStatus === 'winner'" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold uppercase">Winner</span>
-                                  <span v-else-if="t.finalsStatus === 'finals'" class="text-[10px] px-1.5 py-0.5 rounded bg-cyber-glow/10 text-cyber-glow font-bold uppercase">{{ t.teamRank ? ordinal(t.teamRank) + ' Finals' : 'Finals' }}</span>
+                                  <span v-else-if="t.finalsStatus === 'finals'" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-bold uppercase">{{ t.teamRank ? ordinal(t.teamRank) + ' Finals' : 'Finals' }}</span>
                                   <span v-else-if="t.finalsStatus === 'eliminated'" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-bold uppercase">{{ t.teamRank ? ordinal(t.teamRank) + ' Grps' : 'Out' }}</span>
                                   <span v-else-if="t.finalsStatus === 'no-groups'" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-400 font-bold uppercase">{{ t.teamRank ? ordinal(t.teamRank) : '-' }}</span>
                                   <span v-else-if="!t.isWildcard" class="text-slate-600">-</span>
@@ -1283,7 +1283,7 @@ function perfIndicator(
                                 </div>
                                 <span v-else class="text-slate-600">—</span>
                               </td>
-                              <td class="px-3 py-2 text-sm text-right text-cyber-glow">
+                              <td class="px-3 py-2 text-sm text-right text-indigo-400">
                                 <div class="flex items-center justify-end gap-1">
                                   {{ (t as any)[stageKey('avgPoints')] }}
                                   <template v-for="pf in [perfIndicator(t.avgGroupPoints, t.avgFinalsPoints, false, [3, 1, -1, -3])]">
@@ -1308,7 +1308,7 @@ function perfIndicator(
                                 </div>
                               </td>
                               <td class="px-3 py-2 text-right">
-                                <router-link :to="'/t/' + t.tournamentId" class="text-cyber-glow hover:text-cyber-glow/80 transition-colors">
+                                <router-link :to="'/t/' + t.tournamentId" class="text-indigo-400 hover:text-indigo-300 transition-colors">
                                   <i class="ph-bold ph-arrow-right"></i>
                                 </router-link>
                               </td>
@@ -1320,7 +1320,7 @@ function perfIndicator(
 
                         <div v-if="expandedDetailTab === 'umas'" class="overflow-x-auto">
                           <table class="w-full">
-                            <thead class="bg-cyber-dark border-b border-cyber-border">
+                            <thead class="bg-slate-900 border-b border-slate-700">
                             <tr>
                               <th class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-8">#</th>
                               <th @click="togglePlayerUmaSort('name')" class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none">
@@ -1345,14 +1345,14 @@ function perfIndicator(
                               >
                                 <div class="flex items-center justify-end gap-1">
                                   {{ col.label }}
-                                  <i v-if="playerUmaSortKey === col.key" class="ph-bold text-cyber-glow" :class="playerUmaSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                                  <i v-if="playerUmaSortKey === col.key" class="ph-bold text-indigo-400" :class="playerUmaSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                                   <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                                 </div>
                               </th>
                             </tr>
                             </thead>
-                            <tbody class="divide-y divide-cyber-border">
-                            <tr v-for="(uma, uIdx) in expandedPlayerUmas" :key="uma.name" class="hover:bg-cyber-panel/50 transition-colors">
+                            <tbody class="divide-y divide-slate-700">
+                            <tr v-for="(uma, uIdx) in expandedPlayerUmas" :key="uma.name" class="hover:bg-slate-700/50 transition-colors">
                               <td class="px-3 py-2 text-xs text-slate-500">{{ uIdx + 1 }}</td>
                               <td class="px-3 py-2 text-sm font-bold text-white">
                                 <div class="flex items-center gap-1.5">
@@ -1364,7 +1364,7 @@ function perfIndicator(
                               <td class="px-3 py-2 text-sm text-right text-slate-400">{{ (uma as any)[stageKey('racesPlayed')] }}</td>
                               <td class="px-3 py-2 text-sm text-right text-emerald-400">{{ (uma as any)[stageKey('wins')] }}</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-emerald-400">{{ (uma as any)[stageKey('winRate')] }}%</td>
-                              <td class="px-3 py-2 text-sm text-right text-cyber-glow">{{ (uma as any)[stageKey('avgPoints')] }}</td>
+                              <td class="px-3 py-2 text-sm text-right text-indigo-400">{{ (uma as any)[stageKey('avgPoints')] }}</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-purple-400">{{ (uma as any)[stageKey('dominance')] }}%</td>
                               <td class="px-3 py-2 text-sm text-right text-slate-400">{{ (uma as any)[stageKey('avgPosition')] }}</td>
                             </tr>
@@ -1375,7 +1375,7 @@ function perfIndicator(
 
                         <div v-if="expandedDetailTab === 'races'" class="overflow-x-auto">
                           <table class="w-full">
-                            <thead class="bg-cyber-dark border-b border-cyber-border">
+                            <thead class="bg-slate-900 border-b border-slate-700">
                             <tr>
                               <th class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-8">#</th>
                               <th v-for="col in [
@@ -1396,16 +1396,16 @@ function perfIndicator(
                               >
                                 <div class="flex items-center gap-1" :class="col.align === 'right' ? 'justify-end' : 'justify-start'">
                                   {{ col.label }}
-                                  <i v-if="playerRaceSortKey === col.key" class="ph-bold text-cyber-glow" :class="playerRaceSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                                  <i v-if="playerRaceSortKey === col.key" class="ph-bold text-indigo-400" :class="playerRaceSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                                   <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                                 </div>
                               </th>
                               <th class="px-3 py-2 w-8"></th>
                             </tr>
                             </thead>
-                            <tbody class="divide-y divide-cyber-border">
+                            <tbody class="divide-y divide-slate-700">
                             <tr v-for="(race, rIdx) in expandedPlayerRaces" :key="race.key"
-                                class="hover:bg-cyber-panel/50 transition-colors"
+                                class="hover:bg-slate-700/50 transition-colors"
                                 :class="race.position === 1 ? 'bg-amber-500/5' : ''">
                               <td class="px-3 py-2 text-xs text-slate-500">{{ rIdx + 1 }}</td>
                               <td class="px-3 py-2 text-sm font-bold text-white whitespace-nowrap">{{ race.tournamentName }}</td>
@@ -1433,7 +1433,7 @@ function perfIndicator(
                               <td class="px-3 py-2 text-sm text-right text-slate-400">{{ race.opponents+1 }}</td>
                               <td class="px-3 py-2 text-sm text-right text-purple-400">{{ race.beaten }}</td>
                               <td class="px-3 py-2 text-right">
-                                <router-link :to="'/t/' + race.tournamentId" class="text-cyber-glow hover:text-cyber-glow/80 transition-colors">
+                                <router-link :to="'/t/' + race.tournamentId" class="text-indigo-400 hover:text-indigo-300 transition-colors">
                                   <i class="ph-bold ph-arrow-right"></i>
                                 </router-link>
                               </td>
@@ -1460,13 +1460,13 @@ function perfIndicator(
             v-model="umaSearchQuery"
             type="text"
             placeholder="Search umas..."
-            class="w-full bg-cyber-dark border border-cyber-border rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyber-glow"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
         />
 
-        <div class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-cyber-dark border-b border-cyber-border">
+              <thead class="bg-slate-900 border-b border-slate-700">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-12">#</th>
 
@@ -1498,27 +1498,27 @@ function perfIndicator(
                     class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none">
                   <div class="flex items-center justify-end gap-1">
                     {{ col.label }}
-                    <i v-if="umaSortKey === col.key" class="ph-bold text-cyber-glow" :class="umaSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-if="umaSortKey === col.key" class="ph-bold text-indigo-400" :class="umaSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                     <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
               </tr>
               </thead>
-              <tbody class="divide-y divide-cyber-border">
+              <tbody class="divide-y divide-slate-700">
               <template
                   v-for="(uma, idx) in umaStats.filter(u => !umaSearchQuery || u.name.toLowerCase().includes(umaSearchQuery.toLowerCase()))"
                   :key="uma.name"
               >
                 <tr
                     @click="toggleUmaExpand(uma.name)"
-                    class="hover:bg-cyber-panel/50 transition-colors cursor-pointer group"
-                    :class="{'bg-cyber-dark/80': expandedUmaName === uma.name}"
+                    class="hover:bg-slate-700/50 transition-colors cursor-pointer group"
+                    :class="{'bg-slate-800/80': expandedUmaName === uma.name}"
                 >
                   <td class="px-4 py-3 text-sm text-slate-400">{{ idx + 1 }}</td>
                   <td class="px-4 py-3 text-sm font-bold text-white">
                     <div class="flex items-center gap-2">
-                      <i class="ph-bold text-slate-500 group-hover:text-cyber-glow transition-transform duration-200"
-                         :class="expandedUmaName === uma.name ? 'ph-caret-down text-cyber-glow' : 'ph-caret-right'"></i>
+                      <i class="ph-bold text-slate-500 group-hover:text-indigo-400 transition-transform duration-200"
+                         :class="expandedUmaName === uma.name ? 'ph-caret-down text-indigo-400' : 'ph-caret-right'"></i>
                       <img :src="getUmaImagePath(uma.name)" :alt="uma.name" class="w-6 h-6 rounded-full object-cover shrink-0 bg-slate-700" />
                       {{ uma.name }}
                     </div>
@@ -1537,22 +1537,22 @@ function perfIndicator(
                   <td class="px-4 py-3 text-sm text-right text-slate-400">{{ (uma as any)[stageKey('timesPlayed')] }}</td>
                   <td class="px-4 py-3 text-sm text-right text-emerald-400">{{ (uma as any)[stageKey('wins')] }}</td>
                   <td class="px-4 py-3 text-sm text-right font-bold text-emerald-400">{{ (uma as any)[stageKey('winRate')] }}%</td>
-                  <td class="px-4 py-3 text-sm text-right text-cyber-glow">{{ (uma as any)[stageKey('avgPoints')] }}</td>
+                  <td class="px-4 py-3 text-sm text-right text-indigo-400">{{ (uma as any)[stageKey('avgPoints')] }}</td>
                   <td class="px-4 py-3 text-sm text-right font-bold text-purple-400">{{ (uma as any)[stageKey('dominance')] }}%</td>
                   <td class="px-4 py-3 text-sm text-right text-slate-400">{{ (uma as any)[stageKey('avgPosition')] }}</td>
                 </tr>
 
                 <tr v-if="expandedUmaName === uma.name">
                   <td :colspan="14" class="p-0">
-                    <div class="bg-cyber-dark/50 border-t border-cyber-border p-4">
-                      <div class="bg-cyber-dark border border-cyber-border rounded-lg overflow-hidden">
-                        <div class="px-4 py-3 border-b border-cyber-border flex items-center gap-3">
+                    <div class="bg-slate-900/50 border-t border-slate-700 p-4">
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-700 flex items-center gap-3">
                           <button
                               @click="expandedUmaDetailTab = 'tournaments'"
                               class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5"
                               :class="expandedUmaDetailTab === 'tournaments'
-                                  ? 'bg-cyber-glow border-cyber-glow text-white'
-                                  : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'"
+                                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'"
                           >
                             <i class="ph-fill ph-trophy"></i>
                             Appearances
@@ -1562,8 +1562,8 @@ function perfIndicator(
                               @click="expandedUmaDetailTab = 'players'"
                               class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5"
                               :class="expandedUmaDetailTab === 'players'
-                                  ? 'bg-cyber-glow border-cyber-glow text-white'
-                                  : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'"
+                                  ? 'bg-indigo-600 border-indigo-500 text-white'
+                                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'"
                           >
                             <i class="ph-fill ph-users"></i>
                             Players
@@ -1573,7 +1573,7 @@ function perfIndicator(
 
                         <div v-if="expandedUmaDetailTab === 'tournaments'" class="overflow-x-auto">
                           <table class="w-full">
-                            <thead class="bg-cyber-dark border-b border-cyber-border">
+                            <thead class="bg-slate-900 border-b border-slate-700">
                             <tr>
                               <th class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-8">#</th>
                               <th v-for="col in [
@@ -1596,15 +1596,15 @@ function perfIndicator(
                               >
                                 <div class="flex items-center gap-1" :class="col.key === 'tournamentName' || col.key === 'playedAt' || col.key === 'playerName' || col.key === 'finalsStatus' ? '' : 'justify-end'">
                                   {{ col.label }}
-                                  <i v-if="umaTournamentSortKey === col.key" class="ph-bold text-cyber-glow" :class="umaTournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                                  <i v-if="umaTournamentSortKey === col.key" class="ph-bold text-indigo-400" :class="umaTournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                                   <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                                 </div>
                               </th>
                               <th class="px-3 py-2 w-8"></th>
                             </tr>
                             </thead>
-                            <tbody class="divide-y divide-cyber-border">
-                            <tr v-for="(row, rIdx) in expandedUmaTournaments" :key="row.tournamentId + '_' + row.playerId" class="hover:bg-cyber-panel/50 transition-colors">
+                            <tbody class="divide-y divide-slate-700">
+                            <tr v-for="(row, rIdx) in expandedUmaTournaments" :key="row.tournamentId + '_' + row.playerId" class="hover:bg-slate-700/50 transition-colors">
                               <td class="px-3 py-2 text-xs text-slate-500">{{ rIdx + 1 }}</td>
                               <td class="px-3 py-2 text-sm font-bold text-white">
                                 {{ row.tournamentName }}
@@ -1618,7 +1618,7 @@ function perfIndicator(
                                 <div class="flex items-center justify-start gap-1 flex-wrap">
                                   <span v-if="row.isWildcard" class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 font-bold uppercase">WC {{ row.wildcardGroup }}</span>
                                   <span v-if="row.finalsStatus === 'winner'" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold uppercase">Winner</span>
-                                  <span v-else-if="row.finalsStatus === 'finals'" class="text-[10px] px-1.5 py-0.5 rounded bg-cyber-glow/10 text-cyber-glow font-bold uppercase">{{ row.teamRank ? ordinal(row.teamRank) + ' Finals' : 'Finals' }}</span>
+                                  <span v-else-if="row.finalsStatus === 'finals'" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-bold uppercase">{{ row.teamRank ? ordinal(row.teamRank) + ' Finals' : 'Finals' }}</span>
                                   <span v-else-if="row.finalsStatus === 'eliminated'" class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 font-bold uppercase">{{ row.teamRank ? ordinal(row.teamRank) + ' Grps' : 'Out' }}</span>
                                   <span v-else-if="row.finalsStatus === 'no-groups'" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-500/10 text-slate-400 font-bold uppercase">{{ row.teamRank ? ordinal(row.teamRank) : '-' }}</span>
                                   <span v-else-if="!row.isWildcard" class="text-slate-600">-</span>
@@ -1628,11 +1628,11 @@ function perfIndicator(
                               <td class="px-3 py-2 text-sm text-right text-emerald-400">{{ (row as any)[stageKey('wins')] }}</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-emerald-400">{{ (row as any)[stageKey('winRate')] }}%</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-white">{{ (row as any)[stageKey('totalPoints')] }}</td>
-                              <td class="px-3 py-2 text-sm text-right text-cyber-glow">{{ (row as any)[stageKey('avgPoints')] }}</td>
+                              <td class="px-3 py-2 text-sm text-right text-indigo-400">{{ (row as any)[stageKey('avgPoints')] }}</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-purple-400">{{ (row as any)[stageKey('dominance')] }}%</td>
                               <td class="px-3 py-2 text-sm text-right text-slate-400">{{ (row as any)[stageKey('avgPosition')] }}</td>
                               <td class="px-3 py-2 text-right">
-                                <router-link :to="'/t/' + row.tournamentId" class="text-cyber-glow hover:text-cyber-glow/80 transition-colors">
+                                <router-link :to="'/t/' + row.tournamentId" class="text-indigo-400 hover:text-indigo-300 transition-colors">
                                   <i class="ph-bold ph-arrow-right"></i>
                                 </router-link>
                               </td>
@@ -1644,7 +1644,7 @@ function perfIndicator(
 
                         <div v-if="expandedUmaDetailTab === 'players'" class="overflow-x-auto">
                           <table class="w-full">
-                            <thead class="bg-cyber-dark border-b border-cyber-border">
+                            <thead class="bg-slate-900 border-b border-slate-700">
                             <tr>
                               <th class="px-3 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-wider w-8">#</th>
                               <th v-for="col in [
@@ -1665,14 +1665,14 @@ function perfIndicator(
                               >
                                 <div class="flex items-center gap-1" :class="col.key === 'playerName' ? '' : 'justify-end'">
                                   {{ col.label }}
-                                  <i v-if="umaPlayerSortKey === col.key" class="ph-bold text-cyber-glow" :class="umaPlayerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                                  <i v-if="umaPlayerSortKey === col.key" class="ph-bold text-indigo-400" :class="umaPlayerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                                   <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                                 </div>
                               </th>
                             </tr>
                             </thead>
-                            <tbody class="divide-y divide-cyber-border">
-                            <tr v-for="(row, rIdx) in expandedUmaPlayers" :key="row.playerId" class="hover:bg-cyber-panel/50 transition-colors">
+                            <tbody class="divide-y divide-slate-700">
+                            <tr v-for="(row, rIdx) in expandedUmaPlayers" :key="row.playerId" class="hover:bg-slate-700/50 transition-colors">
                               <td class="px-3 py-2 text-xs text-slate-500">{{ rIdx + 1 }}</td>
                               <td class="px-3 py-2 text-sm font-bold text-white">{{ row.playerName }}</td>
                               <td class="px-3 py-2 text-sm text-right text-slate-300">{{ row.tournaments }}</td>
@@ -1680,7 +1680,7 @@ function perfIndicator(
                               <td class="px-3 py-2 text-sm text-right text-emerald-400">{{ (row as any)[stageKey('wins')] }}</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-emerald-400">{{ (row as any)[stageKey('winRate')] }}%</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-white">{{ (row as any)[stageKey('totalPoints')] }}</td>
-                              <td class="px-3 py-2 text-sm text-right text-cyber-glow">{{ (row as any)[stageKey('avgPoints')] }}</td>
+                              <td class="px-3 py-2 text-sm text-right text-indigo-400">{{ (row as any)[stageKey('avgPoints')] }}</td>
                               <td class="px-3 py-2 text-sm text-right font-bold text-purple-400">{{ (row as any)[stageKey('dominance')] }}%</td>
                               <td class="px-3 py-2 text-sm text-right text-slate-400">{{ (row as any)[stageKey('avgPosition')] }}</td>
                             </tr>
@@ -1708,8 +1708,8 @@ function perfIndicator(
               @click="tierCriterion = key"
               class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors border flex items-center gap-1.5"
               :class="tierCriterion === key
-                ? 'bg-cyber-glow border-cyber-glow text-white'
-                : 'bg-cyber-dark border-cyber-border text-slate-400 hover:text-white hover:border-cyber-glow/30'"
+                ? 'bg-indigo-600 border-indigo-500 text-white'
+                : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'"
           >
             <i :class="config.icon"></i>
             {{ config.label }}
@@ -1720,7 +1720,7 @@ function perfIndicator(
 
           <div>
             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <i class="ph-fill ph-users text-cyber-glow"></i> Players
+              <i class="ph-fill ph-users text-indigo-400"></i> Players
             </h3>
             <div class="space-y-3">
               <div
@@ -1736,21 +1736,21 @@ function perfIndicator(
                   >
                     <span class="text-2xl md:text-3xl font-black" :class="tier.text">{{ tier.tier }}</span>
                   </div>
-                  <div class="flex-1 flex flex-wrap gap-2 p-3 bg-cyber-dark/50">
+                  <div class="flex-1 flex flex-wrap gap-2 p-3 bg-slate-900/50">
                     <div
                         v-for="p in tier.entries"
                         :key="p.player.id"
                         @click="openProfile(p.player)"
-                        class="bg-cyber-dark border border-cyber-border rounded-lg px-3 py-2 flex items-center gap-2 hover:border-cyber-glow/40 hover:bg-cyber-panel/50 transition-colors cursor-pointer"
+                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-indigo-500 hover:bg-slate-700/50 transition-colors cursor-pointer"
                     >
                       <PlayerAvatar :name="p.player.name" :avatar-url="p.player.avatarUrl" size="sm" />
                       <span class="font-bold text-white text-sm">{{ p.player.name }}</span>
-                      <span class="text-xs px-1.5 py-0.5 rounded font-bold" :class="tier.text + ' bg-cyber-dark'">{{ stageStatValue(p, tierCriterion) }}{{ TIER_CRITERIA[tierCriterion].suffix }}</span>
+                      <span class="text-xs px-1.5 py-0.5 rounded font-bold" :class="tier.text + ' bg-slate-900'">{{ stageStatValue(p, tierCriterion) }}{{ TIER_CRITERIA[tierCriterion].suffix }}</span>
                     </div>
                   </div>
                 </div>
               </div>
-              <div v-if="playerTierList.length === 0" class="bg-cyber-dark border border-cyber-border rounded-xl p-6 text-center text-slate-400">
+              <div v-if="playerTierList.length === 0" class="bg-slate-800 border border-slate-700 rounded-xl p-6 text-center text-slate-400">
                 No players match the current filters.
               </div>
             </div>
@@ -1758,7 +1758,7 @@ function perfIndicator(
 
           <div>
             <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <i class="ph-fill ph-horse text-cyber-glow"></i> Umas
+              <i class="ph-fill ph-horse text-indigo-400"></i> Umas
             </h3>
             <div class="space-y-3">
               <div
@@ -1774,20 +1774,20 @@ function perfIndicator(
                   >
                     <span class="text-2xl md:text-3xl font-black" :class="tier.text">{{ tier.tier }}</span>
                   </div>
-                  <div class="flex-1 flex flex-wrap gap-2 p-3 bg-cyber-dark/50">
+                  <div class="flex-1 flex flex-wrap gap-2 p-3 bg-slate-900/50">
                     <div
                         v-for="u in tier.entries"
                         :key="u.name"
-                        class="bg-cyber-dark border border-cyber-border rounded-lg px-3 py-2 flex items-center gap-2 hover:border-cyber-glow/30 transition-colors"
+                        class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-slate-500 transition-colors"
                     >
                       <img :src="getUmaImagePath(u.name)" :alt="u.name" class="w-6 h-6 rounded-full object-cover shrink-0 bg-slate-700" />
                       <span class="font-bold text-white text-sm">{{ u.name }}</span>
-                      <span class="text-xs px-1.5 py-0.5 rounded font-bold" :class="tier.text + ' bg-cyber-dark'">{{ stageStatValue(u, tierCriterion) }}{{ TIER_CRITERIA[tierCriterion].suffix }}</span>
+                      <span class="text-xs px-1.5 py-0.5 rounded font-bold" :class="tier.text + ' bg-slate-900'">{{ stageStatValue(u, tierCriterion) }}{{ TIER_CRITERIA[tierCriterion].suffix }}</span>
                     </div>
                   </div>
                 </div>
               </div>
-              <div v-if="umaTierList.length === 0" class="bg-cyber-dark border border-cyber-border rounded-xl p-6 text-center text-slate-400">
+              <div v-if="umaTierList.length === 0" class="bg-slate-800 border border-slate-700 rounded-xl p-6 text-center text-slate-400">
                 No umas match the current filters.
               </div>
             </div>
@@ -1797,7 +1797,7 @@ function perfIndicator(
       </div>
 
       <div v-if="activeTab === 'tournaments'" class="space-y-4">
-        <div class="bg-cyber-dark border border-cyber-border rounded-xl p-5 space-y-5">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-5">
           <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
             <div>
               <h3 class="text-xl font-bold text-white flex items-center gap-2">
@@ -1812,12 +1812,12 @@ function perfIndicator(
           </div>
 
           <div class="grid lg:grid-cols-2 gap-4">
-            <div class="bg-cyber-dark/70 border border-cyber-border rounded-xl p-4 space-y-3">
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 space-y-3">
               <div class="flex items-center justify-between gap-3">
                 <div class="text-xs font-bold uppercase tracking-wider text-cyan-400">Slot A</div>
                 <select
                     v-model="compareLeftId"
-                    class="bg-slate-950 border border-cyber-border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 w-full max-w-md"
+                    class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 w-full max-w-md"
                 >
                   <option v-for="option in comparisonTournamentOptions" :key="option.id" :value="option.id">
                     {{ option.label }}
@@ -1852,12 +1852,12 @@ function perfIndicator(
               </div>
             </div>
 
-            <div class="bg-cyber-dark/70 border border-cyber-border rounded-xl p-4 space-y-3">
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl p-4 space-y-3">
               <div class="flex items-center justify-between gap-3">
                 <div class="text-xs font-bold uppercase tracking-wider text-fuchsia-400">Slot B</div>
                 <select
                     v-model="compareRightId"
-                    class="bg-slate-950 border border-cyber-border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-fuchsia-500 w-full max-w-md"
+                    class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-fuchsia-500 w-full max-w-md"
                 >
                   <option v-for="option in comparisonTournamentOptions" :key="option.id" :value="option.id">
                     {{ option.label }}
@@ -1897,7 +1897,7 @@ function perfIndicator(
             <div
                 v-for="metric in tournamentCompareMetrics"
                 :key="metric.key"
-                class="rounded-xl border border-cyber-border bg-cyber-dark/70 p-4"
+                class="rounded-xl border border-slate-700 bg-slate-900/70 p-4"
             >
               <div class="flex items-center justify-between mb-3">
                 <div class="text-xs uppercase tracking-wider text-slate-500 font-bold">{{ metric.label }}</div>
@@ -1921,8 +1921,8 @@ function perfIndicator(
           </div>
 
           <div v-if="leftTournamentSummary && rightTournamentSummary" class="grid xl:grid-cols-2 gap-4">
-            <div class="bg-cyber-dark/70 border border-cyber-border rounded-xl overflow-hidden">
-              <div class="px-4 py-3 border-b border-cyber-border bg-slate-950 flex items-center justify-between">
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl overflow-hidden">
+              <div class="px-4 py-3 border-b border-slate-700 bg-slate-950 flex items-center justify-between">
                 <h4 class="font-bold text-white">{{ leftTournamentSummary.name }}</h4>
                 <span class="text-xs text-slate-500 font-mono">{{ leftTournamentSummary.teams.length }} teams</span>
               </div>
@@ -1949,8 +1949,8 @@ function perfIndicator(
               </div>
             </div>
 
-            <div class="bg-cyber-dark/70 border border-cyber-border rounded-xl overflow-hidden">
-              <div class="px-4 py-3 border-b border-cyber-border bg-slate-950 flex items-center justify-between">
+            <div class="bg-slate-900/70 border border-slate-700 rounded-xl overflow-hidden">
+              <div class="px-4 py-3 border-b border-slate-700 bg-slate-950 flex items-center justify-between">
                 <h4 class="font-bold text-white">{{ rightTournamentSummary.name }}</h4>
                 <span class="text-xs text-slate-500 font-mono">{{ rightTournamentSummary.teams.length }} teams</span>
               </div>
@@ -1978,19 +1978,19 @@ function perfIndicator(
             </div>
           </div>
 
-          <div v-else class="bg-cyber-dark border border-dashed border-cyber-border rounded-xl p-6 text-center text-slate-400">
+          <div v-else class="bg-slate-900 border border-dashed border-slate-700 rounded-xl p-6 text-center text-slate-400">
             Pick two tournaments from the selectors or use the archive buttons below to start comparing.
           </div>
         </div>
-        <div class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
-          <div class="px-4 py-3 border-b border-cyber-border bg-cyber-dark flex justify-between items-center">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-700 bg-slate-900 flex justify-between items-center">
             <h3 class="font-bold text-white uppercase tracking-wider text-sm">Tournament Archive</h3>
             <span class="text-xs text-slate-500 font-mono">{{ filteredTournaments.length }} Events</span>
           </div>
 
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-cyber-dark border-b border-cyber-border">
+              <thead class="bg-slate-900 border-b border-slate-700">
               <tr>
                 <th v-for="col in [
                   { key: 'date',    label: 'Date',     align: 'left'  },
@@ -2005,19 +2005,19 @@ function perfIndicator(
                     :class="col.align === 'right' ? 'text-right' : 'text-left'">
                   <div class="flex items-center gap-1" :class="col.align === 'right' ? 'justify-end' : ''">
                     {{ col.label }}
-                    <i v-if="col.key !== 'compare' && tournamentSortKey === col.key" class="ph-bold text-cyber-glow" :class="tournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-if="col.key !== 'compare' && tournamentSortKey === col.key" class="ph-bold text-indigo-400" :class="tournamentSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
                     <i v-else-if="col.key !== 'compare'" class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
                   </div>
                 </th>
               </tr>
               </thead>
-              <tbody class="divide-y divide-cyber-border">
+              <tbody class="divide-y divide-slate-700">
               <tr v-for="t in sortedTournaments" :key="t.id" class="hover:bg-slate-750 transition-colors">
                 <td class="px-4 py-3 text-sm text-slate-400 font-mono">
                   {{ new Date(t.playedAt ?? t.createdAt).toLocaleDateString() }}
                 </td>
                 <td class="px-4 py-3 text-sm font-bold text-white">
-                  <router-link :to="'/t/' + t.id" class="hover:text-cyber-glow transition-colors">
+                  <router-link :to="'/t/' + t.id" class="hover:text-indigo-400 transition-colors">
                     {{ t.name }}
                   </router-link>
                 </td>
@@ -2040,7 +2040,7 @@ function perfIndicator(
                         class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors"
                         :class="compareLeftId === t.id
                           ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
-                          : 'bg-cyber-dark border-cyber-border text-slate-300 hover:text-white hover:border-cyan-500/40'"
+                          : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500/40'"
                     >
                       A
                     </button>
@@ -2049,7 +2049,7 @@ function perfIndicator(
                         class="px-2.5 py-1 rounded-lg border text-xs font-bold transition-colors"
                         :class="compareRightId === t.id
                           ? 'bg-fuchsia-500/15 border-fuchsia-500/40 text-fuchsia-300'
-                          : 'bg-cyber-dark border-cyber-border text-slate-300 hover:text-white hover:border-fuchsia-500/40'"
+                          : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:border-fuchsia-500/40'"
                     >
                       B
                     </button>
@@ -2066,57 +2066,57 @@ function perfIndicator(
       <div v-if="activeTab === 'diagrams'" class="space-y-4">
 
         <!-- Shared controls: subject + metric + mode -->
-        <div class="bg-cyber-dark border border-cyber-border rounded-xl p-3 flex flex-wrap gap-3 items-center justify-between">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex flex-wrap gap-3 items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">View</span>
-            <div class="flex rounded-lg bg-cyber-dark p-1 gap-1">
+            <div class="flex rounded-lg bg-slate-900 p-1 gap-1">
               <button
                 @click="diagramSubject = 'players'"
                 class="px-3 py-1.5 text-xs font-bold rounded transition-all"
-                :class="diagramSubject === 'players' ? 'bg-cyber-glow text-white shadow' : 'text-slate-400 hover:text-white'"
+                :class="diagramSubject === 'players' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'"
               >Players</button>
               <button
                 @click="diagramSubject = 'umas'"
                 class="px-3 py-1.5 text-xs font-bold rounded transition-all"
-                :class="diagramSubject === 'umas' ? 'bg-cyber-glow text-white shadow' : 'text-slate-400 hover:text-white'"
+                :class="diagramSubject === 'umas' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'"
               >Umas</button>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Metric</span>
-            <div class="flex rounded-lg bg-cyber-dark p-1 gap-1">
+            <div class="flex rounded-lg bg-slate-900 p-1 gap-1">
               <button
                 @click="diagramMetric = 'dominance'"
                 class="px-3 py-1.5 text-xs font-bold rounded transition-all"
-                :class="diagramMetric === 'dominance' ? 'bg-cyber-glow text-white shadow' : 'text-slate-400 hover:text-white'"
+                :class="diagramMetric === 'dominance' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'"
               >Dominance</button>
               <button
                 @click="diagramMetric = 'avg-points'"
                 class="px-3 py-1.5 text-xs font-bold rounded transition-all"
-                :class="diagramMetric === 'avg-points' ? 'bg-cyber-glow text-white shadow' : 'text-slate-400 hover:text-white'"
+                :class="diagramMetric === 'avg-points' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'"
               >Avg Points</button>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Mode</span>
-            <div class="flex rounded-lg bg-cyber-dark p-1 gap-1">
+            <div class="flex rounded-lg bg-slate-900 p-1 gap-1">
               <button
                 @click="diagramMode = 'per-tournament'"
                 class="px-3 py-1.5 text-xs font-bold rounded transition-all"
-                :class="diagramMode === 'per-tournament' ? 'bg-cyber-glow text-white shadow' : 'text-slate-400 hover:text-white'"
+                :class="diagramMode === 'per-tournament' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'"
               >Per Tournament</button>
               <button
                 @click="diagramMode = 'cumulative'"
                 class="px-3 py-1.5 text-xs font-bold rounded transition-all"
-                :class="diagramMode === 'cumulative' ? 'bg-cyber-glow text-white shadow' : 'text-slate-400 hover:text-white'"
+                :class="diagramMode === 'cumulative' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'"
               >Cumulative</button>
             </div>
           </div>
         </div>
 
         <!-- Player Timeline Chart -->
-        <div v-if="diagramSubject === 'players'" class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
-          <div class="p-4 border-b border-cyber-border">
+        <div v-if="diagramSubject === 'players'" class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div class="p-4 border-b border-slate-700">
             <h3 class="font-bold text-white">
               Player {{ diagramMetric === 'dominance' ? 'Dominance' : 'Avg Points' }} Timeline
             </h3>
@@ -2145,8 +2145,8 @@ function perfIndicator(
         </div>
 
         <!-- Player Selector -->
-        <div v-if="diagramSubject === 'players'" class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
-          <div class="px-4 py-3 border-b border-cyber-border flex items-center justify-between">
+        <div v-if="diagramSubject === 'players'" class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
             <h4 class="font-bold text-sm text-white">Select Players</h4>
             <div class="flex items-center gap-3">
               <span class="text-xs text-slate-500">{{ diagramSelectedPlayerIds.length }} / {{ MAX_DIAGRAM_PLAYERS }} selected</span>
@@ -2164,10 +2164,10 @@ function perfIndicator(
               @click="toggleDiagramPlayer(p.player.id)"
               class="flex items-center gap-2 px-2.5 py-2 rounded-lg border text-left transition-all"
               :class="diagramSelectedPlayerIds.includes(p.player.id)
-                ? 'border-cyber-glow/60 bg-cyber-glow/15'
+                ? 'border-indigo-500/60 bg-indigo-600/15'
                 : diagramSelectedPlayerIds.length >= MAX_DIAGRAM_PLAYERS
                   ? 'border-slate-800 text-slate-600 cursor-not-allowed opacity-50'
-                  : 'border-cyber-border hover:border-cyber-glow/30 text-slate-300'"
+                  : 'border-slate-700 hover:border-slate-500 text-slate-300'"
               :disabled="!diagramSelectedPlayerIds.includes(p.player.id) && diagramSelectedPlayerIds.length >= MAX_DIAGRAM_PLAYERS"
             >
               <div
@@ -2182,8 +2182,8 @@ function perfIndicator(
         </div>
 
         <!-- Uma Timeline Chart -->
-        <div v-if="diagramSubject === 'umas'" class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
-          <div class="p-4 border-b border-cyber-border">
+        <div v-if="diagramSubject === 'umas'" class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div class="p-4 border-b border-slate-700">
             <h3 class="font-bold text-white">
               Uma {{ diagramMetric === 'dominance' ? 'Dominance' : 'Avg Points' }} Timeline
             </h3>
@@ -2212,8 +2212,8 @@ function perfIndicator(
         </div>
 
         <!-- Uma Selector -->
-        <div v-if="diagramSubject === 'umas'" class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
-          <div class="px-4 py-3 border-b border-cyber-border flex items-center justify-between">
+        <div v-if="diagramSubject === 'umas'" class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
             <h4 class="font-bold text-sm text-white">Select Umas</h4>
             <div class="flex items-center gap-3">
               <span class="text-xs text-slate-500">{{ diagramSelectedUmaNames.length }} / {{ MAX_DIAGRAM_UMAS }} selected</span>
@@ -2231,10 +2231,10 @@ function perfIndicator(
               @click="toggleDiagramUma(umaName)"
               class="flex items-center gap-2 px-2.5 py-2 rounded-lg border text-left transition-all"
               :class="diagramSelectedUmaNames.includes(umaName)
-                ? 'border-cyber-glow/60 bg-cyber-glow/15'
+                ? 'border-indigo-500/60 bg-indigo-600/15'
                 : diagramSelectedUmaNames.length >= MAX_DIAGRAM_UMAS
                   ? 'border-slate-800 text-slate-600 cursor-not-allowed opacity-50'
-                  : 'border-cyber-border hover:border-cyber-glow/30 text-slate-300'"
+                  : 'border-slate-700 hover:border-slate-500 text-slate-300'"
               :disabled="!diagramSelectedUmaNames.includes(umaName) && diagramSelectedUmaNames.length >= MAX_DIAGRAM_UMAS"
             >
               <div
@@ -2255,7 +2255,7 @@ function perfIndicator(
       <div v-if="activeTab === 'decks'" class="space-y-4">
 
         <!-- Stats Summary -->
-        <div v-if="deckStats" class="bg-cyber-dark border border-cyber-border rounded-xl p-4">
+        <div v-if="deckStats" class="bg-slate-800 border border-slate-700 rounded-xl p-4">
           <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3">Deck Stats Overview</h3>
           <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div>
@@ -2263,7 +2263,7 @@ function perfIndicator(
               <div class="text-xs text-slate-400">Players with Decks</div>
             </div>
             <div>
-              <div class="text-2xl font-bold text-cyber-glow">{{ deckStats.avgScore }}</div>
+              <div class="text-2xl font-bold text-indigo-400">{{ deckStats.avgScore }}</div>
               <div class="text-xs text-slate-400">Avg Score</div>
             </div>
             <div>
@@ -2282,12 +2282,12 @@ function perfIndicator(
         </div>
 
         <!-- Search + Sort -->
-        <div class="bg-cyber-dark border border-cyber-border rounded-xl p-3 flex flex-wrap gap-3 items-center">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-3 flex flex-wrap gap-3 items-center">
           <div class="flex-1 min-w-[200px]">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
               <input v-model="deckSearchQuery" type="text" placeholder="Search player or uma..."
-                     class="w-full bg-cyber-dark border border-cyber-border rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyber-glow" />
+                     class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
             </div>
           </div>
           <div class="flex items-center gap-1">
@@ -2297,8 +2297,8 @@ function perfIndicator(
                     @click="toggleDeckSort(key)"
                     class="px-3 py-1.5 text-xs font-bold rounded transition-all"
                     :class="deckSortKey === key
-                      ? 'bg-cyber-glow text-white shadow'
-                      : 'text-slate-400 hover:text-white bg-cyber-dark'">
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white bg-slate-900'">
               {{ key === 'raceBonus' ? 'Race Bonus' : key === 'trainingEff' ? 'Training' : key === 'specialtyPri' ? 'Specialty' : key === 'utility' ? 'Utility' : key === 'composition' ? 'Comp' : 'Score' }}
               <i v-if="deckSortKey === key" :class="deckSortDesc ? 'ph-caret-down' : 'ph-caret-up'" class="ml-1"></i>
             </button>
@@ -2306,24 +2306,24 @@ function perfIndicator(
         </div>
 
         <!-- No decks message -->
-        <div v-if="filteredDeckRankings.length === 0" class="bg-cyber-dark border border-cyber-border rounded-xl p-8 text-center">
+        <div v-if="filteredDeckRankings.length === 0" class="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">
           <i class="ph ph-cards text-4xl text-slate-500 mb-3"></i>
           <p class="text-slate-400">No player decks found. Players need to add support cards to their profile.</p>
         </div>
 
         <!-- Player Deck Rankings -->
         <div v-for="(ranking, index) in filteredDeckRankings" :key="ranking.playerId"
-             class="bg-cyber-dark border border-cyber-border rounded-xl overflow-hidden">
+             class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
 
           <!-- Header -->
-          <div class="flex items-center justify-between px-4 py-3 bg-cyber-dark/80 border-b border-cyber-border">
+          <div class="flex items-center justify-between px-4 py-3 bg-slate-800/80 border-b border-slate-700">
             <div class="flex items-center gap-3">
               <span class="text-lg font-black w-8 text-center"
                     :class="index < 3 ? 'text-yellow-400' : 'text-slate-400'">#{{ index + 1 }}</span>
               <div>
                 <div class="font-bold text-white">{{ ranking.playerName }}</div>
                 <div class="text-xs text-slate-400">{{ ranking.umaName }}
-                  <span v-if="umaStatBonus[ranking.umaName]" class="text-cyber-glow ml-1">({{ umaStatBonus[ranking.umaName] }})</span>
+                  <span v-if="umaStatBonus[ranking.umaName]" class="text-indigo-400 ml-1">({{ umaStatBonus[ranking.umaName] }})</span>
                 </div>
               </div>
             </div>
@@ -2343,14 +2343,14 @@ function perfIndicator(
           <div v-if="ranking.evaluation" class="px-4 py-3">
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
               <div v-for="cs in ranking.evaluation.cardScores" :key="cs.card.id"
-                   class="flex items-center gap-2 px-3 py-2 rounded-lg border bg-cyber-dark/50"
-                   :class="`border-cyber-border`">
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg border bg-slate-900/50"
+                   :class="`border-slate-700`">
                 <span class="text-xs font-black w-5 text-center"
                       :class="cs.tier === 'S' ? 'text-yellow-400' : cs.tier === 'A' ? 'text-orange-400' : 'text-slate-500'">{{ cs.tier }}</span>
                 <div class="min-w-0 flex-1">
                   <div class="text-xs font-bold text-white truncate">{{ cs.card.name }}</div>
                   <div class="text-[10px] text-slate-500 truncate">{{ cs.card.cardName }}</div>
-                  <div class="text-[10px] text-cyber-glow">{{ cs.score }} pts</div>
+                  <div class="text-[10px] text-indigo-400">{{ cs.score }} pts</div>
                 </div>
               </div>
             </div>
