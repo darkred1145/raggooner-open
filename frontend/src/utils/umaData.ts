@@ -465,6 +465,12 @@ export const UMA_DICT: Record<string, UmaData> = {
         statBonus: 'SPD +10% / STA +10% / GUT +10%',
         aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'F', mile: 'E', medium: 'A', long: 'B' }, style: { frontRunner: 'D', paceChaser: 'A', lateSurger: 'C', endCloser: 'E' } }
     },
+    'Ines Fujin': {
+        id: 'ines-fujin', name: 'Ines Fujin', stars: 3, releaseDate: '2026-04-29T22:00:00.000Z', characterId: 103101,
+        gametoraId: 103101,
+        statBonus: 'SPD +15% / GUT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'C' }, style: { frontRunner: 'A', paceChaser: 'C', lateSurger: 'G', endCloser: 'G' } }
+    },
     'Anime Mejiro McQueen': {
         id: 'anime-mejiro-mcqueen', name: 'Anime Mejiro McQueen', stars: 3, releaseDate: '2025-07-16T22:00:00.000Z', characterId: 101302,
         gametoraId: 101302,
