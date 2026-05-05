@@ -92,6 +92,6 @@ describe('trueskill', () => {
 
   it('returns provisional epithet before three matches', () => {
     expect(getTrueSkillEpithet(1400, 1)).toBe('Provisional');
-    expect(getTrueSkillEpithet(1400, 3)).toBe('Legend');
+    expect(getTrueSkillEpithet(1400, 3)).toBe('Master');
   });
 });

@@ -100,14 +100,14 @@ function toSnapshot(rating: MutableRating): TrueSkillSnapshot {
 
 export function getTrueSkillEpithet(score: number, matches: number): string {
   if (matches < PROVISIONAL_MATCHES) return 'Provisional';
-  if (score >= 1500) return 'Transcendent';
-  if (score >= 1400) return 'Legend';
-  if (score >= 1325) return 'Elite';
-  if (score >= 1250) return 'Ace';
-  if (score >= 1175) return 'Expert';
-  if (score >= 1100) return 'Veteran';
-  if (score >= 1025) return 'Contender';
-  return 'Initiate';
+  if (score >= 1500) return 'Grand Master';
+  if (score >= 1400) return 'Master';
+  if (score >= 1325) return 'Diamond';
+  if (score >= 1250) return 'Platinum';
+  if (score >= 1175) return 'Gold';
+  if (score >= 1100) return 'Silver';
+  if (score >= 1025) return 'Bronze';
+  return 'Iron';
 }
 
 function getOrderedTeams(tournament: Tournament): Team[] {
