@@ -62,19 +62,3 @@ jobs:
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RAGGOONER_UMA_2026 }}
           PROJECT_PATH: ./frontend
-
-      # 6. Install Cloud Functions dependencies & build
-      - name: Install Functions Dependencies
-        run: cd functions && npm ci
-
-      - name: Build Cloud Functions
-        run: cd functions && npm run build
-
-      # 7. Deploy CLOUD FUNCTIONS
-      - name: Deploy Cloud Functions
-        uses: w9jds/firebase-action@master
-        with:
-          args: deploy --only functions --force
-        env:
-          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RAGGOONER_UMA_2026 }}
-          PROJECT_PATH: .
