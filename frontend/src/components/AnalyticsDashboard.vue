@@ -884,9 +884,42 @@ function perfIndicator(
                   </div>
                 </th>
 
+                <th @click="togglePlayerSort('tournaments')" class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1">
+                    Tourneys
+                    <i v-if="playerSortKey === 'tournaments'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
+                  </div>
+                </th>
+
+                <th @click="togglePlayerSort('trueSkillScore')" class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1">
+                    TS Rating
+                    <i class="ph-fill ph-info text-slate-500 hover:text-violet-400 transition-colors cursor-help normal-case font-normal" title="Bayesian skill rating (μ − 2σ) × 100. μ is your estimated skill level; σ is uncertainty, which decreases as you play more tournaments. The displayed value is a conservative estimate — a higher σ means a larger penalty until the system is more confident in your rating."></i>
+                    <i v-if="playerSortKey === 'trueSkillScore'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
+                  </div>
+                </th>
+
+                <th @click="togglePlayerSort('ffaTrueSkillScore')" class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1">
+                    FFA
+                    <i class="ph-fill ph-info text-slate-500 hover:text-violet-400 transition-colors cursor-help normal-case font-normal" title="Pure individual (FFA) TrueSkill rating — no team component. Ranked solely by average race placement per group."></i>
+                    <i v-if="playerSortKey === 'ffaTrueSkillScore'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
+                  </div>
+                </th>
+
+                <th @click="togglePlayerSort('teamTrueSkillScore')" class="px-4 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors group select-none whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1">
+                    Team
+                    <i class="ph-fill ph-info text-slate-500 hover:text-violet-400 transition-colors cursor-help normal-case font-normal" title="Pure team TrueSkill rating — no individual/FFA component. Teams are ranked by stage points (tiebreak: placement histogram)."></i>
+                    <i v-if="playerSortKey === 'teamTrueSkillScore'" class="ph-bold text-indigo-400" :class="playerSortDesc ? 'ph-caret-down' : 'ph-caret-up'"></i>
+                    <i v-else class="ph-bold ph-caret-down opacity-0 group-hover:opacity-50"></i>
+                  </div>
+                </th>
+
                 <th v-for="col in [
-                  { key: 'tournaments', label: 'Tourneys' },
-                  { key: 'trueSkillScore', label: 'TS Rating' },
                   { key: 'tournamentWins', label: 'T. Wins' },
                   { key: 'tournamentWinRate', label: 'T. Win Rate' },
                   { key: 'races', label: 'Races' },
@@ -937,6 +970,18 @@ function perfIndicator(
                       <span class="text-[10px]" :class="player.trueSkillProvisional ? 'text-amber-400' : 'text-slate-500'">{{ player.trueSkillEpithet }}</span>
                     </div>
                   </td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    <div class="flex flex-col items-end leading-tight">
+                      <span class="font-black" :class="player.ffaTrueSkillProvisional ? 'text-slate-300' : 'text-emerald-300'">{{ player.ffaTrueSkillScore }}</span>
+                      <span class="text-[10px]" :class="player.ffaTrueSkillProvisional ? 'text-amber-400' : 'text-slate-500'">{{ player.ffaTrueSkillEpithet }}</span>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-right">
+                    <div class="flex flex-col items-end leading-tight">
+                      <span class="font-black" :class="player.teamTrueSkillProvisional ? 'text-slate-300' : 'text-violet-300'">{{ player.teamTrueSkillScore }}</span>
+                      <span class="text-[10px]" :class="player.teamTrueSkillProvisional ? 'text-amber-400' : 'text-slate-500'">{{ player.teamTrueSkillEpithet }}</span>
+                    </div>
+                  </td>
                   <td class="px-4 py-3 text-sm text-right font-bold text-amber-400">{{ player.tournamentWins }}</td>
                   <td class="px-4 py-3 text-sm text-right font-bold text-amber-400">{{ player.tournamentWinRate }}%</td>
 
@@ -978,7 +1023,7 @@ function perfIndicator(
                 </tr>
 
                 <tr v-if="expandedPlayerId === player.player.id" class="bg-slate-900/50">
-                  <td colspan="13" class="p-0 border-b-2 border-indigo-500/30">
+                  <td colspan="15" class="p-0 border-b-2 border-indigo-500/30">
                     <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-in-down">
 
                       <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
@@ -1005,6 +1050,30 @@ function perfIndicator(
                             <span class="text-slate-400">Penalty</span>
                             <span class="font-mono text-slate-300">{{ player.trueSkillPenalty }}</span>
                           </div>
+                        </div>
+                      </div>
+
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                          <i class="ph-fill ph-user text-emerald-400"></i> FFA TrueSkill
+                        </div>
+                        <div class="flex items-end gap-3">
+                          <div class="text-3xl font-black text-emerald-300">{{ player.ffaTrueSkillScore }}</div>
+                        </div>
+                        <div class="text-sm font-bold mt-2" :class="player.ffaTrueSkillProvisional ? 'text-amber-400' : 'text-white'">
+                          {{ player.ffaTrueSkillEpithet }}
+                        </div>
+                      </div>
+
+                      <div class="bg-slate-800 border border-slate-700 rounded-lg p-4">
+                        <div class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                          <i class="ph-fill ph-users text-violet-400"></i> Team TrueSkill
+                        </div>
+                        <div class="flex items-end gap-3">
+                          <div class="text-3xl font-black text-violet-300">{{ player.teamTrueSkillScore }}</div>
+                        </div>
+                        <div class="text-sm font-bold mt-2" :class="player.teamTrueSkillProvisional ? 'text-amber-400' : 'text-white'">
+                          {{ player.teamTrueSkillEpithet }}
                         </div>
                       </div>
 

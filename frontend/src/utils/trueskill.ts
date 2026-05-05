@@ -232,3 +232,171 @@ export function computeSeasonTrueSkill(tournaments: Tournament[], seasonId: stri
     histories,
   };
 }
+
+export interface FFARatingResult {
+  ratings: Map<string, TrueSkillSnapshot>;
+  histories: Map<string, TrueSkillHistoryEntry[]>;
+}
+
+export function computeFFATrueSkill(
+  tournaments: Tournament[],
+  seasonId: string | null | undefined
+): FFARatingResult {
+  const ratings = new Map<string, MutableRating>();
+  const histories = new Map<string, TrueSkillHistoryEntry[]>();
+
+  if (!seasonId) {
+    return { ratings: new Map(), histories };
+  }
+
+  const ratedTournaments = tournaments
+    .filter(t => t.status === 'completed' && t.isOfficial && t.seasonId === seasonId)
+    .sort((a, b) => new Date(a.playedAt ?? a.createdAt).getTime() - new Date(b.playedAt ?? b.createdAt).getTime());
+
+  for (const tournament of ratedTournaments) {
+    const races = tournament.races || {};
+    for (const [, stageRaces] of Object.entries(races)) {
+      const raceList = Array.isArray(stageRaces) ? stageRaces : Object.values(stageRaces);
+      for (const race of raceList) {
+        const placements = race.placements || {};
+        const playerEntries = Object.entries(placements)
+          .map(([playerId, position]) => ({ playerId, position: position as number }))
+          .filter(e => e.position > 0);
+
+        if (playerEntries.length <= 1) continue;
+
+        playerEntries.forEach(e => inflateUncertainty(ensureRating(ratings, e.playerId)));
+
+        for (let i = 0; i < playerEntries.length - 1; i++) {
+          for (let j = i + 1; j < playerEntries.length; j++) {
+            const higher = playerEntries[i]!;
+            const lower = playerEntries[j]!;
+            if (higher.position < lower.position) {
+              updateAdjacentFFA(ratings, higher.playerId, lower.playerId);
+            } else if (higher.position > lower.position) {
+              updateAdjacentFFA(ratings, lower.playerId, higher.playerId);
+            }
+          }
+        }
+
+        const tournamentName = tournament.name;
+        const playedAt = tournament.playedAt ?? tournament.createdAt;
+        playerEntries.forEach(e => {
+          const rating = ensureRating(ratings, e.playerId);
+          const previousEntries = histories.get(e.playerId) ?? [];
+          const previousScore = previousEntries[previousEntries.length - 1]?.score
+            ?? Math.round((DEFAULT_MU - 3 * DEFAULT_SIGMA + 25) * 40);
+
+          rating.matches += 1;
+          const snapshot = toSnapshot(rating);
+          const historyEntry: TrueSkillHistoryEntry = {
+            ...snapshot,
+            playerId: e.playerId,
+            tournamentId: tournament.id,
+            tournamentName,
+            seasonId,
+            playedAt,
+            deltaScore: snapshot.score - previousScore,
+          };
+          histories.set(e.playerId, [...previousEntries, historyEntry]);
+        });
+      }
+    }
+  }
+
+  return {
+    ratings: new Map(Array.from(ratings.entries()).map(([playerId, rating]) => [playerId, toSnapshot(rating)])),
+    histories,
+  };
+}
+
+function updateAdjacentFFA(
+  playerRatings: Map<string, MutableRating>,
+  higherPlayerId: string,
+  lowerPlayerId: string
+) {
+  const higher = ensureRating(playerRatings, higherPlayerId);
+  const lower = ensureRating(playerRatings, lowerPlayerId);
+
+  const sigmaSq = (higher.sigma * higher.sigma) + (lower.sigma * lower.sigma);
+  const c = Math.sqrt(sigmaSq + 2 * (BETA * BETA));
+  const delta = (higher.mu - lower.mu) / c;
+  const v = vExceedsMargin(delta);
+  const w = wExceedsMargin(delta);
+
+  higher.mu += (higher.sigma * higher.sigma) / c * v;
+  higher.sigma = Math.max(1e-3, Math.sqrt((higher.sigma * higher.sigma) * Math.max(1 - ((higher.sigma * higher.sigma) / (c * c)) * w, 1e-6)));
+
+  lower.mu -= (lower.sigma * lower.sigma) / c * v;
+  lower.sigma = Math.max(1e-3, Math.sqrt((lower.sigma * lower.sigma) * Math.max(1 - ((lower.sigma * lower.sigma) / (c * c)) * w, 1e-6)));
+}
+
+export interface TeamRatingResult {
+  ratings: Map<string, TrueSkillSnapshot>;
+  histories: Map<string, TrueSkillHistoryEntry[]>;
+}
+
+export function computeTeamTrueSkill(
+  tournaments: Tournament[],
+  seasonId: string | null | undefined
+): TeamRatingResult {
+  const ratings = new Map<string, MutableRating>();
+  const histories = new Map<string, TrueSkillHistoryEntry[]>();
+
+  if (!seasonId) {
+    return { ratings: new Map(), histories };
+  }
+
+  const ratedTournaments = tournaments
+    .filter(t => t.status === 'completed' && t.isOfficial && t.seasonId === seasonId)
+    .sort((a, b) => new Date(a.playedAt ?? a.createdAt).getTime() - new Date(b.playedAt ?? b.createdAt).getTime());
+
+  ratedTournaments.forEach(tournament => {
+    const teams = tournament.teams || [];
+    if (teams.length === 0) return;
+
+    const scoredTeams = teams.map(team => {
+      const totalPoints = (team.points || 0) + (team.finalsPoints || 0);
+      const playerIds = [team.captainId, ...(team.memberIds || [])].filter(Boolean) as string[];
+      return { id: team.id, totalPoints, playerIds, group: team.group || 'A', inFinals: team.inFinals ?? true };
+    });
+
+    const sorted = [...scoredTeams].sort((a, b) => b.totalPoints - a.totalPoints);
+    const rankedTeams = sorted.map((team, index) => ({ id: team.id, rank: index + 1, playerIds: team.playerIds }))
+      .filter(team => team.playerIds.length > 0);
+
+    if (rankedTeams.length < 2) return;
+
+    const participants = [...new Set(rankedTeams.flatMap(team => team.playerIds))];
+    participants.forEach(playerId => inflateUncertainty(ensureRating(ratings, playerId)));
+
+    for (let index = 0; index < rankedTeams.length - 1; index++) {
+      updateAdjacentTeams(ratings, rankedTeams[index]!, rankedTeams[index + 1]!);
+    }
+
+    participants.forEach(playerId => {
+      const rating = ensureRating(ratings, playerId);
+      const previousEntries = histories.get(playerId) ?? [];
+      const previousScore = previousEntries[previousEntries.length - 1]?.score
+        ?? Math.round((DEFAULT_MU - 3 * DEFAULT_SIGMA + 25) * 40);
+
+      rating.matches += 1;
+      const snapshot = toSnapshot(rating);
+      const historyEntry: TrueSkillHistoryEntry = {
+        ...snapshot,
+        playerId,
+        tournamentId: tournament.id,
+        tournamentName: tournament.name,
+        seasonId,
+        playedAt: tournament.playedAt ?? tournament.createdAt,
+        deltaScore: snapshot.score - previousScore,
+      };
+      histories.set(playerId, [...previousEntries, historyEntry]);
+    });
+  });
+
+  return {
+    ratings: new Map(Array.from(ratings.entries()).map(([playerId, rating]) => [playerId, toSnapshot(rating)])),
+    histories,
+  };
+}

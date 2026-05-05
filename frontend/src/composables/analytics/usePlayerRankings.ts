@@ -14,7 +14,7 @@ import {
   createSortState,
   getWinningTeam
 } from '../../utils/analyticsUtils';
-import { computeSeasonTrueSkill } from '../../utils/trueskill';
+import { computeSeasonTrueSkill, computeFFATrueSkill, computeTeamTrueSkill } from '../../utils/trueskill';
 
 export interface PlayerStats {
   player: GlobalPlayer;
@@ -69,6 +69,12 @@ export interface PlayerStats {
   trueSkillMatches: number;
   trueSkillEpithet: string;
   trueSkillProvisional: boolean;
+  ffaTrueSkillScore: number;
+  ffaTrueSkillEpithet: string;
+  ffaTrueSkillProvisional: boolean;
+  teamTrueSkillScore: number;
+  teamTrueSkillEpithet: string;
+  teamTrueSkillProvisional: boolean;
 }
 
 const PLAYER_STAGE_KEY: Record<string, Record<string, string>> = {
@@ -132,6 +138,8 @@ export function usePlayerRankings(
 
   const topPlayerCriterion = ref<Top5Key>('totalPoints');
   const seasonTrueSkill = computed(() => computeSeasonTrueSkill(filteredTournaments.value, ratingSeasonId.value));
+  const ffaTrueSkill = computed(() => computeFFATrueSkill(filteredTournaments.value, ratingSeasonId.value));
+  const teamTrueSkill = computed(() => computeTeamTrueSkill(filteredTournaments.value, ratingSeasonId.value));
 
   // Actions
   const togglePlayerExpand = (playerId: string) => {
@@ -170,6 +178,8 @@ export function usePlayerRankings(
           mostPickedUmas: [], mostWinningUmas: [],
           trueSkillScore: 0, trueSkillExposure: 0, trueSkillMu: 25, trueSkillSigma: 25 / 3,
           trueSkillPenalty: 1000, trueSkillMatches: 0, trueSkillEpithet: 'Provisional', trueSkillProvisional: true,
+          ffaTrueSkillScore: 0, ffaTrueSkillEpithet: 'Provisional', ffaTrueSkillProvisional: true,
+          teamTrueSkillScore: 0, teamTrueSkillEpithet: 'Provisional', teamTrueSkillProvisional: true,
         });
       }
 
@@ -325,6 +335,20 @@ export function usePlayerRankings(
         stats.trueSkillMatches = trueSkill.matches;
         stats.trueSkillEpithet = trueSkill.epithet;
         stats.trueSkillProvisional = trueSkill.isProvisional;
+      }
+
+      const ffa = ffaTrueSkill.value.ratings.get(stats.player.id);
+      if (ffa) {
+        stats.ffaTrueSkillScore = ffa.score;
+        stats.ffaTrueSkillEpithet = ffa.epithet;
+        stats.ffaTrueSkillProvisional = ffa.isProvisional;
+      }
+
+      const team = teamTrueSkill.value.ratings.get(stats.player.id);
+      if (team) {
+        stats.teamTrueSkillScore = team.score;
+        stats.teamTrueSkillEpithet = team.epithet;
+        stats.teamTrueSkillProvisional = team.isProvisional;
       }
     });
 
