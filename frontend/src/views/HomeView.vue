@@ -404,7 +404,7 @@ onMounted(() => {
         <div class="max-w-lg mx-auto mt-8 space-y-12">
 
           <div class="text-center space-y-4">
-            <h1 class="text-6xl font-extrabold text-gradient-cyber">Racc Open</h1>
+            <h1 class="text-6xl font-extrabold text-gradient-cyber glitch-text">Racc Open</h1>
             <p class="text-xl text-slate-400 max-w-2xl mx-auto">Organize Racc Open. Draft a Team, low-roll your career, mald a lot and race against the other teams.</p>
           </div>
 
@@ -432,10 +432,10 @@ onMounted(() => {
                   <button v-for="(fmt, key) in TOURNAMENT_FORMATS" :key="key"
                           @click="selectedFormat = key"
                           :disabled="isCreating"
-                          class="flex-1 p-3 rounded-lg border text-left transition-all"
+                          class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
                           :class="selectedFormat === key
-                            ? 'border-cyber-glow/30 bg-cyber-glow/5'
-                            : 'border-cyber-border bg-cyber-dark hover:border-cyber-border/80'">
+                            ? 'border-cyber-glow/40 bg-cyber-glow/5 neon-border'
+                            : 'border-cyber-border bg-cyber-dark hover:border-cyber-glow/20'">
                     <span class="block text-sm font-bold" :class="selectedFormat === key ? 'text-cyber-glow' : 'text-slate-300'">{{ fmt.name }}</span>
                     <span class="block text-[10px] mt-0.5" :class="selectedFormat === key ? 'text-cyber-glow/60' : 'text-slate-500'">{{ fmt.description }}</span>
                   </button>
@@ -445,7 +445,7 @@ onMounted(() => {
                   <button @click="banVotingEnabled = !banVotingEnabled"
                           :disabled="isCreating"
                           class="relative w-12 h-6 rounded-full transition-colors shrink-0"
-                          :class="banVotingEnabled ? 'bg-cyber-glow' : 'bg-slate-600'">
+                          :class="banVotingEnabled ? 'bg-cyber-glow/70 shadow-neon-cyan' : 'bg-cyber-border'">
                     <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
                           :class="banVotingEnabled ? 'translate-x-6' : 'translate-x-0'"></span>
                   </button>
@@ -459,15 +459,15 @@ onMounted(() => {
                   <div class="flex gap-2" :class="!isOfficialCreator ? 'opacity-50 pointer-events-none' : ''">
                     <button @click="isOfficial = false"
                             :disabled="isCreating"
-                            class="flex-1 p-3 rounded-lg border text-left transition-all"
-                            :class="!isOfficial ? 'border-slate-500 bg-cyber-dark' : 'border-cyber-border bg-cyber-dark hover:border-cyber-border/80'">
+                            class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
+                            :class="!isOfficial ? 'border-slate-500 bg-cyber-dark/60' : 'border-cyber-border bg-cyber-dark hover:border-cyber-glow/20'">
                       <span class="block text-sm font-bold" :class="!isOfficial ? 'text-slate-200' : 'text-slate-400'">Unofficial</span>
                       <span class="block text-[10px] mt-0.5 text-slate-500">Does not count in stats</span>
                     </button>
                     <button @click="isOfficial = true"
                             :disabled="isCreating"
-                            class="flex-1 p-3 rounded-lg border text-left transition-all"
-                            :class="isOfficial ? 'border-cyber-magenta/40 bg-cyber-magenta/5' : 'border-cyber-border bg-cyber-dark hover:border-cyber-border/80'">
+                            class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
+                            :class="isOfficial ? 'border-cyber-magenta/50 bg-cyber-magenta/10' : 'border-cyber-border bg-cyber-dark hover:border-cyber-glow/20'">
                       <span class="block text-sm font-bold" :class="isOfficial ? 'text-cyber-magenta' : 'text-slate-400'">Official</span>
                       <span class="block text-[10px] mt-0.5" :class="isOfficial ? 'text-cyber-magenta/60' : 'text-slate-500'">Counts toward player stats</span>
                     </button>
@@ -480,7 +480,7 @@ onMounted(() => {
 
                 <button @click="createTournament"
                         :disabled="!newTournamentName || isCreating"
-                        class="w-full bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all flex items-center justify-center gap-2">
+                        class="w-full bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:from-cyber-glow hover:to-cyber-magenta disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all shadow-neon-cyan flex items-center justify-center gap-2">
 
                   <template v-if="isCreating">
                     <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -559,7 +559,7 @@ onMounted(() => {
                              class="w-full bg-cyber-dark border border-cyber-border rounded-lg p-3 text-white focus:outline-none text-sm">
                       <button @click="joinWithParty"
                               :disabled="isJoiningQueue || !linkedPlayer || !partyMembersInput.trim()"
-                              class="w-full bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:opacity-90 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                              class="w-full bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:from-cyber-glow hover:to-cyber-magenta disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
                         <template v-if="isJoiningQueue">
                           <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
@@ -611,13 +611,13 @@ onMounted(() => {
 
           <div v-if="scheduledTournamentsList.length > 0">
             <div class="flex items-center gap-3 mb-6">
-              <div class="h-8 w-2 bg-cyber-purple rounded-full"></div>
+              <div class="h-8 w-2 bg-cyber-purple rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
               <h2 class="text-2xl font-bold text-white">Scheduled Events</h2>
             </div>
             <div class="grid lg:grid-cols-2 gap-4">
               <div v-for="t in scheduledTournamentsList" :key="t.id"
                    @click="selectTournamentFromHome(t.id)"
-                   class="group relative cyber-panel border border-cyber-border hover:border-cyber-purple/30 rounded-lg p-6 cursor-pointer transition-all duration-200 flex flex-col h-full">
+                   class="group relative cyber-panel hover:bg-cyber-panel/80 border border-cyber-border hover:border-cyber-purple/40 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
                 <div class="flex justify-between items-start mb-3">
                   <div class="flex items-center gap-1.5 text-xs font-bold text-cyber-purple/90 bg-cyber-purple/10 border border-cyber-purple/20 px-2 py-1 rounded-md">
                     <i class="ph-bold ph-calendar-check"></i>
@@ -645,7 +645,7 @@ onMounted(() => {
 
           <div>
             <div class="flex items-center gap-3 mb-6">
-              <div class="h-8 w-2 bg-cyber-glow rounded-full"></div>
+              <div class="h-8 w-2 bg-cyber-glow rounded-full shadow-neon-cyan"></div>
               <h2 class="text-2xl font-bold text-white">Ongoing Events</h2>
             </div>
 
@@ -653,14 +653,14 @@ onMounted(() => {
               <i class="ph ph-spinner animate-spin text-4xl text-cyber-glow"></i>
             </div>
 
-            <div v-else-if="activeTournamentsList.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-cyber-border rounded-lg">
+            <div v-else-if="activeTournamentsList.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-cyber-border rounded-xl">
               No active tournaments found. Start one above!
             </div>
 
             <div v-else class="grid lg:grid-cols-2 gap-4">
               <div v-for="t in activeTournamentsList" :key="t.id"
                    @click="selectTournamentFromHome(t.id)"
-                   class="group relative cyber-panel border border-cyber-border hover:border-cyber-glow/30 rounded-lg p-6 cursor-pointer transition-all duration-200 flex flex-col h-full">
+                   class="group relative cyber-panel hover:bg-cyber-panel/80 border border-cyber-border hover:border-cyber-glow/30 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
 
                 <div class="flex justify-between items-start mb-3">
                   <div class="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
@@ -700,10 +700,10 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="border-t border-cyber-border/30 pt-8 pb-12">
+          <div class="border-t border-cyber-border/40 pt-8 pb-12">
             <button
                 @click="showHistory = !showHistory"
-                class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mx-auto px-4 py-2 hover:bg-cyber-panel/50 rounded-lg"
+                class="flex items-center gap-2 text-slate-400 hover:text-cyber-glow transition-colors mx-auto px-4 py-2 hover:bg-cyber-panel rounded-lg"
             >
               <span>{{ showHistory ? 'Hide' : 'Show' }} Past Tournaments</span>
               <i class="ph-bold ph-caret-down transition-transform duration-300" :class="{ 'rotate-180': showHistory }"></i>
@@ -719,7 +719,7 @@ onMounted(() => {
 
                 <div
                     @click="toggleSeasonGroup(group.seasonId)"
-                    class="flex items-center justify-between cursor-pointer group/season mb-4 px-2 py-1.5 -mx-2 hover:bg-cyber-panel/30 rounded-lg transition-colors select-none"
+                    class="flex items-center justify-between cursor-pointer group/season mb-4 px-2 py-1.5 -mx-2 hover:bg-cyber-panel/40 rounded-lg transition-colors select-none"
                 >
                   <div class="flex items-center gap-3">
                     <div class="h-5 w-1.5 bg-cyber-border rounded-full group-hover/season:bg-cyber-glow transition-colors"></div>
@@ -751,7 +751,7 @@ onMounted(() => {
                   <div v-else-if="group.loaded" class="grid md:grid-cols-2 gap-3">
                     <div v-for="t in group.tournaments" :key="t.id"
                          @click="selectTournamentFromHome(t.id)"
-                         class="flex items-center justify-between bg-cyber-dark/40 hover:bg-cyber-panel border border-transparent hover:border-cyber-border rounded-lg p-4 cursor-pointer transition-colors">
+                         class="flex items-center justify-between bg-cyber-dark/50 hover:bg-cyber-panel border border-cyber-border hover:border-cyber-glow/20 rounded-lg p-4 cursor-pointer transition-colors">
                       <div>
                         <h4 class="font-bold text-slate-300">{{ t.name }}</h4>
                         <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">

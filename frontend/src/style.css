@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --font-heading: 'Rajdhani', sans-serif;
+  --font-heading: 'Orbitron', sans-serif;
   --font-sans: 'Inter', sans-serif;
 }
 
 h1, h2, h3, .heading {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Orbitron', sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 /* Gradient text utility */
 .text-gradient-cyber {
-  background: linear-gradient(135deg, #00f0ff, #0066ff);
+  background: linear-gradient(135deg, #00f0ff, #a855f7, #ff00aa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -26,48 +26,109 @@ h1, h2, h3, .heading {
   background-clip: text;
 }
 
-/* Cyber panel - clean version */
+/* Neon border utility */
+.neon-border {
+  border: 1px solid #00f0ff30;
+  box-shadow: 0 0 5px #00f0ff20, inset 0 0 5px #00f0ff08;
+}
+
+.neon-border-hover:hover {
+  border-color: #00f0ff60;
+  box-shadow: 0 0 10px #00f0ff30, inset 0 0 10px #00f0ff10;
+}
+
+/* Cyber panel */
 .cyber-panel {
-  background: linear-gradient(160deg, #12122a 0%, #0d0d1a 100%);
-  border: 1px solid #1e1e42;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(160deg, #12122a 0%, #0a0a1a 100%);
+  border: 1px solid #1a1a3e;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-/* Race card */
+/* Race card with cyberpunk gradient */
 .race-card {
-  background: linear-gradient(145deg, #12122a, #0d0d1a);
-  border: 1px solid #1e1e42;
+  background: linear-gradient(145deg, #12122a, #0a0a1a);
+  border: 1px solid #1a1a3e;
 }
 
-/* Glass panel */
+/* Glass panel - updated for cyberpunk */
 .glass-panel {
   background: linear-gradient(160deg, rgba(18, 18, 42, 0.85), rgba(10, 10, 26, 0.9));
   backdrop-filter: blur(12px);
-  border: 1px solid #1e1e42;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.05);
 }
 
-/* Custom Scrollbar */
+/* Scanline effect */
+.cyber-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00f0ff40, transparent);
+}
+
+/* Custom Neon Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #0a0a0f; }
 ::-webkit-scrollbar-thumb { 
-  background: #1e1e42; 
+  background: linear-gradient(180deg, #00f0ff60, #a855f760); 
   border-radius: 3px; 
 }
 ::-webkit-scrollbar-thumb:hover { 
-  background: #2a2a5a; 
+  background: linear-gradient(180deg, #00f0ff, #a855f7); 
 }
 
-/* Input focus */
+/* Input focus glow */
 input:focus, select:focus, textarea:focus {
-  border-color: #00f0ff40 !important;
-  box-shadow: 0 0 0 1px #00f0ff20 !important;
+  border-color: #00f0ff60 !important;
+  box-shadow: 0 0 8px #00f0ff20, 0 0 16px #00f0ff10 !important;
 }
 
+/* Transition defaults */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
+/* Phase overlay animation */
 @keyframes phase-overlay-in {
   from { opacity: 0; transform: scale(1.04); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Glitch text effect for fun */
+@keyframes glitch {
+  0%, 100% { text-shadow: 2px 0 #ff00aa, -2px 0 #00f0ff; }
+  25% { text-shadow: -2px 0 #ff00aa, 2px 0 #00f0ff; }
+  50% { text-shadow: 2px 2px #ff00aa, -2px -2px #00f0ff; }
+  75% { text-shadow: -2px 2px #ff00aa, 2px -2px #00f0ff; }
+}
+
+.glitch-text:hover {
+  animation: glitch 0.3s ease infinite;
+}
+
+/* Corner accents for cyberpunk feel */
+.corner-accent {
+  position: relative;
+}
+.corner-accent::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid #00f0ff60;
+  border-bottom: 2px solid #00f0ff60;
+}
+.corner-accent::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 12px;
+  height: 12px;
+  border-left: 2px solid #00f0ff60;
+  border-top: 2px solid #00f0ff60;
 }
