@@ -34,29 +34,19 @@ const isCreating = ref(false);
 const availableSeasons = ref<Season[]>([]);
 const selectedSeasonId = ref('');
 const selectedFormat = ref(settings.value.defaultFormat);
-const banVotingEnabled = ref(false); // Enable captain-proposed + player-voted bans
-
-// Update selectedFormat once when settings finish loading (if different from default)
-const stopFormatWatch = watch(() => settings.value.defaultFormat, (fmt) => {
-  selectedFormat.value = fmt;
-  stopFormatWatch();
-});
+const banVotingEnabled = ref(false);
 
 const homeListLoading = ref(true);
 const showHistory = ref(false);
 
-// Only non-completed tournaments — loaded on mount
 const activeTournaments = ref<Tournament[]>([]);
 
-// Completed tournaments loaded lazily per season
 const seasonTournaments = reactive<Record<string, Tournament[]>>({});
 const seasonLoading = reactive<Record<string, boolean>>({});
 const seasonLoaded = reactive<Record<string, boolean>>({});
 
-// All seasons start collapsed when history section opens
 const collapsedSeasons = ref<string[]>([]);
 
-// Queue state
 const queue = ref<Queue | null>(null);
 const isJoiningQueue = ref(false);
 const partyMembers = ref<string[]>([]);
@@ -156,7 +146,6 @@ const fetchSeasonTournaments = async (seasonId: string) => {
   seasonLoading[seasonId] = true;
   try {
     if (seasonId === 'unassigned') {
-      // Load all completed, then filter out those belonging to a known season
       const q = query(
         collection(db, 'artifacts', appId, 'public', 'data', 'tournaments'),
         where('status', '==', 'completed')
@@ -220,7 +209,7 @@ const createTournament = async () => {
       umaDraftAllowSameGroupDuplicates: false,
       pointsSystem: { ...settings.value.pointsSystem },
       banVotingEnabled: banVotingEnabled.value,
-      banVoteThreshold: 0.5, // Simple majority
+      banVoteThreshold: 0.5,
       createdAt: new Date().toISOString(),
       createdBy: {
         uid: userId,
@@ -240,7 +229,6 @@ const createTournament = async () => {
     await setDoc(adminRef, { tournamentId: id, userId: userId, password: password });
     localStorage.setItem(`admin_pwd_${id}`, password);
 
-    // ROUTER REDIRECT
     router.push(`/t/${id}`);
 
   } catch (error) {
@@ -271,14 +259,13 @@ const formatTournamentStatus = (t: Tournament): string => {
     draft: 'Player Draft',
     ban: 'Uma Ban',
     completed: 'Completed',
-    active: '', // Handled above
+    active: '',
     pick: 'Uma Draft'
   };
 
   return statusMap[t.status] || t.status;
 };
 
-// Queue functions
 const VERCEL_API_URL = import.meta.env.VITE_DISCORD_OAUTH_URL || 'https://raggooner-discord-oauth.vercel.app';
 
 const subscribeToQueue = () => {
@@ -287,7 +274,6 @@ const subscribeToQueue = () => {
     if (docSnap.exists()) {
       queue.value = { id: docSnap.id, ...docSnap.data() } as Queue;
     } else {
-      // Create queue if it doesn't exist
       const newQueue: Queue = {
         id: 'racc-open-queue',
         name: 'Racc Open Queue',
@@ -309,9 +295,7 @@ const joinQueue = async () => {
   try {
     const response = await fetch(`${VERCEL_API_URL}/api/queue`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'join',
         queueId: 'racc-open-queue',
@@ -321,10 +305,8 @@ const joinQueue = async () => {
     });
 
     const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to join queue');
-    }
-    partyMembers.value = []; // Reset
+    if (!response.ok) throw new Error(result.error || 'Failed to join queue');
+    partyMembers.value = [];
   } catch (error: any) {
     console.error('Failed to join queue:', error);
     alert(error.message || 'Failed to join queue');
@@ -340,9 +322,7 @@ const leaveQueue = async () => {
   try {
     const response = await fetch(`${VERCEL_API_URL}/api/queue`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'leave',
         queueId: 'racc-open-queue',
@@ -351,9 +331,7 @@ const leaveQueue = async () => {
     });
 
     const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to leave queue');
-    }
+    if (!response.ok) throw new Error(result.error || 'Failed to leave queue');
   } catch (error: any) {
     console.error('Failed to leave queue:', error);
     alert(error.message || 'Failed to leave queue');
@@ -375,9 +353,7 @@ const joinWithParty = async () => {
 
     const response = await fetch(`${VERCEL_API_URL}/api/queue`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'join',
         queueId: 'racc-open-queue',
@@ -387,10 +363,8 @@ const joinWithParty = async () => {
     });
 
     const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to join queue');
-    }
-    partyMembersInput.value = ''; // Reset
+    if (!response.ok) throw new Error(result.error || 'Failed to join queue');
+    partyMembersInput.value = '';
   } catch (error: any) {
     console.error('Failed to join queue with party:', error);
     alert(error.message || 'Failed to join queue');
@@ -430,11 +404,11 @@ onMounted(() => {
         <div class="max-w-lg mx-auto mt-8 space-y-12">
 
           <div class="text-center space-y-4">
-            <h1 class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Racc Open</h1>
+            <h1 class="text-6xl font-extrabold text-gradient-cyber glitch-text">Racc Open</h1>
             <p class="text-xl text-slate-400 max-w-2xl mx-auto">Organize Racc Open. Draft a Team, low-roll your career, mald a lot and race against the other teams.</p>
           </div>
 
-          <div class="glass-panel p-6 rounded-2xl grid  gap-8 items-center bg-slate-800/40 border border-slate-700/50 shadow-2xl">
+          <div class="cyber-panel p-6 rounded-2xl grid gap-8 items-center relative">
             <div class="space-y-4">
               <h2 class="text-2xl font-bold text-white mb-4">Create New Tournament</h2>
               <div class="space-y-3">
@@ -443,11 +417,11 @@ onMounted(() => {
                        :disabled="isCreating"
                        type="text"
                        placeholder="Tournament Name"
-                       class="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all disabled:opacity-50">
+                       class="w-full bg-cyber-dark border border-cyber-border rounded-lg p-4 text-white focus:outline-none transition-all disabled:opacity-50">
 
                 <select v-model="selectedSeasonId"
                         :disabled="isCreating || availableSeasons.length === 0"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all disabled:opacity-50 appearance-none cursor-pointer">
+                        class="w-full bg-cyber-dark border border-cyber-border rounded-lg p-4 text-white focus:outline-none transition-all disabled:opacity-50 appearance-none cursor-pointer">
                   <option v-if="availableSeasons.length === 0" value="" class="text-slate-500">No Season</option>
                   <option v-for="season in availableSeasons" :key="season.id" :value="season.id">
                     {{ season.name }}
@@ -460,18 +434,18 @@ onMounted(() => {
                           :disabled="isCreating"
                           class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
                           :class="selectedFormat === key
-                            ? 'border-indigo-500 bg-indigo-900/30'
-                            : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
-                    <span class="block text-sm font-bold" :class="selectedFormat === key ? 'text-indigo-300' : 'text-slate-300'">{{ fmt.name }}</span>
-                    <span class="block text-[10px] mt-0.5" :class="selectedFormat === key ? 'text-indigo-400/70' : 'text-slate-500'">{{ fmt.description }}</span>
+                            ? 'border-cyber-glow/40 bg-cyber-glow/5 neon-border'
+                            : 'border-cyber-border bg-cyber-dark hover:border-cyber-glow/20'">
+                    <span class="block text-sm font-bold" :class="selectedFormat === key ? 'text-cyber-glow' : 'text-slate-300'">{{ fmt.name }}</span>
+                    <span class="block text-[10px] mt-0.5" :class="selectedFormat === key ? 'text-cyber-glow/60' : 'text-slate-500'">{{ fmt.description }}</span>
                   </button>
                 </div>
 
-                <div class="flex items-center gap-3 bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+                <div class="flex items-center gap-3 bg-cyber-dark/60 border border-cyber-border rounded-lg p-4">
                   <button @click="banVotingEnabled = !banVotingEnabled"
                           :disabled="isCreating"
                           class="relative w-12 h-6 rounded-full transition-colors shrink-0"
-                          :class="banVotingEnabled ? 'bg-indigo-600' : 'bg-slate-600'">
+                          :class="banVotingEnabled ? 'bg-cyber-glow/70 shadow-neon-cyan' : 'bg-cyber-border'">
                     <span class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform"
                           :class="banVotingEnabled ? 'translate-x-6' : 'translate-x-0'"></span>
                   </button>
@@ -486,16 +460,16 @@ onMounted(() => {
                     <button @click="isOfficial = false"
                             :disabled="isCreating"
                             class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
-                            :class="!isOfficial ? 'border-slate-500 bg-slate-800/60' : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
+                            :class="!isOfficial ? 'border-slate-500 bg-cyber-dark/60' : 'border-cyber-border bg-cyber-dark hover:border-cyber-glow/20'">
                       <span class="block text-sm font-bold" :class="!isOfficial ? 'text-slate-200' : 'text-slate-400'">Unofficial</span>
                       <span class="block text-[10px] mt-0.5 text-slate-500">Does not count in stats</span>
                     </button>
                     <button @click="isOfficial = true"
                             :disabled="isCreating"
                             class="flex-1 p-3 rounded-lg border-2 text-left transition-all"
-                            :class="isOfficial ? 'border-amber-500 bg-amber-900/20' : 'border-slate-700 bg-slate-900 hover:border-slate-600'">
-                      <span class="block text-sm font-bold" :class="isOfficial ? 'text-amber-300' : 'text-slate-400'">Official</span>
-                      <span class="block text-[10px] mt-0.5" :class="isOfficial ? 'text-amber-400/70' : 'text-slate-500'">Counts toward player stats</span>
+                            :class="isOfficial ? 'border-cyber-magenta/50 bg-cyber-magenta/10' : 'border-cyber-border bg-cyber-dark hover:border-cyber-glow/20'">
+                      <span class="block text-sm font-bold" :class="isOfficial ? 'text-cyber-magenta' : 'text-slate-400'">Official</span>
+                      <span class="block text-[10px] mt-0.5" :class="isOfficial ? 'text-cyber-magenta/60' : 'text-slate-500'">Counts toward player stats</span>
                     </button>
                   </div>
                   <p v-if="!isOfficialCreator" class="text-[11px] text-slate-500 flex items-center gap-1">
@@ -506,7 +480,7 @@ onMounted(() => {
 
                 <button @click="createTournament"
                         :disabled="!newTournamentName || isCreating"
-                        class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2">
+                        class="w-full bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:from-cyber-glow hover:to-cyber-magenta disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all shadow-neon-cyan flex items-center justify-center gap-2">
 
                   <template v-if="isCreating">
                     <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -525,8 +499,8 @@ onMounted(() => {
               </div>
 
             <div class="relative">
-              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
-              <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-800 text-slate-500 rounded">Quick Play</span></div>
+              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-cyber-border"></div></div>
+              <div class="relative flex justify-center text-sm"><span class="px-2 bg-cyber-panel text-slate-500 rounded">Quick Play</span></div>
             </div>
           </div>
 
@@ -543,7 +517,7 @@ onMounted(() => {
                   :current-user="linkedPlayer"
               />
 
-              <div v-else class="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-sm text-amber-200 text-center">
+              <div v-else class="rounded-xl border border-cyber-magenta/20 bg-cyber-magenta/5 px-4 py-4 text-sm text-slate-300 text-center">
                 Link your player profile first to use Quick Play.
               </div>
             </div>
@@ -563,7 +537,7 @@ onMounted(() => {
                   <div class="space-y-2">
                     <button @click="joinQueue"
                             :disabled="isJoiningQueue || !linkedPlayer"
-                            class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                            class="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
                       <template v-if="isJoiningQueue">
                         <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
@@ -582,10 +556,10 @@ onMounted(() => {
                       <input v-model="partyMembersInput"
                              type="text"
                              placeholder="player1,player2"
-                             class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-green-500 focus:outline-none text-sm">
+                             class="w-full bg-cyber-dark border border-cyber-border rounded-lg p-3 text-white focus:outline-none text-sm">
                       <button @click="joinWithParty"
                               :disabled="isJoiningQueue || !linkedPlayer || !partyMembersInput.trim()"
-                              class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+                              class="w-full bg-gradient-to-r from-cyber-electricBlue to-cyber-glow hover:from-cyber-glow hover:to-cyber-magenta disabled:opacity-50 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
                         <template v-if="isJoiningQueue">
                           <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
@@ -602,7 +576,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <div v-else class="text-center py-4">
-                  <div class="text-green-400 font-semibold mb-2">You're in the queue!</div>
+                  <div class="text-emerald-400 font-semibold mb-2">You're in the queue!</div>
                   <button @click="leaveQueue"
                           :disabled="isJoiningQueue"
                           class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-colors">
@@ -620,16 +594,16 @@ onMounted(() => {
             </div>
 
             <div class="relative">
-              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
-              <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-800 text-slate-500 rounded">Or join existing</span></div>
+              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-cyber-border"></div></div>
+              <div class="relative flex justify-center text-sm"><span class="px-2 bg-cyber-panel text-slate-500 rounded">Or join existing</span></div>
             </div>
           </div>
 
             <div class="space-y-4">
               <h2 class="text-2xl font-bold text-white mb-4">Join by ID</h2>
               <div class="flex gap-2">
-                <input v-model="joinId" type="text" placeholder="Enter Tournament ID" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-4 text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all font-mono">
-                <button @click="joinTournament" :disabled="!joinId" class="bg-slate-700 hover:bg-slate-600 text-white px-8 rounded-lg font-bold transition-colors">
+                <input v-model="joinId" type="text" placeholder="Enter Tournament ID" class="flex-1 bg-cyber-dark border border-cyber-border rounded-lg p-4 text-white focus:outline-none transition-all font-mono">
+                <button @click="joinTournament" :disabled="!joinId" class="bg-cyber-panel hover:bg-cyber-panel/80 border border-cyber-border text-white px-8 rounded-lg font-bold transition-colors hover:border-cyber-glow/30">
                   Join
                 </button>
               </div>
@@ -637,15 +611,15 @@ onMounted(() => {
 
           <div v-if="scheduledTournamentsList.length > 0">
             <div class="flex items-center gap-3 mb-6">
-              <div class="h-8 w-2 bg-violet-500 rounded-full"></div>
+              <div class="h-8 w-2 bg-cyber-purple rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
               <h2 class="text-2xl font-bold text-white">Scheduled Events</h2>
             </div>
             <div class="grid lg:grid-cols-2 gap-4">
               <div v-for="t in scheduledTournamentsList" :key="t.id"
                    @click="selectTournamentFromHome(t.id)"
-                   class="group relative bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-violet-500/50 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-lg flex flex-col h-full">
+                   class="group relative cyber-panel hover:bg-cyber-panel/80 border border-cyber-border hover:border-cyber-purple/40 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
                 <div class="flex justify-between items-start mb-3">
-                  <div class="flex items-center gap-1.5 text-xs font-bold text-violet-300 bg-violet-500/10 border border-violet-500/30 px-2 py-1 rounded-md">
+                  <div class="flex items-center gap-1.5 text-xs font-bold text-cyber-purple/90 bg-cyber-purple/10 border border-cyber-purple/20 px-2 py-1 rounded-md">
                     <i class="ph-bold ph-calendar-check"></i>
                     {{ formatScheduledTime(t.scheduledTime!) }}
                   </div>
@@ -653,13 +627,13 @@ onMounted(() => {
                     {{ t.status }}
                   </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-auto group-hover:text-violet-400 transition-colors line-clamp-2">
+                <h3 class="text-xl font-bold text-white mb-auto group-hover:text-cyber-purple transition-colors line-clamp-2">
                   {{ t.name }}
                 </h3>
-                <div class="flex flex-col gap-1 text-sm text-slate-400 mt-6 pt-4 border-t border-slate-700/50">
+                <div class="flex flex-col gap-1 text-sm text-slate-400 mt-6 pt-4 border-t border-cyber-border/50">
                   <div class="flex items-center gap-2"><i class="ph-fill ph-users"></i> {{ Object.keys(t.players || {}).length }} Players</div>
                   <div class="flex items-center gap-2"><i class="ph-fill ph-tree-structure"></i> {{ t.format ? TOURNAMENT_FORMATS[t.format]?.name || 'Blind Pick' : 'Blind Pick' }}</div>
-                  <div class="flex items-center gap-2" :class="t.isOfficial ? 'text-amber-400' : 'text-slate-500'">
+                  <div class="flex items-center gap-2" :class="t.isOfficial ? 'text-cyber-magenta' : 'text-slate-500'">
                     <i :class="t.isOfficial ? 'ph-fill ph-seal-check' : 'ph ph-seal'"></i>
                     {{ t.isOfficial ? 'Official' : 'Unofficial' }}
                   </div>
@@ -671,22 +645,22 @@ onMounted(() => {
 
           <div>
             <div class="flex items-center gap-3 mb-6">
-              <div class="h-8 w-2 bg-indigo-500 rounded-full"></div>
+              <div class="h-8 w-2 bg-cyber-glow rounded-full shadow-neon-cyan"></div>
               <h2 class="text-2xl font-bold text-white">Ongoing Events</h2>
             </div>
 
             <div v-if="homeListLoading" class="text-center py-12">
-              <i class="ph ph-spinner animate-spin text-4xl text-indigo-500"></i>
+              <i class="ph ph-spinner animate-spin text-4xl text-cyber-glow"></i>
             </div>
 
-            <div v-else-if="activeTournamentsList.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-xl">
+            <div v-else-if="activeTournamentsList.length === 0" class="text-center py-12 text-slate-500 border border-dashed border-cyber-border rounded-xl">
               No active tournaments found. Start one above!
             </div>
 
             <div v-else class="grid lg:grid-cols-2 gap-4">
               <div v-for="t in activeTournamentsList" :key="t.id"
                    @click="selectTournamentFromHome(t.id)"
-                   class="group relative bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-indigo-500/50 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-lg hover:shadow-indigo-500/10 flex flex-col h-full">
+                   class="group relative cyber-panel hover:bg-cyber-panel/80 border border-cyber-border hover:border-cyber-glow/30 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
 
                 <div class="flex justify-between items-start mb-3">
                   <div class="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
@@ -699,11 +673,11 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <h3 class="text-xl font-bold text-white mb-auto group-hover:text-indigo-400 transition-colors line-clamp-2">
+                <h3 class="text-xl font-bold text-white mb-auto group-hover:text-cyber-glow transition-colors line-clamp-2">
                   {{ t.name }}
                 </h3>
 
-                <div class="flex flex-col gap-1 text-sm text-slate-400 mt-6 pt-4 border-t border-slate-700/50">
+                <div class="flex flex-col gap-1 text-sm text-slate-400 mt-6 pt-4 border-t border-cyber-border/50">
                   <div class="flex items-center gap-2">
                     <i class="ph-fill ph-users"></i> {{ Object.keys(t.players || {}).length }} Players
                   </div>
@@ -713,7 +687,7 @@ onMounted(() => {
                   <div class="flex items-center gap-2">
                     <i class="ph-fill ph-trophy"></i> {{ formatTournamentStatus(t) }}
                   </div>
-                  <div class="flex items-center gap-2" :class="t.isOfficial ? 'text-amber-400' : 'text-slate-500'">
+                  <div class="flex items-center gap-2" :class="t.isOfficial ? 'text-cyber-magenta' : 'text-slate-500'">
                     <i :class="t.isOfficial ? 'ph-fill ph-seal-check' : 'ph ph-seal'"></i>
                     {{ t.isOfficial ? 'Official' : 'Unofficial' }}
                   </div>
@@ -726,10 +700,10 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="border-t border-slate-800 pt-8 pb-12">
+          <div class="border-t border-cyber-border/40 pt-8 pb-12">
             <button
                 @click="showHistory = !showHistory"
-                class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mx-auto px-4 py-2 hover:bg-slate-800 rounded-lg"
+                class="flex items-center gap-2 text-slate-400 hover:text-cyber-glow transition-colors mx-auto px-4 py-2 hover:bg-cyber-panel rounded-lg"
             >
               <span>{{ showHistory ? 'Hide' : 'Show' }} Past Tournaments</span>
               <i class="ph-bold ph-caret-down transition-transform duration-300" :class="{ 'rotate-180': showHistory }"></i>
@@ -745,10 +719,10 @@ onMounted(() => {
 
                 <div
                     @click="toggleSeasonGroup(group.seasonId)"
-                    class="flex items-center justify-between cursor-pointer group/season mb-4 px-2 py-1.5 -mx-2 hover:bg-slate-800/50 rounded-lg transition-colors select-none"
+                    class="flex items-center justify-between cursor-pointer group/season mb-4 px-2 py-1.5 -mx-2 hover:bg-cyber-panel/40 rounded-lg transition-colors select-none"
                 >
                   <div class="flex items-center gap-3">
-                    <div class="h-5 w-1.5 bg-slate-600 rounded-full group-hover/season:bg-indigo-500 transition-colors"></div>
+                    <div class="h-5 w-1.5 bg-cyber-border rounded-full group-hover/season:bg-cyber-glow transition-colors"></div>
                     <h3 class="text-lg font-bold text-slate-300 group-hover/season:text-white transition-colors">
                       {{ group.seasonName }}
                     </h3>
@@ -764,23 +738,20 @@ onMounted(() => {
 
                 <div v-show="!collapsedSeasons.includes(group.seasonId)">
 
-                  <!-- Loading state for this season -->
                   <div v-if="group.loading" class="flex items-center justify-center py-8 text-slate-500 gap-2">
                     <i class="ph ph-spinner animate-spin"></i>
                     <span class="text-sm">Loading...</span>
                   </div>
 
-                  <!-- Empty state after load -->
                   <div v-else-if="group.loaded && group.tournaments.length === 0"
-                       class="text-center text-slate-600 py-6 text-sm border border-dashed border-slate-800 rounded-xl">
+                       class="text-center text-slate-600 py-6 text-sm border border-dashed border-cyber-border rounded-xl">
                     No completed tournaments in this season.
                   </div>
 
-                  <!-- Tournament list -->
                   <div v-else-if="group.loaded" class="grid md:grid-cols-2 gap-3">
                     <div v-for="t in group.tournaments" :key="t.id"
                          @click="selectTournamentFromHome(t.id)"
-                         class="flex items-center justify-between bg-slate-900/50 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 rounded-lg p-4 cursor-pointer transition-colors">
+                         class="flex items-center justify-between bg-cyber-dark/50 hover:bg-cyber-panel border border-cyber-border hover:border-cyber-glow/20 rounded-lg p-4 cursor-pointer transition-colors">
                       <div>
                         <h4 class="font-bold text-slate-300">{{ t.name }}</h4>
                         <p class="text-xs text-slate-500 mt-1 flex items-center gap-2">
@@ -790,9 +761,9 @@ onMounted(() => {
                         </p>
                       </div>
                       <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                        <span class="text-[10px] uppercase font-bold bg-slate-800 text-slate-500 px-2 py-1 rounded border border-slate-700">Completed</span>
+                        <span class="text-[10px] uppercase font-bold bg-cyber-panel text-slate-500 px-2 py-1 rounded border border-cyber-border">Completed</span>
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded border flex items-center gap-1"
-                              :class="t.isOfficial ? 'text-amber-400 border-amber-500/30 bg-amber-900/20' : 'text-slate-500 border-slate-700 bg-slate-800'">
+                              :class="t.isOfficial ? 'text-cyber-magenta border-cyber-magenta/30 bg-cyber-magenta/10' : 'text-slate-500 border-cyber-border bg-cyber-panel'">
                           <i :class="t.isOfficial ? 'ph-fill ph-seal-check' : 'ph ph-seal'"></i>
                           {{ t.isOfficial ? 'Official' : 'Unofficial' }}
                         </span>

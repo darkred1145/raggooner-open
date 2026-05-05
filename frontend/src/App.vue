@@ -80,8 +80,8 @@ onMounted(() => {
          :class="isPanelOpen ? 'translate-x-80' : 'translate-x-0'">
       <button
           @click="isPanelOpen = !isPanelOpen"
-          class="bg-indigo-600 w-0.5 hover:bg-indigo-500 text-white p-2 rounded-r-lg shadow-lg border-y border-r border-indigo-400 flex items-center justify-center group">
-        <i class="ph-bold ph-caret-right transition-transform duration-300" :class="isPanelOpen ? 'rotate-180' : ''"></i>
+          class="bg-cyber-glow/30 w-0.5 hover:bg-cyber-glow/60 text-white p-2 rounded-r-lg shadow-neon-cyan border-y border-r border-cyber-glow/40 flex items-center justify-center group">
+        <i class="ph-bold ph-caret-right transition-transform duration-300 text-cyber-glow" :class="isPanelOpen ? 'rotate-180' : ''"></i>
       </button>
     </div>
 
@@ -93,15 +93,15 @@ onMounted(() => {
 
     <router-view class="flex-grow flex flex-col"></router-view>
 
-    <footer class="border-t border-slate-800 bg-slate-900/50 py-8 mt-auto backdrop-blur-sm">
+    <footer class="border-t border-cyber-border/40 bg-cyber-dark/80 py-8 mt-auto backdrop-blur-sm">
       <div class="max-w-[1800px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="text-xs font-mono text-slate-600 flex items-center gap-3 flex-wrap">
           <span>
-            Powered by <span class="text-emerald-500 font-bold">Vue</span> & <span class="text-amber-500 font-bold">Firebase</span>
+            Powered by <span class="text-cyber-glow font-bold">Vue</span> & <span class="text-amber-500 font-bold">Firebase</span>
           </span>
           <span class="text-slate-700">|</span>
           <a href="https://github.com/darkred1145/raggooner-open" target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors">
+             class="flex items-center gap-1 text-slate-500 hover:text-cyber-glow/70 transition-colors">
             <i class="ph-fill ph-github-logo text-base"></i>
             <span>Source</span>
           </a>
@@ -109,14 +109,14 @@ onMounted(() => {
         <div class="text-sm text-slate-400 flex items-center gap-4 flex-wrap">
           <span class="flex items-center gap-1.5">
             Original by
-            <a href="https://discord.com/users/131446525585784832" target="_blank" rel="noopener noreferrer" class="font-bold text-indigo-400 hover:text-white transition-colors flex items-center gap-1.5 group">
+            <a href="https://discord.com/users/131446525585784832" target="_blank" rel="noopener noreferrer" class="font-bold text-cyber-purple hover:text-white transition-colors flex items-center gap-1.5 group">
               Sumpfranze <i class="ph-fill ph-discord-logo text-lg group-hover:scale-110 transition-transform"></i>
             </a>
           </span>
           <span class="text-slate-700">|</span>
           <span class="flex items-center gap-1.5">
             Fork by
-            <a href="https://discord.com/users/925673287974027324" target="_blank" rel="noopener noreferrer" class="font-bold text-cyan-400 hover:text-white transition-colors flex items-center gap-1.5 group">
+            <a href="https://discord.com/users/925673287974027324" target="_blank" rel="noopener noreferrer" class="font-bold text-cyber-glow hover:text-white transition-colors flex items-center gap-1.5 group">
               Kenesu <i class="ph-fill ph-discord-logo text-lg group-hover:scale-110 transition-transform"></i>
             </a>
           </span>
