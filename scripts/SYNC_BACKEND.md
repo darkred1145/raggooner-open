@@ -2,6 +2,22 @@
 
 Synchronizes your Raggooner Open fork with the upstream Raggooner backend API.
 
+## Quick Start
+
+```bash
+# 1. Install dependencies (first time only)
+cd scripts && npm install
+
+# 2. Set your API token
+export API_TOKEN="your-token-here"
+
+# 3. Run sync (FAST MODE - active tournaments only)
+cd .. && npm run sync-backend -- --token "$API_TOKEN"
+
+# 4. Or use DISCOVER MODE (all tournaments)
+npm run sync-backend -- --discover --token "$API_TOKEN"
+```
+
 ## Overview
 
 These scripts enable manual database synchronization using the official Raggooner API. Operations are deliberately minimized and only triggered upon visual confirmation of state changes (e.g., tournament creation, start, or completion).
@@ -13,21 +29,27 @@ These scripts enable manual database synchronization using the official Raggoone
 
 ## Setup
 
-### 1. API Token
+### 1. Install Dependencies
+
+```bash
+cd scripts && npm install
+```
+
+### 2. API Token
 
 Store your API token securely:
 
 ```bash
 # Add to .env or export in your shell
-export API_TOKEN="[REDACTED_API_TOKEN]"
+export API_TOKEN="your-token-here"
 ```
 
 Or pass inline:
 ```bash
-npm run sync-backend -- --token [REDACTED_API_TOKEN]
+npm run sync-backend -- --token your-token-here
 ```
 
-### 2. Firebase Admin SDK
+### 3. Firebase Admin SDK
 
 The TypeScript version requires Firebase Admin credentials. Make sure your service account key is available:
 
