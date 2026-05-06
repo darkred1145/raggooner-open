@@ -70,19 +70,33 @@ Handles the full tournament lifecycle — player registration, team drafts, race
 
 ### Syncing Data
 
-> ⚠️ **Deprecated.** The `scripts/` data sync tools are no longer functional due to the original project enabling Firebase App Check, which locks out programmatic access. Data is now managed entirely through the live app at `https://raggooner-uma-2026.web.app/`.
+The `scripts/` folder contains tools to sync tournament data with the upstream Raggooner API:
+
+```bash
+# Install dependencies (first time)
+cd scripts && npm install
+
+# Set your API token
+export API_TOKEN="your-token-here"
+
+# Run sync (active tournaments only - saves quota)
+npm run sync-backend -- --token "$API_TOKEN"
+
+# Or deep sync (all tournaments including finished)
+npm run sync-backend -- --discover --token "$API_TOKEN"
+```
+
+See [scripts/SYNC_BACKEND.md](scripts/SYNC_BACKEND.md) for full documentation.
 
 ## Recent Changes
 
-### RACC OPEN S3-18 Tournament Migration
+### Tournament Sync Restored
 
-Due to the original project enabling Firebase App Check and locking me out of my own data, I manually rebuilt the entire **RACC OPEN S3-18** tournament by hand — 18 players, 6 teams, 15 races, point-for-point. 
+The sync scripts are working again. Data can be synced from the upstream Raccoon API using the TypeScript sync tool in `scripts/`.
 
-Yes, it was as fun as it sounds. No, I'm not doing it again.
+### Code Cleanup
 
-If you're reading this and you were the one who flipped that App Check switch: Screw you or maybe not? Idk it seems like ragebait.
-
-Either way, the tournament is live on `https://raggooner-uma-2026.web.app/t/IVX4FB` with all data intact. Don't make me do this twice.
+Removed unnecessary UI theme changes and reverted to stable codebase. Sync functionality restored and documented.
 
 ---
 
