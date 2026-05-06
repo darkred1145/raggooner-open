@@ -7,9 +7,9 @@ Synchronizes your Raggooner Open fork with the upstream Raggooner backend API.
 These scripts enable manual database synchronization using the official Raggooner API. Operations are deliberately minimized and only triggered upon visual confirmation of state changes (e.g., tournament creation, start, or completion).
 
 **Fetching Strategy:**
-- `getAllTournaments` → Detect new tournament entries
-- `getTournamentById` → Check for status updates
-- `getCoreData` → Final sync after tournament completion (pulls tournaments, players, seasons in one request)
+- `getAllTournaments` → Detect new tournament entries (DISCOVER MODE only)
+- `getTournamentById` → Fetch tournament details and check for status updates
+- `getPlayerById` → Fetch updated player stats after tournament completion
 
 ## Setup
 
@@ -41,44 +41,47 @@ The TypeScript version requires Firebase Admin credentials. Make sure your servi
 ### TypeScript Version (Recommended)
 
 ```bash
-# Sync with upstream (applies changes)
+# FAST MODE: Only check active tournaments (default, saves quota)
 npm run sync-backend
+
+# DISCOVER MODE: Deep verify ALL tournaments (active + finished)
+npm run sync-backend -- --discover
 
 # Test without applying changes (dry-run mode)
 npm run sync-backend-dry
 
 # Custom token
 npm run sync-backend -- --token <your-token>
-```
 
-### Node.js Version
+# Skip confirmation prompts
+npm run sync-backend -- --force
 
-```bash
-# Sync with upstream
-npm run sync-backend-js
-
-# Custom token
-npm run sync-backend-js -- --token <your-token> --dry-run
+# Combine flags
+npm run sync-backend -- --discover --force
 ```
 
 ## What the Script Does
 
+### Modes
+- **FAST MODE** (default): Only checks tournaments with status ≠ "completed" to save API quota
+- **DISCOVER MODE** (`--discover`): Deep verifies ALL tournaments including finished ones
+
 ### Detection Phase
-1. **Fetches all tournaments** from upstream
+1. **Fetches tournaments** from upstream (all or active-only based on mode)
 2. **Identifies new tournaments** (not in local `.sync-state.json`)
 3. **Detects status updates** (status changes on existing tournaments)
 
-### Sync Phase (TypeScript only)
+### Sync Phase
 1. **New tournaments** → Merged into local Firestore (preserves local modifications)
 2. **Status updates** → Updates tournament status
-3. **Completed tournaments** → Triggers `getCoreData` to sync:
-   - Updated player statistics
-   - Bracket data
-   - Season information
+3. **Completed tournaments** → Fetches updated player stats via `getPlayerById` for each participant
+4. **Interactive prompts** → Asks before overwriting local data that differs from upstream
+5. **Ghost-write prevention** → Skips database writes when no meaningful changes detected
 
 ### State Tracking
-- Sync state saved to `.sync-state.json` (local folder)
+- Sync state saved to `.sync-state.json` (scripts folder)
 - Tracks tournament IDs, statuses, and last sync timestamp
+- Tracks known player IDs to instantly fetch missing profiles
 - Enables incremental synchronization
 
 ## API Quota
@@ -89,7 +92,7 @@ Each endpoint has a read cost:
 |----------|------|-------|
 | `getAllTournaments` | 2 + ceil(N/1000) + N | Token verification + count + docs |
 | `getTournamentById` | 3 | Token + usage + doc |
-| `getCoreData` | 2 + ceil(T/1000) + ceil(P/1000) + ceil(S/1000) + T + P + S | All three collections |
+| `getPlayerById` | 2 | Token + usage + doc |
 
 Current quota: **Daily limit** (specific value in 429 response)
 
@@ -115,16 +118,16 @@ Monitor in error responses:
 ### Tournament Status Change
 ```
 1. Upstream tournament moves from "draft" → "active"
-2. Run sync-backend
+2. Run sync-backend (or use --discover for finished tournaments)
 3. Local Firestore status updated
 ```
 
 ### Tournament Completion
 ```
 1. Upstream tournament reaches "completed" status
-2. Run sync-backend
-3. Script automatically calls getCoreData
-4. All player stats, brackets, and seasons synced
+2. Run sync-backend (or --discover)
+3. Script automatically fetches updated player stats via getPlayerById
+4. All participating player stats synced to Firestore
 ```
 
 ## Dry-Run Mode
@@ -146,16 +149,32 @@ No Firestore writes occur in dry-run mode.
 
 When syncing tournaments, the script preserves local data:
 
-```javascript
+```typescript
 // Existing local data is merged with upstream data
-const merged = {
-  ...upstreamTournament,      // Upstream data
-  ...localData,               // Local data takes precedence
-  syncedAt: new Date()        // Track sync timestamp
+const freshData = {
+  ...(existingData || {}),  // Local data takes precedence
+  ...tournamentData,         // Upstream data
+  races: tournamentData.races || {},
+  players: tournamentData.players || {},
+  teams: tournamentData.teams || [],
 };
 ```
 
-This ensures custom fields or local modifications aren't overwritten.
+The script also transforms legacy data:
+- Sets `stage` to `"finals"`
+- Removes `stages` field
+- Maps `stagePoints.finals` → `finalsPoints`
+- Maps `stageGroups.finals` → `group`
+- Maps `qualifiedStages` → `inFinals`
+
+### Interactive Overwrite Protection
+If your local data (races/teams) differs from upstream, the script prompts:
+```
+⚠️ Oh, it looks like your local data for TOURNAMENT_NAME is different from the original site!
+❓ Do you want to overwrite your local changes with the upstream data? (y/N):
+```
+
+Use `--force` to skip prompts. If data is identical, no write occurs (ghost-write prevention).
 
 ## Troubleshooting
 
