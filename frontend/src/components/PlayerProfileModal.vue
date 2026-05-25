@@ -83,6 +83,11 @@ const toggleTypeFilter = (type: SupportCardType) => {
 
 const getSupportCardImagePath = (cardId: string): string => {
     const numericId = getSupportCardImageId(cardId);
+    return `https://media.gametora.com/umamusume/supports/full/small/${numericId}.png`;
+};
+
+const getSupportCardFullImagePath = (cardId: string): string => {
+    const numericId = getSupportCardImageId(cardId);
     return `https://media.gametora.com/umamusume/supports/full/${numericId}.png`;
 };
 
@@ -326,10 +331,14 @@ watch(
                                     <template v-for="entry in filteredCards" :key="entry.cardId">
                                         <div v-if="resolveCardData(entry.cardId)"
                                              class="relative rounded-lg overflow-hidden border border-indigo-500/40 shadow-sm shadow-indigo-500/10">
+                                            <a :href="getSupportCardFullImagePath(entry.cardId)"
+                                                 target="_blank" rel="noreferrer"
+                                                 class="block w-full h-full">
                                             <img :src="getSupportCardImagePath(entry.cardId)"
                                                  loading="lazy"
                                                  :alt="getSupportCardDisplayName(entry.cardId)"
                                                  class="w-full aspect-[2/3] object-cover bg-slate-800" />
+                                            </a>
                                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                                             <!-- Type badge -->
                                             <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"

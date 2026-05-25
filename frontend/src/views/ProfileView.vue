@@ -45,6 +45,11 @@ const confirmUnlink = async () => {
 
 const getSupportCardImagePath = (cardId: string): string => {
     const numericId = getSupportCardImageId(cardId);
+    return `https://media.gametora.com/umamusume/supports/full/small/${numericId}.png`;
+};
+
+const getSupportCardFullImagePath = (cardId: string): string => {
+    const numericId = getSupportCardImageId(cardId);
     return `https://media.gametora.com/umamusume/supports/full/${numericId}.png`;
 };
 
@@ -463,11 +468,16 @@ const unknownCards = computed(() =>
                                  ? 'border-indigo-500 shadow-md shadow-indigo-500/20'
                                  : 'border-slate-700 opacity-60 hover:opacity-90 hover:border-slate-500'"
                              @click="selectAddableCard(card.id)">
+                             <a :href="getSupportCardFullImagePath(card.id)"
+                                  target="_blank" rel="noreferrer"
+                                  @click.stop
+                                  class="block w-full h-full">
                              <img :src="getSupportCardImagePath(card.id)"
                                   loading="lazy"
                                   :alt="card.name"
-                                 class="w-full aspect-[2/3] object-cover bg-slate-800" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
+                                  class="w-full aspect-[2/3] object-cover bg-slate-800" />
+                             </a>
+                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                             <!-- Type badge -->
                             <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"
                                   :class="[SUPPORT_CARD_TYPE_META[card.type].color, SUPPORT_CARD_TYPE_META[card.type].bg]">
@@ -504,10 +514,14 @@ const unknownCards = computed(() =>
                     <!-- Selected card & LB -->
                     <div v-if="addCardId && resolveCardData(addCardId)" class="flex flex-wrap items-center gap-4 pt-4 border-t border-slate-700">
                         <div class="relative rounded-lg overflow-hidden border-2 border-indigo-500 shadow-md shadow-indigo-500/20 shrink-0 w-16 h-24">
+                            <a :href="getSupportCardFullImagePath(addCardId)"
+                                 target="_blank" rel="noreferrer"
+                                 class="block w-full h-full">
                             <img :src="getSupportCardImagePath(addCardId)"
                                  loading="lazy"
                                  :alt="getSupportCardDisplayName(addCardId)"
                                  class="w-full h-full object-cover bg-slate-800" />
+                            </a>
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                             <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"
                                   :class="[SUPPORT_CARD_TYPE_META[resolveCardData(addCardId)!.type].color, SUPPORT_CARD_TYPE_META[resolveCardData(addCardId)!.type].bg]">
@@ -579,12 +593,17 @@ const unknownCards = computed(() =>
                              class="relative rounded-lg overflow-hidden border-2 transition-[border-color,box-shadow,opacity] duration-150 cursor-pointer"
                              :class="'border-indigo-500 shadow-md shadow-indigo-500/20'"
                              @click="selectedForEdit = entry.cardId">
+                            <a :href="getSupportCardFullImagePath(entry.cardId)"
+                                 target="_blank" rel="noreferrer"
+                                 @click.stop
+                                 class="block w-full h-full">
                             <img
                                 loading="lazy"
                                 :src="getSupportCardImagePath(entry.cardId)"
                                 :alt="getSupportCardDisplayName(entry.cardId)"
                                 class="w-full aspect-[2/3] object-cover bg-slate-800"
                             />
+                            </a>
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                             <!-- Type badge -->
                             <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"
