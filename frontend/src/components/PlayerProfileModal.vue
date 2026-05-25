@@ -327,6 +327,7 @@ watch(
                                         <div v-if="resolveCardData(entry.cardId)"
                                              class="relative rounded-lg overflow-hidden border border-indigo-500/40 shadow-sm shadow-indigo-500/10">
                                             <img :src="getSupportCardImagePath(entry.cardId)"
+                                                 loading="lazy"
                                                  :alt="getSupportCardDisplayName(entry.cardId)"
                                                  class="w-full aspect-[2/3] object-cover bg-slate-800" />
                                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>

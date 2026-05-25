@@ -463,8 +463,9 @@ const unknownCards = computed(() =>
                                  ? 'border-indigo-500 shadow-md shadow-indigo-500/20'
                                  : 'border-slate-700 opacity-60 hover:opacity-90 hover:border-slate-500'"
                              @click="selectAddableCard(card.id)">
-                            <img :src="getSupportCardImagePath(card.id)"
-                                 :alt="card.name"
+                             <img :src="getSupportCardImagePath(card.id)"
+                                  loading="lazy"
+                                  :alt="card.name"
                                  class="w-full aspect-[2/3] object-cover bg-slate-800" />
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                             <!-- Type badge -->
@@ -504,6 +505,7 @@ const unknownCards = computed(() =>
                     <div v-if="addCardId && resolveCardData(addCardId)" class="flex flex-wrap items-center gap-4 pt-4 border-t border-slate-700">
                         <div class="relative rounded-lg overflow-hidden border-2 border-indigo-500 shadow-md shadow-indigo-500/20 shrink-0 w-16 h-24">
                             <img :src="getSupportCardImagePath(addCardId)"
+                                 loading="lazy"
                                  :alt="getSupportCardDisplayName(addCardId)"
                                  class="w-full h-full object-cover bg-slate-800" />
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
@@ -578,6 +580,7 @@ const unknownCards = computed(() =>
                              :class="'border-indigo-500 shadow-md shadow-indigo-500/20'"
                              @click="selectedForEdit = entry.cardId">
                             <img
+                                loading="lazy"
                                 :src="getSupportCardImagePath(entry.cardId)"
                                 :alt="getSupportCardDisplayName(entry.cardId)"
                                 class="w-full aspect-[2/3] object-cover bg-slate-800"
