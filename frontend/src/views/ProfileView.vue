@@ -5,10 +5,11 @@ import { useAuth } from '../composables/useAuth';
 import { getFilteredUmas, getUmaImagePath } from '../utils/umaData';
 import {
     SUPPORT_CARD_LIST,
-    SUPPORT_CARD_DICT,
     SUPPORT_CARD_TYPE_META,
     getSupportCardDisplayName,
     getSupportCardDisplayTitle,
+    getSupportCardImageId,
+    isKnownCardId,
     matchesSupportCardSearch,
     resolveCardData,
 } from '../utils/supportCardData';
@@ -43,8 +44,8 @@ const confirmUnlink = async () => {
 };
 
 const getSupportCardImagePath = (cardId: string): string => {
-    const numericId = cardId.split('-')[0];
-    return `https://gametora.com/images/umamusume/supports/tex_support_card_${numericId}.png`;
+    const numericId = getSupportCardImageId(cardId);
+    return `https://media.gametora.com/umamusume/supports/full/small/${numericId}.png`;
 };
 
 // ── Uma Roster ────────────────────────────────────────────────────────────────
@@ -175,7 +176,7 @@ const updateLimitBreak = async (cardId: string, lb: number) => {
 };
 
 const unknownCards = computed(() =>
-    ownedCards.value.filter(c => !SUPPORT_CARD_DICT[c.cardId])
+    ownedCards.value.filter(c => !isKnownCardId(c.cardId))
 );
 
 
@@ -500,15 +501,15 @@ const unknownCards = computed(() =>
                     </div>
 
                     <!-- Selected card & LB -->
-                    <div v-if="addCardId && SUPPORT_CARD_DICT[addCardId]" class="flex flex-wrap items-center gap-4 pt-4 border-t border-slate-700">
+                    <div v-if="addCardId && resolveCardData(addCardId)" class="flex flex-wrap items-center gap-4 pt-4 border-t border-slate-700">
                         <div class="relative rounded-lg overflow-hidden border-2 border-indigo-500 shadow-md shadow-indigo-500/20 shrink-0 w-16 h-24">
                             <img :src="getSupportCardImagePath(addCardId)"
                                  :alt="getSupportCardDisplayName(addCardId)"
                                  class="w-full h-full object-cover bg-slate-800" />
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                             <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"
-                                  :class="[SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[addCardId]!.type].color, SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[addCardId]!.type].bg]">
-                                {{ SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[addCardId]!.type].label }}
+                                  :class="[SUPPORT_CARD_TYPE_META[resolveCardData(addCardId)!.type].color, SUPPORT_CARD_TYPE_META[resolveCardData(addCardId)!.type].bg]">
+                                {{ SUPPORT_CARD_TYPE_META[resolveCardData(addCardId)!.type].label }}
                             </span>
                             <div class="absolute inset-x-0 bottom-0 border-t border-slate-700/50 bg-slate-950/88 px-1.5 pb-1.5 pt-1 backdrop-blur-sm">
                                 <div class="space-y-0.5 text-center">
@@ -572,7 +573,7 @@ const unknownCards = computed(() =>
                 <!-- Card grid -->
                 <div v-if="filteredOwnedCards.length > 0" class="p-4 grid grid-cols-[repeat(auto-fill,minmax(104px,1fr))] gap-3">
                     <template v-for="entry in filteredOwnedCards" :key="entry.cardId">
-                        <div v-if="SUPPORT_CARD_DICT[entry.cardId]"
+                        <div v-if="resolveCardData(entry.cardId)"
                              class="relative rounded-lg overflow-hidden border-2 transition-[border-color,box-shadow,opacity] duration-150 cursor-pointer"
                              :class="'border-indigo-500 shadow-md shadow-indigo-500/20'"
                              @click="selectedForEdit = entry.cardId">
@@ -584,12 +585,12 @@ const unknownCards = computed(() =>
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                             <!-- Type badge -->
                             <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"
-                                  :class="[SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].color, SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].bg]">
-                                {{ SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].label }}
+                                  :class="[SUPPORT_CARD_TYPE_META[resolveCardData(entry.cardId)!.type].color, SUPPORT_CARD_TYPE_META[resolveCardData(entry.cardId)!.type].bg]">
+                                {{ SUPPORT_CARD_TYPE_META[resolveCardData(entry.cardId)!.type].label }}
                             </span>
                             <!-- Rarity -->
                             <span class="absolute top-1 right-1 text-[8px] font-bold text-slate-300 bg-slate-900/60 px-1 py-0.5 rounded">
-                                {{ SUPPORT_CARD_DICT[entry.cardId]!.rarity }}
+                                {{ resolveCardData(entry.cardId)!.rarity }}
                             </span>
                             <div class="absolute inset-x-0 bottom-0 border-t border-slate-700/50 bg-slate-950/88 px-1.5 pb-1.5 pt-1 backdrop-blur-sm">
                                 <!-- LB dots -->

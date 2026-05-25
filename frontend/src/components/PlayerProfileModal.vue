@@ -5,7 +5,7 @@ import type { GlobalPlayer, RecentResult, SupportCardType } from '../types';
 import { db } from '../firebase';
 import { APP_ID } from '../config';
 import { getUmaImagePath, getFilteredUmas } from '../utils/umaData';
-import { SUPPORT_CARD_DICT, SUPPORT_CARD_TYPE_META, getSupportCardDisplayName, getSupportCardDisplayTitle, matchesSupportCardSearch, resolveCardData } from '../utils/supportCardData';
+import { SUPPORT_CARD_TYPE_META, getSupportCardDisplayName, getSupportCardDisplayTitle, getSupportCardImageId, matchesSupportCardSearch, resolveCardData } from '../utils/supportCardData';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
 
 const props = defineProps<{
@@ -82,8 +82,8 @@ const toggleTypeFilter = (type: SupportCardType) => {
 };
 
 const getSupportCardImagePath = (cardId: string): string => {
-    const numericId = cardId.split('-')[0];
-    return `https://gametora.com/images/umamusume/supports/tex_support_card_${numericId}.png`;
+    const numericId = getSupportCardImageId(cardId);
+    return `https://media.gametora.com/umamusume/supports/full/small/${numericId}.png`;
 };
 
 // ── History helpers ───────────────────────────────────────────────────────────
@@ -324,7 +324,7 @@ watch(
                             <div v-else class="flex-1 overflow-y-auto p-4">
                                 <div class="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-3">
                                     <template v-for="entry in filteredCards" :key="entry.cardId">
-                                        <div v-if="SUPPORT_CARD_DICT[entry.cardId]"
+                                        <div v-if="resolveCardData(entry.cardId)"
                                              class="relative rounded-lg overflow-hidden border border-indigo-500/40 shadow-sm shadow-indigo-500/10">
                                             <img :src="getSupportCardImagePath(entry.cardId)"
                                                  :alt="getSupportCardDisplayName(entry.cardId)"
@@ -332,12 +332,12 @@ watch(
                                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
                                             <!-- Type badge -->
                                             <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"
-                                                  :class="[SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].color, SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].bg]">
-                                                {{ SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].label }}
+                                                  :class="[SUPPORT_CARD_TYPE_META[resolveCardData(entry.cardId)!.type].color, SUPPORT_CARD_TYPE_META[resolveCardData(entry.cardId)!.type].bg]">
+                                                {{ SUPPORT_CARD_TYPE_META[resolveCardData(entry.cardId)!.type].label }}
                                             </span>
                                             <!-- Rarity -->
                                             <span class="absolute top-1 right-1 text-[8px] font-bold text-slate-300 bg-slate-900/60 px-1 py-0.5 rounded">
-                                                {{ SUPPORT_CARD_DICT[entry.cardId]!.rarity }}
+                                                {{ resolveCardData(entry.cardId)!.rarity }}
                                             </span>
                                             <div class="absolute inset-x-0 bottom-0 border-t border-slate-700/50 bg-slate-950/88 px-1.5 pb-1.5 pt-1 backdrop-blur-sm">
                                                 <!-- LB dots -->

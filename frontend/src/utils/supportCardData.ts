@@ -1,5 +1,14 @@
 import type { SupportCardType } from '../types';
-import supportTranslationData from '../data/support.json';
+import supportCardData from '../data/support-cards.json';
+
+type RawSupportCard = {
+    url_name: string;
+    char_name: string;
+    type: string;
+    rarity: number;
+    title_en: string | null;
+    effects: number[][];
+};
 
 type SupportCardTranslationEntry = {
     gametora: string;
@@ -7,9 +16,6 @@ type SupportCardTranslationEntry = {
 };
 
 const supportCardTitleMap = new Map<string, SupportCardTranslationEntry>();
-for (const entry of supportTranslationData as SupportCardTranslationEntry[]) {
-    supportCardTitleMap.set(entry.gametora, entry);
-}
 
 export interface SupportCard {
     id: string;
@@ -17,7 +23,6 @@ export interface SupportCard {
     type: SupportCardType;
     rarity: 'SSR' | 'SR' | 'R';
     cardName: string;
-    /** Stat progression at each level [Lv1, Lv5, Lv10, Lv15, Lv20+] */
     speedBonus?: number[];
     staminaBonus?: number[];
     powerBonus?: number[];
@@ -32,131 +37,110 @@ export interface SupportCard {
     moodEffect?: number[];
     hintLevels?: number[];
     hintFrequency?: number[];
-    /** Unique effect at bond 80 */
     uniqueEffectStat?: string;
     uniqueEffectValue?: number | null;
 }
 
-export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {
-
-    'admire-vega-power':        { id: 'admire-vega-power',        name: 'Admire Vega',        cardName: 'Lucky Star In The Sky',                                      type: 'power',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], trainingEffectiveness: [7,6,7,8,10], friendshipBonus: [17,16,17,18,20], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'agnes-digital-power':      { id: 'agnes-digital-power',      name: 'Agnes Digital',      cardName: 'A Fan\'s Joy',                                               type: 'power',   rarity: 'SSR' , trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'air-shakur-wit':           { id: 'air-shakur-wit',           name: 'Air Shakur',         cardName: '7 Centimeters Ahead',                                        type: 'wit',     rarity: 'SSR' , trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'air-shakur-speed':         { id: 'air-shakur-speed',         name: 'Air Shakur',         cardName: 'Mag!c Number',                                               type: 'speed',   rarity: 'SSR' , speedBonus: [0,0,2,2,2], powerBonus: [0,1,1,1,1], friendshipBonus: [15,16,18,20,20], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], moodEffect: [0,0,0,15,30], hintLevels: [1,1,1,1,1], hintFrequency: [20,20,20,20,20], uniqueEffectStat: 'Speed Bonus', uniqueEffectValue: 2 },
-    'bamboo-memory-power':      { id: 'bamboo-memory-power',      name: 'Bamboo Memory',      cardName: 'Head-on Fight!',                                             type: 'power',   rarity: 'SSR' , trainingEffectiveness: [7,6,7,8,10], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10] },
-    'curren-chan-wit':          { id: 'curren-chan-wit',          name: 'Curren Chan',        cardName: 'Cutie Pie with Shining Eyes',                                type: 'wit',     rarity: 'SSR' , witBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [17,16,17,18,20], specialtyPriority: [30,25,30,35,35], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25] },
-    'daitaku-helios-power':     { id: 'daitaku-helios-power',     name: 'Daitaku Helios',     cardName: 'Make! Some! NOISE!',                                         type: 'power',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'biko-pegasus-speed':       { id: 'biko-pegasus-speed',       name: 'Biko Pegasus',       cardName: 'Double Carrot Punch!',                                       type: 'speed',   rarity: 'SSR' , speedBonus: [0,0,0,0,1], trainingEffectiveness: [7,6,7,8,10], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15] },
-    'daiwa-scarlet-power':      { id: 'daiwa-scarlet-power',      name: 'Daiwa Scarlet',      cardName: 'Mini☆Vacation',                                              type: 'power',   rarity: 'SSR' , powerBonus: [0,1,1,1,1], trainingEffectiveness: [5,5,10,10,10], friendshipBonus: [20,21,23,25,25], specialtyPriority: [15,16,17,18,20], initialFriendshipGauge: [10,11,13,15,15], hintLevels: [0,0,0,2,3], hintFrequency: [0,0,0,30,40], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'el-condor-pasa-power':     { id: 'el-condor-pasa-power',     name: 'El Condor Pasa',     cardName: 'Champion\'s Passion',                                        type: 'power',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'fine-motion-wit':          { id: 'fine-motion-wit',          name: 'Fine Motion',        cardName: 'Wave of Gratitude',                                          type: 'wit',     rarity: 'SSR' , witBonus: [0,0,0,0,1], trainingEffectiveness: [7,6,7,8,10], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15] },
-    'gold-city-speed':          { id: 'gold-city-speed',          name: 'Gold City',          cardName: 'Run(my)way',                                                 type: 'speed',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'gold-ship-stamina':        { id: 'gold-ship-stamina',        name: 'Gold Ship',          cardName: 'Breakaway Battleship',                                       type: 'stamina', rarity: 'SSR' , staminaBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'gold-ship-speed':          { id: 'gold-ship-speed',          name: 'Gold Ship',          cardName: 'That Time I Became The Strongest',                           type: 'speed',   rarity: 'SSR' , powerBonus: [0,0,1,1,1], trainingEffectiveness: [5,6,7,8,10], friendshipBonus: [20,21,23,25,25], initialFriendshipGauge: [10,12,15,17,20], moodEffect: [15,16,17,18,20], hintLevels: [0,0,0,2,3], hintFrequency: [0,0,20,50,60], uniqueEffectStat: 'Power Bonus', uniqueEffectValue: 1 },
-    'grass-wonder-guts':        { id: 'grass-wonder-guts',        name: 'Grass Wonder',       cardName: 'Fairest Fleur',                                              type: 'guts',    rarity: 'SSR' , gutsBonus: [0,0,0,0,1], friendshipBonus: [17,16,17,18,20], specialtyPriority: [42,38,42,46,50], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25] },
-    'haru-urara-guts':          { id: 'haru-urara-guts',          name: 'Haru Urara',         cardName: 'Urara\'s Day Off!',                                          type: 'guts',    rarity: 'SSR' , trainingEffectiveness: [7,6,7,8,10], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15] },
-    'hishi-akebono-guts':       { id: 'hishi-akebono-guts',       name: 'Hishi Akebono',      cardName: 'Who Wants the First Bite?',                                  type: 'guts',    rarity: 'SSR' , gutsBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], specialtyPriority: [8,6,8,10,10], initialFriendshipGauge: [18,16,18,20,20], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'ikuno-dictus-guts':        { id: 'ikuno-dictus-guts',        name: 'Ikuno Dictus',       cardName: 'Warm Heart, Soft Steps',                                     type: 'guts',    rarity: 'SSR' , gutsBonus: [0,1,1,1,1], trainingEffectiveness: [10,10,10,10,10], friendshipBonus: [25,26,27,28,30], specialtyPriority: [20,25,30,35,35], initialFriendshipGauge: [0,0,0,15,30], raceBonus: [10,11,12,13,15], fanBonus: [15,16,17,18,20], hintLevels: [2,2,2,2,3], hintFrequency: [40,42,45,47,50], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'ines-fujin-guts':          { id: 'ines-fujin-guts',          name: 'Ines Fujin',         cardName: 'Watch My Star Fly!',                                         type: 'guts',    rarity: 'SSR' , speedBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'kawakami-princess-speed':  { id: 'kawakami-princess-speed',  name: 'Kawakami Princess',  cardName: 'Princess Bride',                                             type: 'speed',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [17,16,17,18,20], specialtyPriority: [30,25,30,35,35], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'manhattan-cafe-stamina':   { id: 'manhattan-cafe-stamina',   name: 'Manhattan Cafe',     cardName: 'My Solo Spun in Spiraling Runs',                             type: 'stamina', rarity: 'SSR' , staminaBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'marvelous-sunday-power':   { id: 'marvelous-sunday-power',   name: 'Marvelous Sunday',   cardName: 'Dazzling Day in the Snow',                                   type: 'power',   rarity: 'SSR' , staminaBonus: [0,1,1,1,1], friendshipBonus: [20,21,35.3,37.5,37.5], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [5,6,12,13,15], fanBonus: [15,16,17,18,20], uniqueEffectStat: 'Friendship Bonus', uniqueEffectValue: 10 },
-    'marvelous-sunday-guts':    { id: 'marvelous-sunday-guts',    name: 'Marvelous Sunday',   cardName: 'A MORE MARVELOUS WORLD!⭐️',                                  type: 'guts',    rarity: 'SSR' , gutsBonus: [0,1,1,1,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [25,26,27,28,30], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], moodEffect: [60,60,60,60,60], uniqueEffectStat: 'Mood Effect', uniqueEffectValue: 60 },
-    'mayano-top-gun-speed':     { id: 'mayano-top-gun-speed',     name: 'Mayano Top Gun',     cardName: 'Party Formation',                                            type: 'speed',   rarity: 'SSR' , speedBonus: [0,1,1,1,1], powerBonus: [1,1,1,1,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [20,21,23,25,25], specialtyPriority: [0,0,0,40,80], initialFriendshipGauge: [15,15,15,15,15], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], moodEffect: [40,42,45,47,50], hintLevels: [2,2,2,2,3], hintFrequency: [40,42,45,47,50], uniqueEffectStat: 'Power Bonus', uniqueEffectValue: 1 },
-    'king-halo-power':          { id: 'king-halo-power',          name: 'King Halo',          cardName: 'Tonight, We Waltz',                                          type: 'power',   rarity: 'SSR' , powerBonus: [0,1,1,1,1], trainingEffectiveness: [5,6,8,10,10], friendshipBonus: [37.5,38.6,39.7,40.8,43], specialtyPriority: [62,68,74,80,80], initialFriendshipGauge: [15,16,18,20,20], hintLevels: [2,2,2,2,3], hintFrequency: [40,42,45,47,50], uniqueEffectStat: 'Friendship Bonus', uniqueEffectValue: 10 },
-    'kitasan-black-speed':      { id: 'kitasan-black-speed',      name: 'Kitasan Black',      cardName: 'Fire at My Heels!',                                          type: 'speed',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'matikanefukukitaru-speed': { id: 'matikanefukukitaru-speed', name: 'Matikanefukukitaru', cardName: 'Touching Sleeves Is Good Luck!♪',                            type: 'speed',   rarity: 'SSR' , trainingEffectiveness: [0,5,10,10,10], friendshipBonus: [15,16,18,20,20], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [0,0,0,5,10], fanBonus: [0,0,0,10,15], moodEffect: [35,38,41,45,45], uniqueEffectStat: 'Mood Effect', uniqueEffectValue: 15 },
-    'matikanetannhauser-guts':  { id: 'matikanetannhauser-guts',  name: 'Matikanetannhauser', cardName: 'Just Keep Going',                                            type: 'guts',    rarity: 'SSR' , gutsBonus: [0,0,0,0,1], trainingEffectiveness: [7,6,7,8,10], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15] },
-    'meisho-doto-stamina':      { id: 'meisho-doto-stamina',      name: 'Meisho Doto',     cardName: 'Leaping Into The Unknown',                                      type: 'stamina', rarity: 'SSR' , staminaBonus: [0,1,1,1,1], trainingEffectiveness: [5,5,10,10,10], friendshipBonus: [20,21,23,25,25], specialtyPriority: [20,25,30,35,35], initialFriendshipGauge: [15,16,18,20,20], hintLevels: [0,0,0,2,3], hintFrequency: [0,0,20,50,60], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'mejiro-bright-stamina':    { id: 'mejiro-bright-stamina',    name: 'Mejiro Bright',      cardName: 'Little by Little',                                           type: 'stamina', rarity: 'SSR' , gutsBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10] },
-    'mejiro-dober-wit':         { id: 'mejiro-dober-wit',         name: 'Mejiro Dober',       cardName: 'My Thoughts, My Desires',                                    type: 'wit',     rarity: 'SSR' , witBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'mejiro-mcqueen-stamina':   { id: 'mejiro-mcqueen-stamina',   name: 'Mejiro McQueen',     cardName: 'Your Team Ace',                                              type: 'stamina', rarity: 'SSR' , gutsBonus: [0,0,0,0,1], friendshipBonus: [17,16,17,18,20], specialtyPriority: [42,38,42,46,50], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25] },
-    'mejiro-palmer-guts':       { id: 'mejiro-palmer-guts',       name: 'Mejiro Palmer',      cardName: 'Go Ahead and Laugh',                                         type: 'guts',    rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [17,16,17,18,20], specialtyPriority: [42,38,42,46,50], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25] },
-    'mejiro-ryan-guts':         { id: 'mejiro-ryan-guts',         name: 'Mejiro Ryan',        cardName: 'Winning Pitch',                                              type: 'guts',    rarity: 'SSR' , powerBonus: [1,1,1,1,1], gutsBonus: [0,1,1,1,1], friendshipBonus: [20,21,23,25,25], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [0,0,0,15,30], raceBonus: [5,6,7,8,10], fanBonus: [15,16,17,18,20], moodEffect: [40,42,45,47,50], hintLevels: [1,1,1,2,2], hintFrequency: [20,23,26,30,30], uniqueEffectStat: 'Power Bonus', uniqueEffectValue: 1 },
-    'mihono-bourbon-wit':       { id: 'mihono-bourbon-wit',       name: 'Mihono Bourbon',     cardName: 'The Ghost Finds Halloween Magic',                            type: 'wit',     rarity: 'SSR' , speedBonus: [0,1,1,1,1], trainingEffectiveness: [0,0,5,5,5], friendshipBonus: [15,16,18,20,20], specialtyPriority: [10,12,15,17,20], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], moodEffect: [30,33,36,40,40], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'nakayama-festa-stamina':   { id: 'nakayama-festa-stamina',   name: 'Nakayama Festa',     cardName: '43, 8, 1',                                                   type: 'stamina', rarity: 'SSR' , staminaBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'narita-brian-stamina':     { id: 'narita-brian-stamina',     name: 'Narita Brian',       cardName: 'The Whistling Arrow\'s Taunt',                               type: 'stamina', rarity: 'SSR' },
-    'narita-brian-speed':       { id: 'narita-brian-speed',       name: 'Narita Brian',       cardName: 'Two Pieces',                                                 type: 'speed',   rarity: 'SSR' , speedBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [17,16,17,18,20], specialtyPriority: [30,25,30,35,35], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'narita-taishin-wit':       { id: 'narita-taishin-wit',       name: 'Narita Taishin',     cardName: 'Strict Shopper',                                             type: 'wit',     rarity: 'SSR' , speedBonus: [1,1,1,1,1], witBonus: [0,1,1,1,1], trainingEffectiveness: [5,6,8,10,10], friendshipBonus: [25,27,30,32,35], specialtyPriority: [20,20,20,20,20], initialFriendshipGauge: [20,21,23,25,25], raceBonus: [5,6,7,8,10], fanBonus: [15,16,17,18,20], uniqueEffectStat: 'Speed Bonus', uniqueEffectValue: 1 },
-    'narita-top-road-speed':    { id: 'narita-top-road-speed',    name: 'Narita Top Road',    cardName: 'Peachy Silhouette',                                          type: 'speed',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [17,16,17,18,20], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'nice-nature-wit':          { id: 'nice-nature-wit',          name: 'Nice Nature',        cardName: 'Daring to Dream',                                            type: 'wit',     rarity: 'SSR' , witBonus: [0,0,0,0,1], trainingEffectiveness: [6,6,12,13,15], friendshipBonus: [16,16,18,20,20], initialFriendshipGauge: [26,26,27,28,30], raceBonus: [5,5,5,5,5], fanBonus: [11,11,12,13,15], moodEffect: [23,23,26,30,30], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'nishino-flower-wit':       { id: 'nishino-flower-wit',       name: 'Nishino Flower',     cardName: 'Little Cupcakes, Big Emotions',                              type: 'wit',     rarity: 'SSR' , speedBonus: [0,1,1,1,1], witBonus: [3,3,3,3,3], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [25,26,27,28,30], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [25,26,27,28,30], hintLevels: [1,1,1,1,1], hintFrequency: [20,20,20,20,20], uniqueEffectStat: 'Wit Bonus', uniqueEffectValue: 3 },
-    'nishino-flower-speed':     { id: 'nishino-flower-speed',     name: 'Nishino Flower',     cardName: 'Even the Littlest Bud',                                      type: 'speed',   rarity: 'SSR' , speedBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'oguri-cap-power':          { id: 'oguri-cap-power',          name: 'Oguri Cap',          cardName: 'Get Lots of Hugs for Me',                                    type: 'power',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'rice-shower-stamina':      { id: 'rice-shower-stamina',      name: 'Rice Shower',        cardName: 'Showered In Joy',                                            type: 'stamina', rarity: 'SSR' , gutsBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'rice-shower-power':        { id: 'rice-shower-power',        name: 'Rice Shower',        cardName: 'Happiness Just around the Bend',                             type: 'power',   rarity: 'SSR' , staminaBonus: [1,1,1,1,1], powerBonus: [0,1,1,1,1], trainingEffectiveness: [5,5,5,10,15], friendshipBonus: [25,26,27,28,30], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], hintLevels: [1,1,1,1,1], hintFrequency: [20,20,20,20,20], uniqueEffectStat: 'Stamina Bonus', uniqueEffectValue: 1 },
-    'riko-kashimoto-pal':       { id: 'riko-kashimoto-pal',       name: 'Riko Kashimoto',     cardName: 'Planned Perfection',                                         type: 'pal',     rarity: 'SSR' , trainingEffectiveness: [0,0,0,0,5], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15] },
-    'sakura-bakushin-o-guts':   { id: 'sakura-bakushin-o-guts',   name: 'Sakura Bakushin O',  cardName: 'Super! Sonic! Flower Power!',                                type: 'guts',    rarity: 'SSR' , gutsBonus: [0,1,1,1,1], trainingEffectiveness: [20,20,20,20,20], friendshipBonus: [25,27,30,32,35], initialFriendshipGauge: [20,21,23,25,25], raceBonus: [5,6,7,8,10], fanBonus: [15,16,17,18,20], moodEffect: [20,23,26,30,30], hintLevels: [2,2,2,2,3], hintFrequency: [40,42,45,47,50], uniqueEffectStat: 'Training Effectiveness' },
-    'sakura-bakushin-o-speed':  { id: 'sakura-bakushin-o-speed',  name: 'Sakura Bakushin O',  cardName: 'Eat Fast! Yum Fast!',                                        type: 'speed',   rarity: 'SSR' , speedBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'sakura-chiyono-o-stamina': { id: 'sakura-chiyono-o-stamina', name: 'Sakura Chiyono O',   cardName: 'Peak Sakura Season',                                         type: 'stamina', rarity: 'SSR' , staminaBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'sasami-anshinzawa-pal':    { id: 'sasami-anshinzawa-pal',    name: 'Sasami Anshinzawa',  cardName: 'This Might Sting!',                                          type: 'pal',     rarity: 'SSR' , initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35] },
-    'satono-diamond-wit':       { id: 'satono-diamond-wit',       name: 'Satono Diamond',     cardName: 'Special Dreamers!',                                          type: 'wit',     rarity: 'SSR' , witBonus: [0,1,1,1,1], trainingEffectiveness: [0,0,10,10,10], friendshipBonus: [20,21,23,25,25], specialtyPriority: [10,12,15,17,20], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], hintLevels: [1,1,1,1,1], hintFrequency: [20,20,20,20,20], uniqueEffectStat: 'With 4 different cards in deck:' },
-    'satono-diamond-stamina':   { id: 'satono-diamond-stamina',   name: 'Satono Diamond',     cardName: 'The Will to Overtake',                                       type: 'stamina', rarity: 'SSR' , gutsBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'seiun-sky-stamina':        { id: 'seiun-sky-stamina',        name: 'Seiun Sky',          cardName: 'Foolproof Plan',                                             type: 'stamina', rarity: 'SSR' , staminaBonus: [0,0,0,0,1], friendshipBonus: [17,16,17,18,20], specialtyPriority: [42,38,42,46,50], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25] },
-    'seiun-sky-wit':            { id: 'seiun-sky-wit',            name: 'Seiun Sky',          cardName: 'Paint the Sky Red',                                          type: 'wit',     rarity: 'SSR' , speedBonus: [1,2,2,2,2], trainingEffectiveness: [5,6,7,8,10], friendshipBonus: [25,27,30,32,35], specialtyPriority: [10,12,15,17,20], initialFriendshipGauge: [0,0,0,15,30], hintLevels: [1,1,1,2,2], hintFrequency: [20,23,26,30,30], uniqueEffectStat: 'Speed Bonus', uniqueEffectValue: 1 },
-    'silence-suzuka-speed-2':   { id: 'silence-suzuka-speed-2',   name: 'Silence Suzuka',     cardName: 'Searching for Unseen Sights',                                type: 'speed',   rarity: 'SSR' },
-    'silence-suzuka-speed':     { id: 'silence-suzuka-speed',     name: 'Silence Suzuka',     cardName: 'Beyond the Shining Scenery',                                 type: 'speed',   rarity: 'SSR' , friendshipBonus: [17,16,17,18,20], specialtyPriority: [42,38,42,46,50], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25] },
-    'silence-suzuka-stamina':   { id: 'silence-suzuka-stamina',   name: 'Silence Suzuka',     cardName: 'Winning Dream',                                              type: 'stamina', rarity: 'SSR' , staminaBonus: [0,1,1,1,1], trainingEffectiveness: [0,0,5,5,5], friendshipBonus: [20,21,23,25,25], specialtyPriority: [20,25,30,35,35], initialFriendshipGauge: [0,0,0,15,30], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], moodEffect: [20,23,26,30,30], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'sirius-symboli-wit':   { id: 'sirius-symboli-wit',   name: 'Sirius Symboli',     cardName: 'Escorte Étoile',                                              type: 'wit', rarity: 'SSR' , speedBonus: [1,1,1,1,1], witBonus: [0,1,1,1,1], friendshipBonus: [32.25,33.4,35.7,38,38], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [10,11,13,15,15], raceBonus: [0,0,0,5,10], fanBonus: [0,0,0,10,15], moodEffect: [40,45,50,55,60], hintLevels: [1,1,1,1,1], hintFrequency: [10,10,10,10,10], uniqueEffectStat: 'Per 1 Friendship Training (max 5x):' },
-    'smart-falcon-power':       { id: 'smart-falcon-power',       name: 'Smart Falcon',       cardName: 'My Umadol Way! ☆',                                           type: 'power',   rarity: 'SSR' , staminaBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'special-week-guts':        { id: 'special-week-guts',        name: 'Special Week',       cardName: 'The Brightest Star in Japan!',                               type: 'guts',    rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'special-week-speed':       { id: 'special-week-speed',       name: 'Special Week',       cardName: 'The Setting Sun and Rising Stars',                           type: 'speed',   rarity: 'SSR' , speedBonus: [0,1,1,1,1], trainingEffectiveness: [0,0,5,5,5], friendshipBonus: [25,27,30,32,35], specialtyPriority: [0,0,0,15,30], initialFriendshipGauge: [5,6,8,10,10], raceBonus: [1,2,8,10,10], fanBonus: [5,6,8,10,10], moodEffect: [20,23,26,30,30], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'super-creek-stamina':      { id: 'super-creek-stamina',      name: 'Super Creek',        cardName: 'Piece of Mind',                                              type: 'stamina', rarity: 'SSR' , staminaBonus: [0,0,0,0,1], trainingEffectiveness: [7,6,7,8,10], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15] },
-    'sweep-tosho-speed':        { id: 'sweep-tosho-speed',        name: 'Sweep Tosho',        cardName: 'It\'s All Mine!',                                            type: 'speed',   rarity: 'SSR' , friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'symboli-rudolf-stamina':        { id: 'symboli-rudolf-stamina',        name: 'Symboli Rudolf',        cardName: 'Enchaînement',                                            type: 'stamina',   rarity: 'SSR' , gutsBonus: [0,1,1,1,1], trainingEffectiveness: [5,6,8,10,10], friendshipBonus: [20,21,23,25,25], specialtyPriority: [20,25,30,35,35], initialFriendshipGauge: [15,16,18,20,20], raceBonus: [0,0,0,5,10], fanBonus: [0,0,0,10,15], hintLevels: [2,2,2,2,3], hintFrequency: [40,42,45,47,50], uniqueEffectStat: 'Per card in deck:' },
-    'tamamo-cross-stamina':     { id: 'tamamo-cross-stamina',     name: 'Tamamo Cross',       cardName: 'Split the Sky, White Lightning!',                            type: 'stamina', rarity: 'SSR' , staminaBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [22,21,22,23,25], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'tamamo-cross-power':       { id: 'tamamo-cross-power',       name: 'Tamamo Cross',       cardName: 'Beware! Halloween Night!',                                   type: 'power',   rarity: 'SSR' , staminaBonus: [0,1,1,1,1], friendshipBonus: [32,33.1,35.3,37.5,37.5], specialtyPriority: [50,53,57,61,65], initialFriendshipGauge: [30,31,33,35,35], raceBonus: [5,6,7,8,10], fanBonus: [15,16,17,18,20], moodEffect: [40,45,50,55,60], uniqueEffectStat: 'Friendship Bonus', uniqueEffectValue: 10 },
-    'tazuna-hayakawa-pal':      { id: 'tazuna-hayakawa-pal',      name: 'Tazuna Hayakawa',    cardName: 'Tracen Reception',                                           type: 'pal',     rarity: 'SSR' , trainingEffectiveness: [0,0,0,0,5], initialFriendshipGauge: [22,21,22,23,25] },
-    'team-sirius-group':      { id: 'team-sirius-group',      name: 'Team Sirius',    cardName: 'Passing the Dream On',                                           type: 'group',     rarity: 'SSR' },
-    'tosen-jordan-speed':       { id: 'tosen-jordan-speed',       name: 'Tosen Jordan',       cardName: 'My Way',                                                     type: 'speed',   rarity: 'SSR' , speedBonus: [0,1,1,1,1], trainingEffectiveness: [5,5,10,10,10], friendshipBonus: [15,16,18,20,20], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [20,21,23,25,25], raceBonus: [1,2,3,5,5], fanBonus: [5,6,8,10,10], hintFrequency: [0,0,20,20,20], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'tokai-teio-speed':         { id: 'tokai-teio-speed',         name: 'Tokai Teio',         cardName: 'Dream Big!',                                                 type: 'speed',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'twin-turbo-speed':         { id: 'twin-turbo-speed',         name: 'Twin Turbo',         cardName: 'Turbo Booooost',                                             type: 'speed',   rarity: 'SSR' , speedBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [30,27,30,32,35], hintLevels: [1,1,1,2,2], hintFrequency: [26,23,26,30,30] },
-    'vodka-power':              { id: 'vodka-power',              name: 'Vodka',              cardName: 'Wild Rider',                                                 type: 'power',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], friendshipBonus: [17,16,17,18,20], specialtyPriority: [42,38,42,46,50], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [3,2,3,5,5], fanBonus: [8,6,8,10,10], moodEffect: [21,18,21,25,25] },
-    'winning-ticket-guts':      { id: 'winning-ticket-guts',      name: 'Winning Ticket',     cardName: 'B・N・Winner!!',                                              type: 'guts',    rarity: 'SSR' , gutsBonus: [0,0,0,0,1], friendshipBonus: [13,11,13,15,15], specialtyPriority: [30,25,30,35,35], initialFriendshipGauge: [18,16,18,20,20], raceBonus: [5,5,5,5,5], fanBonus: [12,11,12,13,15], moodEffect: [21,18,21,25,25] },
-    'winning-ticket-power':     { id: 'winning-ticket-power',     name: 'Winning Ticket',     cardName: 'Dreams Do Come True!',                                       type: 'power',   rarity: 'SSR' , powerBonus: [0,1,1,1,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [15,16,29.8,32,32], specialtyPriority: [20,25,30,35,35], initialFriendshipGauge: [20,22,40,42,45], moodEffect: [0,0,0,15,30], hintLevels: [2,2,2,2,2], hintFrequency: [30,33,36,40,40], uniqueEffectStat: 'Friendship Bonus', uniqueEffectValue: 10 },
-    'winning-ticket-stamina':   { id: 'winning-ticket-stamina',   name: 'Winning Ticket',     cardName: 'Full-Blown Tantrum',                                         type: 'stamina', rarity: 'SSR' , staminaBonus: [1,1,1,1,1], gutsBonus: [0,1,1,1,1], friendshipBonus: [15,16,18,20,20], initialFriendshipGauge: [25,27,30,32,35], raceBonus: [0,0,0,5,10], fanBonus: [0,0,0,10,15], moodEffect: [35,38,41,45,45], hintLevels: [2,2,2,2,3], hintFrequency: [40,42,45,47,50], uniqueEffectStat: 'Mood Effect', uniqueEffectValue: 15 },
-    'yaeno-muteki-power':       { id: 'yaeno-muteki-power',       name: 'Yaeno Muteki',       cardName: 'Fiery Discipline',                                           type: 'power',   rarity: 'SSR' , powerBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'yukino-bijin-guts':        { id: 'yukino-bijin-guts',        name: 'Yukino Bijin',       cardName: 'Dancing Light into the Night',                               type: 'guts',    rarity: 'SSR' , powerBonus: [0,0,0,0,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [13,11,13,15,15], initialFriendshipGauge: [18,16,18,20,20], moodEffect: [21,18,21,25,25], hintLevels: [2,2,2,2,2], hintFrequency: [35,32,35,37,40] },
-    'yukino-bijin-wit':         { id: 'yukino-bijin-wit',         name: 'Yukino Bijin',       cardName: 'Hometown Cheers',                                            type: 'wit',     rarity: 'SSR' , witBonus: [0,1,1,1,1], trainingEffectiveness: [5,5,5,5,5], friendshipBonus: [15,16,18,20,20], specialtyPriority: [20,25,30,35,35], initialFriendshipGauge: [20,21,23,25,25], raceBonus: [5,5,5,5,5], moodEffect: [40,45,50,55,60], hintLevels: [2,2,2,2,2], hintFrequency: [30,33,36,40,40], uniqueEffectStat: 'Training Effectiveness', uniqueEffectValue: 5 },
-    'zenno-rob-roy-speed':      { id: 'zenno-rob-roy-speed',      name: 'Zenno Rob Roy',      cardName: 'Magical Heroine',                                            type: 'speed',   rarity: 'SSR' , speedBonus: [0,1,1,1,1], trainingEffectiveness: [10,10,10,10,10], friendshipBonus: [26.5,26.5,26.5,26.5,32], specialtyPriority: [35,40,45,50,50], initialFriendshipGauge: [20,21,23,25,25], moodEffect: [20,22,25,27,30], hintLevels: [0,0,0,2,3], hintFrequency: [0,0,0,30,40], uniqueEffectStat: 'Friendship Bonus', uniqueEffectValue: 10 },
-
+const TYPE_MAP: Record<string, SupportCardType> = {
+    speed: 'speed',
+    stamina: 'stamina',
+    power: 'power',
+    guts: 'guts',
+    intelligence: 'wit',
+    group: 'group',
+    friend: 'pal',
 };
+
+const RARITY_MAP: Record<number, 'SSR' | 'SR' | 'R'> = {
+    1: 'R',
+    2: 'SR',
+    3: 'SSR',
+};
+
+const EFFECT_MAP: Record<number, keyof SupportCard> = {
+    1: 'speedBonus',
+    2: 'staminaBonus',
+    3: 'powerBonus',
+    4: 'gutsBonus',
+    5: 'witBonus',
+    8: 'trainingEffectiveness',
+    11: 'friendshipBonus',
+    12: 'initialFriendshipGauge',
+    13: 'specialtyPriority',
+    15: 'raceBonus',
+    16: 'fanBonus',
+    17: 'moodEffect',
+    18: 'hintLevels',
+    19: 'hintFrequency',
+};
+
+const MILESTONE_INDICES = [1, 3, 5, 7, 11];
+
+function to5LevelArray(values: number[]): number[] {
+    const result: number[] = [];
+    for (const m of MILESTONE_INDICES) {
+        let v = -1;
+        for (let i = m; i >= 1; i--) {
+            const val = values[i];
+            if (val !== undefined && val >= 0) { v = val; break; }
+        }
+        result.push(v >= 0 ? v : 0);
+    }
+    return result;
+}
+
+export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {};
+
+for (const card of supportCardData as RawSupportCard[]) {
+    const cardId = card.url_name;
+    const effects: Record<string, number[]> = {};
+    for (const eff of card.effects || []) {
+        const effType = eff[0];
+        if (effType === undefined) continue;
+        const field = EFFECT_MAP[effType];
+        if (field) {
+            effects[field] = to5LevelArray(eff);
+        }
+    }
+
+    SUPPORT_CARD_DICT[cardId] = {
+        id: cardId,
+        name: card.char_name,
+        type: TYPE_MAP[card.type] || 'speed',
+        rarity: RARITY_MAP[card.rarity] || 'R',
+        cardName: card.title_en || '',
+        ...effects,
+    };
+    supportCardTitleMap.set(cardId, { gametora: cardId, title_en: card.title_en });
+}
 
 export const SUPPORT_CARD_LIST = Object.values(SUPPORT_CARD_DICT);
 
-function findCardByGametoraId(gametoraId: string): SupportCard | null {
-    const entry = supportCardTitleMap.get(gametoraId);
-    if (!entry) return null;
-    const slug = entry.gametora.replace(/^\d+-/, '');
-    for (const key of Object.keys(SUPPORT_CARD_DICT)) {
-        if (key.startsWith(slug)) {
-            return SUPPORT_CARD_DICT[key] ?? null;
-        }
-    }
-    return null;
+export function isKnownCardId(cardId: string): boolean {
+    return cardId in SUPPORT_CARD_DICT;
+}
+
+export function getSupportCardImageId(cardId: string): string {
+    const first = cardId.split('-')[0];
+    if (first && /^\d+$/.test(first)) return first;
+    return '';
 }
 
 export function resolveCardData(cardId: string): SupportCard | null {
-    const card = SUPPORT_CARD_DICT[cardId];
-    if (card) return card;
-    return findCardByGametoraId(cardId);
+    return SUPPORT_CARD_DICT[cardId] ?? null;
 }
 
 export function getSupportCardDisplayName(cardId: string): string {
-    const card = SUPPORT_CARD_DICT[cardId];
+    const card = resolveCardData(cardId);
     if (card) return card.name;
-    const entry = supportCardTitleMap.get(cardId);
-    if (entry) {
-        const slug = entry.gametora.replace(/^\d+-/, '');
-        return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    }
     return cardId;
 }
 
 export function getSupportCardDisplayTitle(cardId: string): string {
+    const card = resolveCardData(cardId);
+    if (card?.cardName) return card.cardName;
     const entry = supportCardTitleMap.get(cardId);
-    if (entry?.title_en) return entry.title_en;
-    return SUPPORT_CARD_DICT[cardId]?.cardName ?? '';
+    return entry?.title_en ?? '';
 }
 
 export function matchesSupportCardSearch(cardId: string, query: string): boolean {
@@ -166,7 +150,7 @@ export function matchesSupportCardSearch(cardId: string, query: string): boolean
     if (name.includes(q)) return true;
     const title = getSupportCardDisplayTitle(cardId).toLowerCase();
     if (title.includes(q)) return true;
-    const card = SUPPORT_CARD_DICT[cardId];
+    const card = resolveCardData(cardId);
     if (card) {
         if (card.type.toLowerCase().includes(q) || card.rarity.toLowerCase().includes(q)) return true;
     }
