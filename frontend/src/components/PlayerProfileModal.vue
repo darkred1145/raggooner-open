@@ -4,8 +4,8 @@ import { doc, getDocFromServer } from 'firebase/firestore';
 import type { GlobalPlayer, RecentResult, SupportCardType } from '../types';
 import { db } from '../firebase';
 import { APP_ID } from '../config';
-import { getUmaImagePath, UMA_LIST } from '../utils/umaData';
-import { SUPPORT_CARD_DICT, SUPPORT_CARD_TYPE_META } from '../utils/supportCardData';
+import { getUmaImagePath, getFilteredUmas } from '../utils/umaData';
+import { SUPPORT_CARD_DICT, SUPPORT_CARD_TYPE_META, getSupportCardDisplayName, getSupportCardDisplayTitle, matchesSupportCardSearch } from '../utils/supportCardData';
 import PlayerAvatar from './shared/PlayerAvatar.vue';
 
 const props = defineProps<{
@@ -26,6 +26,7 @@ const profile = computed(() => freshProfile.value ?? props.globalPlayer);
 // ── Uma filters ───────────────────────────────────────────────────────────────
 const umaFilter = ref('');
 const showUnowned = ref(false);
+const showUpcomingUmas = ref(false);
 
 const ownedUmas = computed(() => {
     const roster = profile.value?.roster ?? [];
@@ -39,7 +40,7 @@ const unownedUmas = computed(() => {
     if (!showUnowned.value) return [];
     const owned = new Set(profile.value?.roster ?? []);
     const q = umaFilter.value.toLowerCase();
-    return UMA_LIST
+    return getFilteredUmas(showUpcomingUmas.value)
         .map(u => u.name)
         .filter(name => !owned.has(name) && name.toLowerCase().includes(q))
         .sort((a, b) => a.localeCompare(b));
@@ -48,15 +49,23 @@ const unownedUmas = computed(() => {
 // ── Support card filters ───────────────────────────────────────────────────────
 const cardTypeFilter = ref<SupportCardType | null>(null);
 const cardMinLb = ref(0);
+const searchSupportCard = ref('');
 
 const filteredCards = computed(() => {
     const cards = profile.value?.supportCards ?? [];
     return cards.filter(c => {
-        if (cardTypeFilter.value !== null) {
-            const meta = SUPPORT_CARD_DICT[c.cardId];
-            if (!meta || meta.type !== cardTypeFilter.value) return false;
-        }
-        return c.limitBreak >= cardMinLb.value;
+        const meta = SUPPORT_CARD_DICT[c.cardId];
+        if (!meta) return false;
+        
+        // Type filter
+        if (cardTypeFilter.value !== null && meta.type !== cardTypeFilter.value) return false;
+        
+        // Limit break filter
+        if (c.limitBreak < cardMinLb.value) return false;
+        
+        // Search filter
+        const query = searchSupportCard.value.toLowerCase();
+        return matchesSupportCardSearch(c.cardId, query);
     }).sort((a, b) => {
         const ca = SUPPORT_CARD_DICT[a.cardId];
         const cb = SUPPORT_CARD_DICT[b.cardId];
@@ -70,6 +79,11 @@ const ALL_TYPES: SupportCardType[] = ['speed', 'stamina', 'power', 'guts', 'wit'
 
 const toggleTypeFilter = (type: SupportCardType) => {
     cardTypeFilter.value = cardTypeFilter.value === type ? null : type;
+};
+
+const getSupportCardImagePath = (cardId: string): string => {
+    const numericId = cardId.split('-')[0];
+    return `https://gametora.com/images/umamusume/supports/tex_support_card_${numericId}.png`;
 };
 
 // ── History helpers ───────────────────────────────────────────────────────────
@@ -221,10 +235,16 @@ watch(
                                 <input v-model="umaFilter"
                                        placeholder="Search umas…"
                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500" />
-                                <label class="flex items-center gap-2 cursor-pointer w-fit">
-                                    <input type="checkbox" v-model="showUnowned" class="accent-indigo-500 w-3.5 h-3.5 cursor-pointer" />
-                                    <span class="text-xs text-slate-400">Show unowned</span>
-                                </label>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center gap-2 cursor-pointer w-fit">
+                                        <input type="checkbox" v-model="showUnowned" class="accent-indigo-500 w-3.5 h-3.5 cursor-pointer" />
+                                        <span class="text-xs text-slate-400">Show unowned</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer w-fit">
+                                        <input type="checkbox" v-model="showUpcomingUmas" class="accent-indigo-500 w-3.5 h-3.5 cursor-pointer" />
+                                        <span class="text-xs text-slate-400">Upcoming</span>
+                                    </label>
+                                </div>
                             </div>
 
                             <div v-if="ownedUmas.length === 0 && unownedUmas.length === 0" class="flex-1 flex items-center justify-center text-slate-600 text-sm py-12">
@@ -257,10 +277,19 @@ watch(
                             </div>
                         </div>
 
-                        <!-- ── Support Cards Tab ── -->
+<!-- ── Support Cards Tab ── -->
                         <div v-if="activeTab === 'cards'" class="flex-1 flex flex-col overflow-hidden">
                             <!-- Filters -->
                             <div class="px-4 py-3 border-b border-slate-800 space-y-3 shrink-0">
+                                <!-- Search -->
+                                <div class="flex items-center gap-2">
+                                    <input
+                                        v-model="searchSupportCard"
+                                        placeholder="Search character or title…"
+                                        class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                                    />
+                                </div>
+
                                 <!-- Type filter -->
                                 <div class="flex flex-wrap gap-1.5">
                                     <button v-for="type in ALL_TYPES" :key="type"
@@ -291,24 +320,44 @@ watch(
                                 No support cards match the filters.
                             </div>
 
-                            <div v-else class="flex-1 overflow-y-auto divide-y divide-slate-800">
-                                <div v-for="entry in filteredCards" :key="entry.cardId"
-                                     class="flex items-center gap-3 px-4 py-2.5">
-                                    <template v-if="SUPPORT_CARD_DICT[entry.cardId]" v-for="card in [SUPPORT_CARD_DICT[entry.cardId]!]">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 w-14 text-center"
-                                              :class="[SUPPORT_CARD_TYPE_META[card.type].color, SUPPORT_CARD_TYPE_META[card.type].bg]">
-                                            {{ SUPPORT_CARD_TYPE_META[card.type].label }}
-                                        </span>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="text-sm font-bold text-white truncate">{{ card.name }}</div>
-                                            <div class="text-xs text-slate-500 truncate">{{ card.cardName }}</div>
-                                        </div>
-                                        <span class="text-xs text-slate-600 shrink-0">{{ card.rarity }}</span>
-                                        <!-- LB dots -->
-                                        <div class="flex gap-0.5 shrink-0">
-                                            <div v-for="i in 4" :key="i"
-                                                 class="w-2 h-2 rounded-full"
-                                                 :class="i <= entry.limitBreak ? 'bg-indigo-400' : 'bg-slate-700'"></div>
+                            <!-- Card grid -->
+                            <div v-else class="flex-1 overflow-y-auto p-4">
+                                <div class="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-3">
+                                    <template v-for="entry in filteredCards" :key="entry.cardId">
+                                        <div v-if="SUPPORT_CARD_DICT[entry.cardId]"
+                                             class="relative rounded-lg overflow-hidden border border-indigo-500/40 shadow-sm shadow-indigo-500/10">
+                                            <img :src="getSupportCardImagePath(entry.cardId)"
+                                                 :alt="getSupportCardDisplayName(entry.cardId)"
+                                                 class="w-full aspect-[2/3] object-cover bg-slate-800" />
+                                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
+                                            <!-- Type badge -->
+                                            <span class="absolute top-1 left-1 rounded-md border border-slate-950/70 bg-slate-950/85 px-1.5 py-0.5 text-[8px] font-bold shadow-sm backdrop-blur-sm"
+                                                  :class="[SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].color, SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].bg]">
+                                                {{ SUPPORT_CARD_TYPE_META[SUPPORT_CARD_DICT[entry.cardId]!.type].label }}
+                                            </span>
+                                            <!-- Rarity -->
+                                            <span class="absolute top-1 right-1 text-[8px] font-bold text-slate-300 bg-slate-900/60 px-1 py-0.5 rounded">
+                                                {{ SUPPORT_CARD_DICT[entry.cardId]!.rarity }}
+                                            </span>
+                                            <div class="absolute inset-x-0 bottom-0 border-t border-slate-700/50 bg-slate-950/88 px-1.5 pb-1.5 pt-1 backdrop-blur-sm">
+                                                <!-- LB dots -->
+                                                <div class="mb-1 flex justify-center gap-0.5">
+                                                    <div v-for="i in 4" :key="i"
+                                                         class="h-1.5 w-1.5 rounded-full"
+                                                         :class="i <= entry.limitBreak ? 'bg-indigo-400' : 'bg-slate-600/80'"></div>
+                                                </div>
+                                                <div class="space-y-0.5 text-center">
+                                                    <p
+                                                        class="truncate text-[10px] font-bold leading-tight text-white drop-shadow"
+                                                        :title="`${getSupportCardDisplayName(entry.cardId)} - ${getSupportCardDisplayTitle(entry.cardId)}`"
+                                                    >
+                                                        {{ getSupportCardDisplayName(entry.cardId) }}
+                                                    </p>
+                                                    <p class="truncate text-[9px] leading-tight text-slate-300/90">
+                                                        {{ getSupportCardDisplayTitle(entry.cardId) }}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>

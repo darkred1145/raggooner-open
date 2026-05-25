@@ -7,7 +7,7 @@ import { useTournamentFlow } from '../composables/useTournamentFlow';
 import { useBanVoting } from '../composables/useBanVoting';
 import { voicelineVolume, playLocalSfx } from '../composables/useVoicelines';
 import { getPlayerName } from '../utils/utils';
-import { UMA_DICT } from '../utils/umaData';
+import { UMA_DICT, getFilteredUmas } from '../utils/umaData';
 import { TRACK_DICT } from '../utils/trackData';
 import UmaCard from './UmaCard.vue';
 
@@ -44,11 +44,15 @@ const {
 
 // Local State for Search
 const banSearch = ref('');
+const showUpcomingUmas = ref(false);
 
 // Computed for Search
 const filteredUmas = computed(() => {
   const query = banSearch.value.toLowerCase();
-  return Object.keys(UMA_DICT).sort().filter(u => u.toLowerCase().includes(query));
+  return getFilteredUmas(showUpcomingUmas.value)
+    .map(u => u.name)
+    .filter(u => u.toLowerCase().includes(query))
+    .sort();
 });
 
 const selectedTrackData = computed(() => {
@@ -361,12 +365,18 @@ const handlePlayerVote = async (umaId: string, vote: boolean) => {
       </div>
 
       <!-- Uma Grid for Captain Selection -->
-      <div v-if="canCaptainPropose" class="relative">
-        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl"></i>
-        <input v-model="banSearch"
-               type="text"
-               placeholder="Search Umas..."
-               class="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-sm">
+      <div v-if="canCaptainPropose" class="flex items-center gap-3">
+        <div class="relative flex-1">
+          <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl"></i>
+          <input v-model="banSearch"
+                 type="text"
+                 placeholder="Search Umas..."
+                 class="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-sm">
+        </div>
+        <label class="flex items-center gap-1.5 cursor-pointer shrink-0">
+          <input type="checkbox" v-model="showUpcomingUmas" class="accent-indigo-500 w-4 h-4 cursor-pointer" />
+          <span class="text-xs text-slate-400">Upcoming</span>
+        </label>
       </div>
 
       <div v-if="canCaptainPropose" class="grid md:grid-cols-12 gap-6">
@@ -414,12 +424,18 @@ const handlePlayerVote = async (umaId: string, vote: boolean) => {
 
     <!-- Classic Admin Mode UI (Non-Voting) -->
     <template v-else>
-      <div class="relative">
-        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl"></i>
-        <input v-model="banSearch"
-               type="text"
-               placeholder="Search Umas..."
-               class="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="relative flex-1">
+          <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl"></i>
+          <input v-model="banSearch"
+                 type="text"
+                 placeholder="Search Umas..."
+                 class="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm">
+        </div>
+        <label class="flex items-center gap-1.5 cursor-pointer shrink-0">
+          <input type="checkbox" v-model="showUpcomingUmas" class="accent-indigo-500 w-4 h-4 cursor-pointer" />
+          <span class="text-xs text-slate-400">Upcoming</span>
+        </label>
       </div>
 
       <div class="grid md:grid-cols-12 gap-6">

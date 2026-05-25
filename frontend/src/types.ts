@@ -305,6 +305,7 @@ export interface UmaData {
     };
     stars: number;
     characterId: number;  // Card ID from TerumiCharacterData.json (e.g., 100101)
+    upcoming?: boolean;   // True if no EN release yet
 }
 
 

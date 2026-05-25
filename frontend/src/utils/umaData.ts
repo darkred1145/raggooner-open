@@ -170,6 +170,12 @@ export const UMA_DICT: Record<string, UmaData> = {
         statBonus: 'STA +20% / WIT +10%',
         aptitudes: { surface: { turf: 'A', dirt: 'E' }, distance: { sprint: 'G', mile: 'F', medium: 'A', long: 'A' }, style: { frontRunner: 'B', paceChaser: 'A', lateSurger: 'D', endCloser: 'F' } }
     },
+    'Mejiro Palmer': {
+        id: 'mejiro-palmer', name: 'Mejiro Palmer', stars: 3, releaseDate: '2026-05-10T22:00:00.000Z', characterId: 106401,
+        gametoraId: 106401,
+        statBonus: 'SPD +10% / STA +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'F', medium: 'A', long: 'A' }, style: { frontRunner: 'A', paceChaser: 'E', lateSurger: 'F', endCloser: 'G' } }
+    },
     'Mejiro Ryan': {
         id: 'mejiro-ryan', name: 'Mejiro Ryan', stars: 1, releaseDate: '2025-06-26T22:00:00.000Z', characterId: 102701,
         gametoraId: 102701,
@@ -477,6 +483,518 @@ export const UMA_DICT: Record<string, UmaData> = {
         statBonus: 'STA +10% / POW +10% / WIT +10%',
         aptitudes: { surface: { turf: 'A', dirt: 'E' }, distance: { sprint: 'G', mile: 'F', medium: 'A', long: 'A' }, style: { frontRunner: 'B', paceChaser: 'A', lateSurger: 'D', endCloser: 'F' } }
     },
+    // --- JP-only / upcoming characters ---
+    'Admire Groove': {
+        id: 'admire-groove', name: 'Admire Groove', stars: 3, releaseDate: '2026-04-20T22:00:00.000Z', characterId: 111801,
+        gametoraId: 111801,
+        statBonus: 'SPD +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Air Messiah': {
+        id: 'air-messiah', name: 'Air Messiah', stars: 3, releaseDate: '2024-11-18T22:00:00.000Z', characterId: 111101,
+        gametoraId: 111101,
+        statBonus: 'POW +15% / WIT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'C', mile: 'B', medium: 'A', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Air Shakur': {
+        id: 'air-shakur', name: 'Air Shakur', stars: 3, releaseDate: '2022-07-11T22:00:00.000Z', characterId: 103601,
+        gametoraId: 103601,
+        statBonus: 'WIT +30%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'E', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'C', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Almond Eye': {
+        id: 'almond-eye', name: 'Almond Eye', stars: 3, releaseDate: '2026-02-24T22:00:00.000Z', characterId: 112901,
+        gametoraId: 112901,
+        statBonus: 'SPD +10% / STA +10% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'F' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Aston Machan': {
+        id: 'aston-machan', name: 'Aston Machan', stars: 3, releaseDate: '2022-10-11T22:00:00.000Z', characterId: 108701,
+        gametoraId: 108701,
+        statBonus: 'SPD +20% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'B', medium: 'G', long: 'G' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'G', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Bamboo Memory': {
+        id: 'bamboo-memory', name: 'Bamboo Memory', stars: 3, releaseDate: '2022-08-10T22:00:00.000Z', characterId: 105301,
+        gametoraId: 105301,
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'D' }, distance: { sprint: 'A', mile: 'A', medium: 'C', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'E', lateSurger: 'A', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Believe': {
+        id: 'believe', name: 'Believe', stars: 3, releaseDate: '2025-09-19T22:00:00.000Z', characterId: 109501,
+        gametoraId: 109501,
+        statBonus: 'POW +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'D', medium: 'G', long: 'G' }, style: { frontRunner: 'D', paceChaser: 'A', lateSurger: 'D', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Biko Pegasus': {
+        id: 'biko-pegasus', name: 'Biko Pegasus', stars: 2, releaseDate: '2024-02-14T22:00:00.000Z', characterId: 105401,
+        gametoraId: 105401,
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'E' }, distance: { sprint: 'A', mile: 'B', medium: 'G', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'E', lateSurger: 'A', endCloser: 'B' } },
+        upcoming: true
+    },
+    'Bubble Gum Fellow': {
+        id: 'bubble-gum-fellow', name: 'Bubble Gum Fellow', stars: 3, releaseDate: '2024-10-11T22:00:00.000Z', characterId: 112401,
+        gametoraId: 112401,
+        statBonus: 'SPD +20% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'G' }, style: { frontRunner: 'E', paceChaser: 'A', lateSurger: 'B', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Buena Vista': {
+        id: 'buena-vista', name: 'Buena Vista', stars: 3, releaseDate: '2025-11-19T22:00:00.000Z', characterId: 111401,
+        gametoraId: 111401,
+        statBonus: 'SPD +10% / POW +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'C' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Calstone Light O': {
+        id: 'calstone-light-o', name: 'Calstone Light O', stars: 3, releaseDate: '2024-07-19T22:00:00.000Z', characterId: 112001,
+        gametoraId: 112001,
+        statBonus: 'SPD +15% / POW +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'D', medium: 'G', long: 'G' }, style: { frontRunner: 'A', paceChaser: 'C', lateSurger: 'G', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Cesario': {
+        id: 'cesario', name: 'Cesario', stars: 3, releaseDate: '2024-09-10T22:00:00.000Z', characterId: 111001,
+        gametoraId: 111001,
+        statBonus: 'SPD +10% / POW +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'F' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Cheval Grand': {
+        id: 'cheval-grand', name: 'Cheval Grand', stars: 3, releaseDate: '2023-12-20T22:00:00.000Z', characterId: 108901,
+        gametoraId: 108901,
+        statBonus: 'STA +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'G', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'B', endCloser: 'F' } },
+        upcoming: true
+    },
+    'Chrono Genesis': {
+        id: 'chrono-genesis', name: 'Chrono Genesis', stars: 3, releaseDate: '2025-06-13T22:00:00.000Z', characterId: 113301,
+        gametoraId: 113301,
+        statBonus: 'SPD +10% / STA +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'C', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Copano Rickey': {
+        id: 'copano-rickey', name: 'Copano Rickey', stars: 3, releaseDate: '2022-08-19T22:00:00.000Z', characterId: 109801,
+        gametoraId: 109801,
+        statBonus: 'POW +10% / WIT +20%',
+        aptitudes: { surface: { turf: 'F', dirt: 'A' }, distance: { sprint: 'C', mile: 'A', medium: 'A', long: 'G' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'C', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Daiichi Ruby': {
+        id: 'daiichi-ruby', name: 'Daiichi Ruby', stars: 3, releaseDate: '2023-03-10T22:00:00.000Z', characterId: 108501,
+        gametoraId: 108501,
+        statBonus: 'POW +20% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'A', medium: 'C', long: 'G' }, style: { frontRunner: 'E', paceChaser: 'B', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Daitaku Helios': {
+        id: 'daitaku-helios', name: 'Daitaku Helios', stars: 3, releaseDate: '2023-01-20T22:00:00.000Z', characterId: 106501,
+        gametoraId: 106501,
+        statBonus: 'SPD +15% / POW +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'B', mile: 'A', medium: 'B', long: 'E' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'G', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Dantsu Flame': {
+        id: 'dantsu-flame', name: 'Dantsu Flame', stars: 3, releaseDate: '2025-10-18T22:00:00.000Z', characterId: 109201,
+        gametoraId: 109201,
+        statBonus: 'STA +10% / GUT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'E', mile: 'B', medium: 'A', long: 'D' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'B', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Daring Heart': {
+        id: 'daring-heart', name: 'Daring Heart', stars: 3, releaseDate: '2026-05-11T22:00:00.000Z', characterId: 111201,
+        gametoraId: 111201,
+        statBonus: 'GUT +20% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'D' }, distance: { sprint: 'B', mile: 'A', medium: 'E', long: 'G' }, style: { frontRunner: 'D', paceChaser: 'A', lateSurger: 'F', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Dream Journey': {
+        id: 'dream-journey', name: 'Dream Journey', stars: 3, releaseDate: '2024-06-26T22:00:00.000Z', characterId: 111901,
+        gametoraId: 111901,
+        statBonus: 'STA +10% / POW +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'F', mile: 'C', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'G', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Duramente': {
+        id: 'duramente', name: 'Duramente', stars: 3, releaseDate: '2024-02-24T22:00:00.000Z', characterId: 110801,
+        gametoraId: 110801,
+        statBonus: 'SPD +20% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'C' }, style: { frontRunner: 'G', paceChaser: 'C', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Durandal': {
+        id: 'durandal', name: 'Durandal', stars: 3, releaseDate: '2024-09-20T22:00:00.000Z', characterId: 112101,
+        gametoraId: 112101,
+        statBonus: 'SPD +20% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'A', medium: 'F', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'G', lateSurger: 'C', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Espoir City': {
+        id: 'espoir-city', name: 'Espoir City', stars: 3, releaseDate: '2025-09-09T22:00:00.000Z', characterId: 108101,
+        gametoraId: 108101,
+        statBonus: 'POW +10% / GUT +20%',
+        aptitudes: { surface: { turf: 'E', dirt: 'A' }, distance: { sprint: 'A', mile: 'A', medium: 'B', long: 'G' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'F', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Fenomeno': {
+        id: 'fenomeno', name: 'Fenomeno', stars: 3, releaseDate: '2025-04-21T22:00:00.000Z', characterId: 112701,
+        gametoraId: 112701,
+        statBonus: 'STA +10% / GUT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'G', medium: 'A', long: 'A' }, style: { frontRunner: 'C', paceChaser: 'A', lateSurger: 'E', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Furioso': {
+        id: 'furioso', name: 'Furioso', stars: 3, releaseDate: '2025-01-20T22:00:00.000Z', characterId: 107901,
+        gametoraId: 107901,
+        statBonus: 'SPD +20% / GUT +10%',
+        aptitudes: { surface: { turf: 'G', dirt: 'A' }, distance: { sprint: 'F', mile: 'A', medium: 'A', long: 'F' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'E', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Fusaichi Pandora': {
+        id: 'fusaichi-pandora', name: 'Fusaichi Pandora', stars: 3, releaseDate: '2025-07-22T22:00:00.000Z', characterId: 111301,
+        gametoraId: 111301,
+        statBonus: 'STA +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'E' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'G' }, style: { frontRunner: 'C', paceChaser: 'A', lateSurger: 'B', endCloser: 'F' } },
+        upcoming: true
+    },
+    'Gentildonna': {
+        id: 'gentildonna', name: 'Gentildonna', stars: 3, releaseDate: '2024-08-24T22:00:00.000Z', characterId: 111601,
+        gametoraId: 111601,
+        statBonus: 'SPD +10% / STA +10% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'A' }, style: { frontRunner: 'E', paceChaser: 'A', lateSurger: 'A', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Gran Alegria': {
+        id: 'gran-alegria', name: 'Gran Alegria', stars: 3, releaseDate: '2025-03-11T22:00:00.000Z', characterId: 113101,
+        gametoraId: 113101,
+        statBonus: 'POW +10% / GUT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'A', medium: 'C', long: 'G' }, style: { frontRunner: 'F', paceChaser: 'A', lateSurger: 'A', endCloser: 'B' } },
+        upcoming: true
+    },
+    'Hishi Miracle': {
+        id: 'hishi-miracle', name: 'Hishi Miracle', stars: 3, releaseDate: '2023-05-10T22:00:00.000Z', characterId: 110601,
+        gametoraId: 110601,
+        statBonus: 'SPD +7% / STA +8% / POW +7% / GUT +8%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'G', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'C', lateSurger: 'A', endCloser: 'B' } },
+        upcoming: true
+    },
+    'Hokko Tarumae': {
+        id: 'hokko-tarumae', name: 'Hokko Tarumae', stars: 3, releaseDate: '2023-01-10T22:00:00.000Z', characterId: 109901,
+        gametoraId: 109901,
+        statBonus: 'SPD +10% / STA +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'G', dirt: 'A' }, distance: { sprint: 'F', mile: 'A', medium: 'A', long: 'E' }, style: { frontRunner: 'B', paceChaser: 'A', lateSurger: 'G', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Ikuno Dictus': {
+        id: 'ikuno-dictus', name: 'Ikuno Dictus', stars: 2, releaseDate: '2024-02-24T22:00:00.000Z', characterId: 106301,
+        gametoraId: 106301,
+        statBonus: 'GUT +20% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'D', mile: 'A', medium: 'A', long: 'D' }, style: { frontRunner: 'D', paceChaser: 'A', lateSurger: 'A', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Inari One': {
+        id: 'inari-one', name: 'Inari One', stars: 3, releaseDate: '2022-06-10T22:00:00.000Z', characterId: 103401,
+        gametoraId: 103401,
+        statBonus: 'STA +10% / POW +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'A' }, distance: { sprint: 'F', mile: 'B', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'B', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Jungle Pocket': {
+        id: 'jungle-pocket', name: 'Jungle Pocket', stars: 3, releaseDate: '2024-06-13T22:00:00.000Z', characterId: 109401,
+        gametoraId: 109401,
+        statBonus: 'SPD +10% / STA +10% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'B' }, style: { frontRunner: 'G', paceChaser: 'D', lateSurger: 'A', endCloser: 'B' } },
+        upcoming: true
+    },
+    'K.S.Miracle': {
+        id: 'ksmiracle', name: 'K.S.Miracle', stars: 3, releaseDate: '2023-09-20T22:00:00.000Z', characterId: 109301,
+        gametoraId: 109301,
+        statBonus: 'SPD +15% / GUT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'B', medium: 'G', long: 'G' }, style: { frontRunner: 'E', paceChaser: 'A', lateSurger: 'B', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Katsuragi Ace': {
+        id: 'katsuragi-ace', name: 'Katsuragi Ace', stars: 3, releaseDate: '2023-07-10T22:00:00.000Z', characterId: 110401,
+        gametoraId: 110401,
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'E', mile: 'B', medium: 'A', long: 'B' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'E', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Kiseki': {
+        id: 'kiseki', name: 'Kiseki', stars: 3, releaseDate: '2026-01-19T22:00:00.000Z', characterId: 113701,
+        gametoraId: 113701,
+        statBonus: 'SPD +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'A' }, style: { frontRunner: 'A', paceChaser: 'B', lateSurger: 'A', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Loves Only You': {
+        id: 'loves-only-you', name: 'Loves Only You', stars: 3, releaseDate: '2025-05-21T22:00:00.000Z', characterId: 113201,
+        gametoraId: 113201,
+        statBonus: 'SPD +10% / STA +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'F' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Lucky Lilac': {
+        id: 'lucky-lilac', name: 'Lucky Lilac', stars: 3, releaseDate: '2026-04-10T22:00:00.000Z', characterId: 113001,
+        gametoraId: 113001,
+        statBonus: 'POW +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'C' }, style: { frontRunner: 'F', paceChaser: 'A', lateSurger: 'A', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Marvelous Sunday': {
+        id: 'marvelous-sunday', name: 'Marvelous Sunday', stars: 3, releaseDate: '2023-06-19T22:00:00.000Z', characterId: 105501,
+        gametoraId: 105501,
+        statBonus: 'POW +15% / WIT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'B' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Mejiro Ramonu': {
+        id: 'mejiro-ramonu', name: 'Mejiro Ramonu', stars: 3, releaseDate: '2023-10-19T22:00:00.000Z', characterId: 108601,
+        gametoraId: 108601,
+        statBonus: 'SPD +15% / WIT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'B', mile: 'A', medium: 'A', long: 'E' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'F' } },
+        upcoming: true
+    },
+    'Mr. C.B.': {
+        id: 'mr-cb', name: 'Mr. C.B.', stars: 3, releaseDate: '2023-02-24T22:00:00.000Z', characterId: 105701,
+        gametoraId: 105701,
+        statBonus: 'SPD +10% / STA +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'E', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Nakayama Festa': {
+        id: 'nakayama-festa', name: 'Nakayama Festa', stars: 3, releaseDate: '2022-11-09T22:00:00.000Z', characterId: 104901,
+        gametoraId: 104901,
+        statBonus: 'SPD +10% / STA +10% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'B' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Narita Top Road': {
+        id: 'narita-top-road', name: 'Narita Top Road', stars: 3, releaseDate: '2023-08-24T22:00:00.000Z', characterId: 107701,
+        gametoraId: 107701,
+        statBonus: 'SPD +20% / STA +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'A' }, style: { frontRunner: 'F', paceChaser: 'A', lateSurger: 'B', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Neo Universe': {
+        id: 'neo-universe', name: 'Neo Universe', stars: 3, releaseDate: '2023-04-19T22:00:00.000Z', characterId: 110501,
+        gametoraId: 110501,
+        statBonus: 'WIT +30%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'F', mile: 'B', medium: 'A', long: 'B' }, style: { frontRunner: 'F', paceChaser: 'A', lateSurger: 'A', endCloser: 'C' } },
+        upcoming: true
+    },
+    'No Reason': {
+        id: 'no-reason', name: 'No Reason', stars: 3, releaseDate: '2025-03-21T22:00:00.000Z', characterId: 109601,
+        gametoraId: 109601,
+        statBonus: 'STA +20% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'C' }, style: { frontRunner: 'G', paceChaser: 'D', lateSurger: 'A', endCloser: 'F' } },
+        upcoming: true
+    },
+    'North Flight': {
+        id: 'north-flight', name: 'North Flight', stars: 3, releaseDate: '2024-05-20T22:00:00.000Z', characterId: 108201,
+        gametoraId: 108201,
+        statBonus: 'SPD +20% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'C', mile: 'A', medium: 'B', long: 'G' }, style: { frontRunner: 'D', paceChaser: 'A', lateSurger: 'D', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Orfevre': {
+        id: 'orfevre', name: 'Orfevre', stars: 3, releaseDate: '2025-02-24T22:00:00.000Z', characterId: 111501,
+        gametoraId: 111501,
+        statBonus: 'SPD +10% / STA +10% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'D' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'F', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Red Desire': {
+        id: 'red-desire', name: 'Red Desire', stars: 3, releaseDate: '2026-05-20T22:00:00.000Z', characterId: 113601,
+        gametoraId: 113601,
+        statBonus: 'SPD +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'B' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'F' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'F' } },
+        upcoming: true
+    },
+    'Rhein Kraft': {
+        id: 'rhein-kraft', name: 'Rhein Kraft', stars: 3, releaseDate: '2024-03-21T22:00:00.000Z', characterId: 110901,
+        gametoraId: 110901,
+        statBonus: 'POW +15% / GUT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'A', mile: 'A', medium: 'B', long: 'G' }, style: { frontRunner: 'E', paceChaser: 'A', lateSurger: 'C', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Royce and Royce': {
+        id: 'royce-and-royce', name: 'Royce and Royce', stars: 2, releaseDate: '2026-02-14T22:00:00.000Z', characterId: 110301,
+        gametoraId: 110301,
+        statBonus: 'POW +10% / WIT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'E' }, style: { frontRunner: 'E', paceChaser: 'A', lateSurger: 'A', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Sakura Laurel': {
+        id: 'sakura-laurel', name: 'Sakura Laurel', stars: 3, releaseDate: '2023-04-10T22:00:00.000Z', characterId: 107601,
+        gametoraId: 107601,
+        statBonus: 'STA +20% / POW +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'E' }, distance: { sprint: 'G', mile: 'C', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'B' } },
+        upcoming: true
+    },
+    'Satono Crown': {
+        id: 'satono-crown', name: 'Satono Crown', stars: 3, releaseDate: '2023-12-11T22:00:00.000Z', characterId: 108801,
+        gametoraId: 108801,
+        statBonus: 'POW +15% / GUT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'E' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Seeking the Pearl': {
+        id: 'seeking-the-pearl', name: 'Seeking the Pearl', stars: 3, releaseDate: '2022-09-20T22:00:00.000Z', characterId: 104201,
+        gametoraId: 104201,
+        statBonus: 'SPD +10% / WIT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'A', mile: 'A', medium: 'E', long: 'G' }, style: { frontRunner: 'C', paceChaser: 'A', lateSurger: 'A', endCloser: 'B' } },
+        upcoming: true
+    },
+    'Shinko Windy': {
+        id: 'shinko-windy', name: 'Shinko Windy', stars: 3, releaseDate: '2023-02-13T22:00:00.000Z', characterId: 104301,
+        gametoraId: 104301,
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'F', dirt: 'A' }, distance: { sprint: 'C', mile: 'A', medium: 'B', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'B', endCloser: 'F' } },
+        upcoming: true
+    },
+    'Sirius Symboli': {
+        id: 'sirius-symboli', name: 'Sirius Symboli', stars: 3, releaseDate: '2023-07-21T22:00:00.000Z', characterId: 107001,
+        gametoraId: 107001,
+        statBonus: 'POW +10% / WIT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'C' }, style: { frontRunner: 'E', paceChaser: 'A', lateSurger: 'C', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Sounds of Earth': {
+        id: 'sounds-of-earth', name: 'Sounds of Earth', stars: 3, releaseDate: '2024-04-19T22:00:00.000Z', characterId: 110201,
+        gametoraId: 110201,
+        statBonus: 'STA +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'F', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Stay Gold': {
+        id: 'stay-gold', name: 'Stay Gold', stars: 3, releaseDate: '2025-12-21T22:00:00.000Z', characterId: 113501,
+        gametoraId: 113501,
+        statBonus: 'STA +10% / GUT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'G', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'B', lateSurger: 'A', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Still in Love': {
+        id: 'still-in-love', name: 'Still in Love', stars: 3, releaseDate: '2025-08-24T22:00:00.000Z', characterId: 109701,
+        gametoraId: 109701,
+        statBonus: 'STA +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'C', mile: 'A', medium: 'A', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'F' } },
+        upcoming: true
+    },
+    'Sweep Tosho': {
+        id: 'sweep-tosho', name: 'Sweep Tosho', stars: 3, releaseDate: '2022-06-20T22:00:00.000Z', characterId: 104401,
+        gametoraId: 104401,
+        statBonus: 'SPD +10% / POW +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'E', mile: 'A', medium: 'A', long: 'D' }, style: { frontRunner: 'G', paceChaser: 'G', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Symboli Kris S': {
+        id: 'symboli-kris-s', name: 'Symboli Kris S', stars: 3, releaseDate: '2023-03-20T22:00:00.000Z', characterId: 108301,
+        gametoraId: 108301,
+        statBonus: 'STA +15% / POW +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'E', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'D' } },
+        upcoming: true
+    },
+    'Tanino Gimlet': {
+        id: 'tanino-gimlet', name: 'Tanino Gimlet', stars: 3, releaseDate: '2023-05-19T22:00:00.000Z', characterId: 108401,
+        gametoraId: 108401,
+        statBonus: 'POW +30%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'F', mile: 'A', medium: 'A', long: 'F' }, style: { frontRunner: 'G', paceChaser: 'D', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Tap Dance City': {
+        id: 'tap-dance-city', name: 'Tap Dance City', stars: 3, releaseDate: '2023-11-20T22:00:00.000Z', characterId: 110701,
+        gametoraId: 110701,
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'E', medium: 'A', long: 'A' }, style: { frontRunner: 'A', paceChaser: 'B', lateSurger: 'F', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Transcend': {
+        id: 'transcend', name: 'Transcend', stars: 3, releaseDate: '2024-03-12T22:00:00.000Z', characterId: 108001,
+        gametoraId: 108001,
+        statBonus: 'SPD +10% / POW +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'F', dirt: 'A' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'G' }, style: { frontRunner: 'A', paceChaser: 'B', lateSurger: 'F', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Tsurumaru Tsuyoshi': {
+        id: 'tsurumaru-tsuyoshi', name: 'Tsurumaru Tsuyoshi', stars: 2, releaseDate: '2025-02-14T22:00:00.000Z', characterId: 107301,
+        gametoraId: 107301,
+        statBonus: 'POW +20% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'F', mile: 'D', medium: 'A', long: 'C' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Twin Turbo': {
+        id: 'twin-turbo', name: 'Twin Turbo', stars: 1, releaseDate: '2023-02-24T22:00:00.000Z', characterId: 106601,
+        gametoraId: 106601,
+        statBonus: 'SPD +30%',
+        aptitudes: { surface: { turf: 'A', dirt: 'F' }, distance: { sprint: 'G', mile: 'A', medium: 'A', long: 'E' }, style: { frontRunner: 'A', paceChaser: 'G', lateSurger: 'G', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Verxina': {
+        id: 'verxina', name: 'Verxina', stars: 3, releaseDate: '2025-05-12T22:00:00.000Z', characterId: 109001,
+        gametoraId: 109001,
+        statBonus: 'POW +15% / GUT +15%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'D', mile: 'A', medium: 'A', long: 'G' }, style: { frontRunner: 'A', paceChaser: 'A', lateSurger: 'E', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Victoire Pisa': {
+        id: 'victoire-pisa', name: 'Victoire Pisa', stars: 3, releaseDate: '2026-03-19T22:00:00.000Z', characterId: 114301,
+        gametoraId: 114301,
+        statBonus: 'STA +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'A' }, distance: { sprint: 'G', mile: 'B', medium: 'A', long: 'B' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Vivlos': {
+        id: 'vivlos', name: 'Vivlos', stars: 3, releaseDate: '2024-01-19T22:00:00.000Z', characterId: 109101,
+        gametoraId: 109101,
+        statBonus: 'SPD +10% / POW +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'E', mile: 'A', medium: 'A', long: 'G' }, style: { frontRunner: 'G', paceChaser: 'D', lateSurger: 'A', endCloser: 'C' } },
+        upcoming: true
+    },
+    'Win Variation': {
+        id: 'win-variation', name: 'Win Variation', stars: 3, releaseDate: '2024-12-10T22:00:00.000Z', characterId: 111701,
+        gametoraId: 111701,
+        statBonus: 'SPD +10% / POW +10% / GUT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'E', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'E', lateSurger: 'A', endCloser: 'A' } },
+        upcoming: true
+    },
+    'Wonder Acute': {
+        id: 'wonder-acute', name: 'Wonder Acute', stars: 3, releaseDate: '2022-11-17T22:00:00.000Z', characterId: 110001,
+        gametoraId: 110001,
+        statBonus: 'GUT +15% / WIT +15%',
+        aptitudes: { surface: { turf: 'G', dirt: 'A' }, distance: { sprint: 'D', mile: 'A', medium: 'A', long: 'E' }, style: { frontRunner: 'C', paceChaser: 'A', lateSurger: 'C', endCloser: 'E' } },
+        upcoming: true
+    },
+    'Yamanin Zephyr': {
+        id: 'yamanin-zephyr', name: 'Yamanin Zephyr', stars: 3, releaseDate: '2022-10-19T22:00:00.000Z', characterId: 107801,
+        gametoraId: 107801,
+        statBonus: 'SPD +10% / GUT +10% / WIT +10%',
+        aptitudes: { surface: { turf: 'A', dirt: 'D' }, distance: { sprint: 'B', mile: 'A', medium: 'A', long: 'G' }, style: { frontRunner: 'E', paceChaser: 'A', lateSurger: 'C', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Yukino Bijin': {
+        id: 'yukino-bijin', name: 'Yukino Bijin', stars: 3, releaseDate: '2022-09-12T22:00:00.000Z', characterId: 102901,
+        gametoraId: 102901,
+        statBonus: 'SPD +10% / GUT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'B' }, distance: { sprint: 'D', mile: 'A', medium: 'A', long: 'E' }, style: { frontRunner: 'C', paceChaser: 'A', lateSurger: 'F', endCloser: 'G' } },
+        upcoming: true
+    },
+    'Zenno Rob Roy': {
+        id: 'zenno-rob-roy', name: 'Zenno Rob Roy', stars: 3, releaseDate: '2022-12-12T22:00:00.000Z', characterId: 104701,
+        gametoraId: 104701,
+        statBonus: 'STA +10% / WIT +20%',
+        aptitudes: { surface: { turf: 'A', dirt: 'G' }, distance: { sprint: 'G', mile: 'E', medium: 'A', long: 'A' }, style: { frontRunner: 'G', paceChaser: 'A', lateSurger: 'A', endCloser: 'E' } },
+        upcoming: true
+    },
 };
 
 export const getUmaImagePath = (name: string): string => {
@@ -494,3 +1012,10 @@ export function getUmaData(name: string | undefined): UmaData | null {
 }
 
 export const UMA_LIST = Object.values(UMA_DICT);
+
+export function getFilteredUmas(showUpcoming: boolean): UmaData[] {
+    if (showUpcoming) return UMA_LIST;
+    return UMA_LIST.filter(u => !u.upcoming);
+}
+
+export const RELEASED_UMAS = UMA_LIST.filter(u => !u.upcoming);
