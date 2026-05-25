@@ -1,4 +1,15 @@
 import type { SupportCardType } from '../types';
+import supportTranslationData from '../data/support.json';
+
+type SupportCardTranslationEntry = {
+    gametora: string;
+    title_en: string | null;
+};
+
+const supportCardTitleMap = new Map<string, SupportCardTranslationEntry>();
+for (const entry of supportTranslationData as SupportCardTranslationEntry[]) {
+    supportCardTitleMap.set(entry.gametora, entry);
+}
 
 export interface SupportCard {
     id: string;
@@ -113,23 +124,53 @@ export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {
 
 export const SUPPORT_CARD_LIST = Object.values(SUPPORT_CARD_DICT);
 
+function findCardByGametoraId(gametoraId: string): SupportCard | null {
+    const entry = supportCardTitleMap.get(gametoraId);
+    if (!entry) return null;
+    const slug = entry.gametora.replace(/^\d+-/, '');
+    for (const key of Object.keys(SUPPORT_CARD_DICT)) {
+        if (key.startsWith(slug)) {
+            return SUPPORT_CARD_DICT[key] ?? null;
+        }
+    }
+    return null;
+}
+
+export function resolveCardData(cardId: string): SupportCard | null {
+    const card = SUPPORT_CARD_DICT[cardId];
+    if (card) return card;
+    return findCardByGametoraId(cardId);
+}
+
 export function getSupportCardDisplayName(cardId: string): string {
-    return SUPPORT_CARD_DICT[cardId]?.name ?? cardId;
+    const card = SUPPORT_CARD_DICT[cardId];
+    if (card) return card.name;
+    const entry = supportCardTitleMap.get(cardId);
+    if (entry) {
+        const slug = entry.gametora.replace(/^\d+-/, '');
+        return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+    return cardId;
 }
 
 export function getSupportCardDisplayTitle(cardId: string): string {
+    const entry = supportCardTitleMap.get(cardId);
+    if (entry?.title_en) return entry.title_en;
     return SUPPORT_CARD_DICT[cardId]?.cardName ?? '';
 }
 
 export function matchesSupportCardSearch(cardId: string, query: string): boolean {
     if (!query) return true;
-    const card = SUPPORT_CARD_DICT[cardId];
-    if (!card) return false;
     const q = query.toLowerCase();
-    return card.name.toLowerCase().includes(q) ||
-           card.cardName.toLowerCase().includes(q) ||
-           card.type.toLowerCase().includes(q) ||
-           card.rarity.toLowerCase().includes(q);
+    const name = getSupportCardDisplayName(cardId).toLowerCase();
+    if (name.includes(q)) return true;
+    const title = getSupportCardDisplayTitle(cardId).toLowerCase();
+    if (title.includes(q)) return true;
+    const card = SUPPORT_CARD_DICT[cardId];
+    if (card) {
+        if (card.type.toLowerCase().includes(q) || card.rarity.toLowerCase().includes(q)) return true;
+    }
+    return false;
 }
 
 export const SUPPORT_CARD_TYPE_META: Record<SupportCardType, { label: string; color: string; bg: string }> = {

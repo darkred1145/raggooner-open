@@ -10,6 +10,7 @@ import {
     getSupportCardDisplayName,
     getSupportCardDisplayTitle,
     matchesSupportCardSearch,
+    resolveCardData,
 } from '../utils/supportCardData';
 import type { ProfileSupportCard } from '../types';
 import SiteHeader from '../components/shared/SiteHeader.vue';
@@ -89,13 +90,13 @@ const filteredOwnedCards = computed(() => {
     const q = cardSearch.value.toLowerCase();
     return ownedCards.value
         .filter(c => {
-            const meta = SUPPORT_CARD_DICT[c.cardId];
+            const meta = resolveCardData(c.cardId);
             if (!meta) return false;
             return matchesSupportCardSearch(c.cardId, q);
         })
         .sort((a, b) => {
-            const ca = SUPPORT_CARD_DICT[a.cardId];
-            const cb = SUPPORT_CARD_DICT[b.cardId];
+            const ca = resolveCardData(a.cardId);
+            const cb = resolveCardData(b.cardId);
             if (!ca || !cb) return 0;
             if (ca.type !== cb.type) return ca.type.localeCompare(cb.type);
             return ca.name.localeCompare(cb.name);
