@@ -113,6 +113,25 @@ export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {
 
 export const SUPPORT_CARD_LIST = Object.values(SUPPORT_CARD_DICT);
 
+export function getSupportCardDisplayName(cardId: string): string {
+    return SUPPORT_CARD_DICT[cardId]?.name ?? cardId;
+}
+
+export function getSupportCardDisplayTitle(cardId: string): string {
+    return SUPPORT_CARD_DICT[cardId]?.cardName ?? '';
+}
+
+export function matchesSupportCardSearch(cardId: string, query: string): boolean {
+    if (!query) return true;
+    const card = SUPPORT_CARD_DICT[cardId];
+    if (!card) return false;
+    const q = query.toLowerCase();
+    return card.name.toLowerCase().includes(q) ||
+           card.cardName.toLowerCase().includes(q) ||
+           card.type.toLowerCase().includes(q) ||
+           card.rarity.toLowerCase().includes(q);
+}
+
 export const SUPPORT_CARD_TYPE_META: Record<SupportCardType, { label: string; color: string; bg: string }> = {
     speed:   { label: 'Speed',   color: 'text-sky-400',     bg: 'bg-sky-500/15'     },
     stamina: { label: 'Stamina', color: 'text-rose-400',    bg: 'bg-rose-500/15'    },
