@@ -45,7 +45,7 @@ const confirmUnlink = async () => {
 
 const getSupportCardImagePath = (cardId: string): string => {
     const numericId = getSupportCardImageId(cardId);
-    return `https://media.gametora.com/umamusume/supports/full/small/${numericId}.png`;
+    return `https://media.gametora.com/umamusume/supports/full/${numericId}.png`;
 };
 
 // ── Uma Roster ────────────────────────────────────────────────────────────────
