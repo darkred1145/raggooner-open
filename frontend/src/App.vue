@@ -93,8 +93,8 @@ onMounted(() => {
 
     <router-view class="flex-grow flex flex-col"></router-view>
 
-    <footer class="border-t border-slate-800 bg-slate-900/50 py-8 mt-auto backdrop-blur-sm">
-      <div class="max-w-[1800px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+    <footer class="border-t border-slate-800 bg-slate-900/50 py-8 mt-auto min-h-[72px]">
+      <div class="max-w-[1800px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 flex-wrap">
         <div class="text-xs font-mono text-slate-600 flex items-center gap-3 flex-wrap">
           <span>
             Powered by <span class="text-emerald-500 font-bold">Vue</span> & <span class="text-amber-500 font-bold">Firebase</span>
@@ -131,3 +131,11 @@ onMounted(() => {
     <DiscordAuthModal v-if="!authLoading && user && isDiscordUser && !linkedPlayer" />
   </div>
 </template>
+
+<style>
+i[class^="ph-"], i[class*=" ph-"] {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+}
+</style>
