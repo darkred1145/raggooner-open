@@ -427,7 +427,7 @@ onMounted(() => {
 
         <SiteNav />
 
-        <div class="max-w-lg mx-auto mt-8 space-y-12">
+        <div class="max-w-lg mx-auto mt-8 space-y-12 min-h-[60vh]">
 
           <div class="text-center space-y-4">
             <h1 class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Racc Open</h1>

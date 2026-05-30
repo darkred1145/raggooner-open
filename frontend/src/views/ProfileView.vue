@@ -193,7 +193,7 @@ const unknownCards = computed(() =>
     <div class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
         <SiteNav />
     </div>
-    <div class="max-w-[1200px] mx-auto px-4 md:px-8 pb-6">
+    <div class="max-w-[1200px] mx-auto px-4 md:px-8 pb-6 min-h-[60vh]">
 
         <!-- Not logged in -->
         <div v-if="!user" class="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
