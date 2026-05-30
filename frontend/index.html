@@ -9,12 +9,50 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="preconnect" href="https://unpkg.com">
 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+      #app-skeleton {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        min-height: 100vh; background: #0f172a; color: #64748b;
+        font-family: system-ui, sans-serif; gap: 1.5rem; padding: 2rem;
+      }
+      #app-skeleton h1 {
+        font-size: 2.5rem; font-weight: 800;
+        background: linear-gradient(135deg, #818cf8, #22d3ee);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      #app-skeleton .bar {
+        width: 320px; max-width: 100%; height: 12px;
+        background: #1e293b; border-radius: 999px; overflow: hidden;
+      }
+      #app-skeleton .bar-inner {
+        width: 40%; height: 100%;
+        background: linear-gradient(90deg, #1e293b, #334155, #1e293b);
+        border-radius: 999px; animation: skel-shimmer 1.5s ease-in-out infinite;
+      }
+      @keyframes skel-shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(350%); }
+      }
+      #app-skeleton .bars { display: flex; flex-direction: column; gap: 0.75rem; width: 320px; max-width: 100%; }
+      #app-skeleton .bars .bar:nth-child(2) .bar-inner { width: 60%; animation-delay: 0.15s; }
+      #app-skeleton .bars .bar:nth-child(3) .bar-inner { width: 45%; animation-delay: 0.3s; }
+      #app-skeleton .bars .bar:nth-child(4) .bar-inner { width: 70%; animation-delay: 0.45s; }
+    </style>
 </head>
 <body class="bg-[#0f172a] text-[#e2e8f0]">
-<div id="app"></div>
+<div id="app">
+  <div id="app-skeleton">
+    <h1>Racc Open</h1>
+    <div class="bars">
+      <div class="bar"><div class="bar-inner"></div></div>
+      <div class="bar"><div class="bar-inner"></div></div>
+      <div class="bar"><div class="bar-inner"></div></div>
+      <div class="bar"><div class="bar-inner"></div></div>
+    </div>
+  </div>
+</div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
