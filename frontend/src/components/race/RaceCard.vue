@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { getPositionStyle, getPlayerAtPosition, getRaceTimestamp, raceKey } from '../../utils/utils';
 import { getRaceWinnerGif } from '../../utils/umaGifs';
 import { getUmaImagePath } from '../../utils/umaData';
 import type { Tournament } from '../../types';
+import RaceReplayViewer from './RaceReplayViewer.vue';
 
 const props = defineProps<{
   raceNum: number;
   groupId: string;
   stageId: 'groups' | 'finals';
   tournament: Tournament;
+  tournamentId: string;
   currentView: string;
   isAdmin: boolean;
   canCaptainEdit?: boolean;
@@ -21,6 +23,7 @@ const props = defineProps<{
   editingRaceKey: string | null;
   entryMap: Record<number, string>;
   getPlayerColor: (id: string) => string | undefined;
+  secureUpdate: (data: Record<string, any>) => Promise<void>;
 }>();
 
 const emit = defineEmits<{
@@ -30,6 +33,7 @@ const emit = defineEmits<{
   (e: 'saveTap', raceNum: number): void;
   (e: 'tapPlayer', playerId: string): void;
   (e: 'updatePlacement', pos: number, playerId: string): void;
+  (e: 'uploadReplay', file: File, raceNum: number): void;
 }>();
 
 // --- Computed Helpers ---
@@ -63,6 +67,24 @@ const canEdit = computed(() => {
 const isSelectDisabled = computed(() => !canEdit.value);
 
 const sortedPlayers = computed(() => [...props.activePlayers].sort((a, b) => a.name.localeCompare(b.name)));
+
+const key = computed(() => raceKey(props.stageId, props.groupId, props.raceNum));
+const currentRace = computed(() => props.tournament.races[key.value]);
+const hasReplay = computed(() => !!currentRace.value?.replayPath);
+const showReplayViewer = ref(false);
+
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const triggerUpload = () => fileInput.value?.click();
+
+const onFileSelected = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (file) {
+    emit('uploadReplay', file, props.raceNum);
+  }
+  target.value = '';
+};
 </script>
 
 <template>
@@ -74,7 +96,12 @@ const sortedPlayers = computed(() => [...props.activePlayers].sort((a, b) => a.n
         <div v-if="raceGif" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-80">
           <img :src="raceGif" class="h-10 w-10 object-contain" alt="Winner GIF" />
         </div>
-        <span class="text-xs text-slate-500 z-10 relative">{{ getRaceTimestamp(groupId, raceNum, tournament, currentView) }}</span>
+        <div class="flex items-center gap-1.5 z-10 relative">
+          <button v-if="hasReplay" @click="showReplayViewer = true" class="px-1.5 rounded bg-slate-800/80 hover:bg-emerald-600 text-emerald-400 hover:text-white transition-all backdrop-blur-sm text-[10px] flex items-center gap-1">
+            <i class="ph-bold ph-play"></i>
+          </button>
+          <span class="text-xs text-slate-500">{{ getRaceTimestamp(groupId, raceNum, tournament, currentView) }}</span>
+        </div>
       </div>
 
       <div class="p-2 space-y-1 flex-1">
@@ -104,9 +131,17 @@ const sortedPlayers = computed(() => [...props.activePlayers].sort((a, b) => a.n
           <div v-if="raceGif" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-80">
             <img :src="raceGif" class="h-10 w-10 object-contain" alt="Winner GIF" />
           </div>
-          <button v-if="canEdit" @click="$emit('toggleEdit', raceNum)" class="z-10 relative px-1.5 rounded bg-slate-800/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all backdrop-blur-sm">
-            <i class="ph-bold ph-pencil-simple"></i>
-          </button>
+          <div class="flex items-center gap-1.5 z-10 relative">
+            <button v-if="hasReplay" @click="showReplayViewer = true" class="px-1.5 rounded bg-slate-800/80 hover:bg-emerald-600 text-emerald-400 hover:text-white transition-all backdrop-blur-sm text-[10px] flex items-center gap-1">
+              <i class="ph-bold ph-play"></i> <span class="hidden sm:inline">Replay</span>
+            </button>
+            <button v-if="isAdmin && hasResults" @click="triggerUpload" class="px-1.5 rounded bg-slate-800/80 hover:bg-indigo-600 text-indigo-400 hover:text-white transition-all backdrop-blur-sm text-[10px] flex items-center gap-1">
+              <i class="ph-bold ph-upload"></i> <span class="hidden sm:inline">Replay</span>
+            </button>
+            <button v-if="canEdit" @click="$emit('toggleEdit', raceNum)" class="px-1.5 rounded bg-slate-800/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all backdrop-blur-sm">
+              <i class="ph-bold ph-pencil-simple"></i>
+            </button>
+          </div>
         </div>
 
         <div class="p-2 space-y-1 flex-1">
@@ -173,6 +208,15 @@ const sortedPlayers = computed(() => [...props.activePlayers].sort((a, b) => a.n
 
     </div>
   </div>
+
+  <input ref="fileInput" type="file" class="hidden" @change="onFileSelected" />
+
+  <RaceReplayViewer v-if="showReplayViewer && currentRace?.replayPath"
+    :replay-path="currentRace.replayPath"
+    :tournament-id="tournamentId"
+    :secure-update="secureUpdate"
+    @close="showReplayViewer = false"
+  />
 </template>
 
 <style scoped>

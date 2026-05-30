@@ -54,6 +54,11 @@ const router = createRouter({
             }
         },
         {
+            path: '/replay-viewer',
+            name: 'replay-viewer',
+            component: () => import('../views/ReplayViewer.vue')
+        },
+        {
             path: '/settings',
             name: 'settings',
             component: () => import('../views/GlobalSettingsView.vue'),

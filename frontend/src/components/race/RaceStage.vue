@@ -5,6 +5,7 @@ import RaceCard from './RaceCard.vue';
 defineProps<{
   groupData: { id: string; title: string; color: string; focusColor: string; stageId: 'groups' | 'finals' };
   tournament: Tournament;
+  tournamentId: string;
   currentView: string;
   isAdmin: boolean;
   canCaptainEdit?: boolean;
@@ -14,6 +15,7 @@ defineProps<{
   entryMap: Record<number, string>;
   getPlayerColor: (id: string) => string | undefined;
   raceInputMode: 'tap' | 'dropdown';
+  secureUpdate: (data: Record<string, any>) => Promise<void>;
 }>();
 
 const emit = defineEmits<{
@@ -24,6 +26,7 @@ const emit = defineEmits<{
   (e: 'tapPlayer', playerId: string): void;
   (e: 'updatePlacement', groupId: string, raceNum: number, pos: number, playerId: string): void;
   (e: 'update:raceInputMode', value: 'tap' | 'dropdown'): void;
+  (e: 'uploadReplay', file: File, groupId: string, raceNum: number): void;
 }>();
 
 </script>
@@ -58,6 +61,7 @@ const emit = defineEmits<{
             :group-id="groupData.id"
             :stage-id="groupData.stageId"
             :tournament="tournament"
+            :tournament-id="tournamentId"
             :current-view="currentView"
             :is-admin="isAdmin"
             :can-captain-edit="canCaptainEdit"
@@ -69,12 +73,14 @@ const emit = defineEmits<{
             :entry-map="entryMap"
             :saving="saving"
             :get-player-color="getPlayerColor"
+            :secure-update="secureUpdate"
             @toggle-edit="$emit('toggleEdit', groupData.stageId, groupData.id, $event)"
             @cancel-edit="$emit('cancelEdit')"
             @clear-entry="$emit('clearEntry')"
             @save-tap="$emit('saveTap', groupData.id, $event)"
             @tap-player="$emit('tapPlayer', $event)"
             @update-placement="(pos:number, pid:string) => $emit('updatePlacement', groupData.id, raceNum, pos, pid)"
+            @upload-replay="(file: File, raceNum: number) => $emit('uploadReplay', file, groupData.id, raceNum)"
         />
       </div>
     </div>

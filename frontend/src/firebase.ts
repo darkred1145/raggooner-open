@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, connectFirestoreEmulator } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -31,4 +32,6 @@ if (isEmulator) {
     // Discord OAuth requires real Firebase Auth regardless.
 }
 
-export { db, auth };
+const storage = getStorage(app);
+
+export { db, auth, storage };

@@ -2,12 +2,14 @@
 import {computed, ref, toRef} from 'vue';
 import type { FirestoreUpdate, Tournament, Team } from '../../types';
 import { useGameLogic } from '../../composables/useGameLogic';
+import { useReplayUpload } from '../../composables/useReplayUpload';
 import { useRoster } from '../../composables/useRoster';
 import { APP_ID } from '../../config';
 import RaceStage from './RaceStage.vue';
 
 const props = withDefaults(defineProps<{
   tournamentProp: Tournament;
+  tournamentId: string;
   isAdmin: boolean;
   appId?: string;
   secureUpdate: (data: FirestoreUpdate<Tournament> | Record<string, any>) => Promise<void>;
@@ -34,6 +36,8 @@ const {
 } = useGameLogic(tournament, props.secureUpdate);
 
 const { getPlayerColor } = useRoster(tournament, props.secureUpdate, isAdminRef);
+
+const { uploadReplay } = useReplayUpload(props.secureUpdate);
 
 const raceInputMode = ref<'tap' | 'dropdown'>('tap');
 const captainSaving = ref(false);
@@ -123,6 +127,14 @@ const handleSaveTap = async (groupId: string, raceNum: number) => {
   }
 };
 
+const handleUploadReplay = async (file: File, groupId: string, raceNum: number) => {
+  try {
+    await uploadReplay(file, props.tournamentId, currentView.value, groupId, raceNum);
+  } catch {
+    alert('Failed to upload replay. Check console for details.');
+  }
+};
+
 const handleUpdatePlacement = async (groupId: string, raceNum: number, pos: number, pid: string) => {
   if (props.isAdmin) {
     await updateRacePlacement(groupId, raceNum, pos, pid);
@@ -146,6 +158,7 @@ const handleUpdatePlacement = async (groupId: string, raceNum: number, pos: numb
         :key="stage.id"
         :group-data="stage"
         :tournament="tournament"
+        :tournament-id="props.tournamentId"
         :current-view="currentView"
         :is-admin="isAdminRef"
         :can-captain-edit="stage.id === captainEditableGroupId"
@@ -154,6 +167,7 @@ const handleUpdatePlacement = async (groupId: string, raceNum: number, pos: numb
         :editing-race-key="editingRaceKey"
         :entry-map="entryMap"
         :get-player-color="getPlayerColor"
+        :secure-update="props.secureUpdate"
         :class="{ 'border-t border-slate-700 pt-8': index !== 0 }"
         v-model:race-input-mode="raceInputMode"
 
@@ -163,6 +177,7 @@ const handleUpdatePlacement = async (groupId: string, raceNum: number, pos: numb
         @save-tap="handleSaveTap"
         @tap-player="handleTapToRank"
         @update-placement="handleUpdatePlacement"
+        @upload-replay="handleUploadReplay"
     />
   </div>
 </template>

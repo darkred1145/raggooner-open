@@ -2,10 +2,11 @@
 import { ref } from 'vue';
 import TrackRollerView from './tools/TrackRollerView.vue';
 import UmaRollerView from './tools/UmaRollerView.vue';
+import ReplayViewer from './ReplayViewer.vue';
 import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 
-type ToolTab = 'track-roller' | 'uma-roller';
+type ToolTab = 'track-roller' | 'uma-roller' | 'replay-viewer';
 const activeTab = ref<ToolTab>('track-roller');
 </script>
 
@@ -34,11 +35,20 @@ const activeTab = ref<ToolTab>('track-roller');
                         <i class="ph-fill ph-horse"></i>
                         Uma Roller
                     </button>
+                    <button @click="activeTab = 'replay-viewer'"
+                            class="px-4 py-2 rounded-md text-sm font-bold transition-colors flex items-center gap-2"
+                            :class="activeTab === 'replay-viewer'
+                              ? 'bg-indigo-600 text-white'
+                              : 'text-slate-400 hover:text-white'">
+                        <i class="ph-fill ph-play-circle"></i>
+                        Race Replay
+                    </button>
                 </div>
             </div>
 
             <TrackRollerView v-if="activeTab === 'track-roller'" />
             <UmaRollerView v-else-if="activeTab === 'uma-roller'" />
+            <ReplayViewer v-else-if="activeTab === 'replay-viewer'" :standalone="false" />
         </main>
     </div>
 </template>

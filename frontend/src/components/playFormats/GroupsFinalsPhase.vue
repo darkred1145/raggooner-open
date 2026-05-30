@@ -1077,6 +1077,7 @@ const handleUmaChange = async (playerId: string, umaId: string) => {
     <RaceInputs
         :secure-update="secureUpdate"
         :tournament-prop="tournament"
+        :tournament-id="tournament.id"
         :is-admin="isAdminRef"
         :captain-team="captainTeam"
         :on-captain-save-tap="onCaptainSaveTap"
