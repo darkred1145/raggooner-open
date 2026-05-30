@@ -69,12 +69,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col">
-
-
-<!--          <SeasonSetup></SeasonSetup>-->
-<!--          <Migrate></Migrate>-->
-
+  <div class="min-h-screen flex flex-col pb-28">
     <div v-if="isSuperAdmin"
          class="fixed left-0 top-1/2 -translate-y-1/2 z-[100] transition-transform duration-300"
          :class="isPanelOpen ? 'translate-x-80' : 'translate-x-0'">
@@ -92,8 +87,9 @@ onMounted(() => {
     />
 
     <router-view class="flex-grow flex flex-col"></router-view>
+  </div>
 
-    <footer class="border-t border-slate-800 bg-slate-900/50 py-8 mt-auto min-h-[72px]">
+  <footer class="fixed bottom-0 left-0 right-0 border-t border-slate-800 bg-slate-900/50 py-8 z-10">
       <div class="max-w-[1800px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 flex-wrap">
         <div class="text-xs font-mono text-slate-600 flex items-center gap-3 flex-wrap">
           <span>
@@ -129,7 +125,6 @@ onMounted(() => {
     </Transition>
 
     <DiscordAuthModal v-if="!authLoading && user && isDiscordUser && !linkedPlayer" />
-  </div>
 </template>
 
 <style>
