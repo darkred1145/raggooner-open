@@ -670,6 +670,8 @@ const play = (fromTime?: number) => {
 
 const stop = () => { playing.value = false; cancelAnimationFrame(animFrame); elapsedTime.value = 0; done.value = false; if (props.simData) render(0, props.simData); };
 
+const pause = () => { playing.value = false; cancelAnimationFrame(animFrame); };
+
 const onSeekInput = (e: Event) => {
   seeking.value = true;
   elapsedTime.value = parseFloat((e.target as HTMLInputElement).value);
@@ -756,7 +758,7 @@ const seekTo = (time: number) => {
 const togglePlay = () => {
   if (!props.simData) return;
   if (done.value) { resetAnim(); setTimeout(() => play(), 50); return; }
-  if (playing.value) { stop(); return; }
+  if (playing.value) { pause(); return; }
   play(elapsedTime.value);
 };
 
