@@ -1,32 +1,27 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useReplayUpload } from '../../composables/useReplayUpload';
 import { normalizeReplayData, extractSimDataBase64 } from '../../utils/replayUtils';
 import { decodeRaceSimData, type RaceSimulateData } from '../../utils/raceSimDecoder';
 import RaceReplayVisualization, { type ReplayData } from './RaceReplayVisualization.vue';
 
 const props = defineProps<{
-  replayPath: string;
-  tournamentId: string;
-  secureUpdate: (data: Record<string, any>) => Promise<void>;
+  replayData: string;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
 }>();
 
-const { fetchReplayData } = useReplayUpload(props.secureUpdate);
-
 const loading = ref(true);
 const error = ref(false);
-const replayData = ref<ReplayData | null>(null);
+const parsedReplayData = ref<ReplayData | null>(null);
 const simData = ref<RaceSimulateData | null>(null);
 
 onMounted(async () => {
   try {
-    const data = await fetchReplayData(props.replayPath);
+    const data = JSON.parse(props.replayData);
     const normalized = normalizeReplayData(data) as ReplayData;
-    replayData.value = normalized;
+    parsedReplayData.value = normalized;
 
     const simB64 = extractSimDataBase64(data);
     if (simB64) {
@@ -58,11 +53,11 @@ onMounted(async () => {
       <button @click="emit('close')" class="px-4 py-2 bg-slate-800 rounded-lg text-sm hover:bg-slate-700">Close</button>
     </div>
 
-    <div v-else-if="replayData" class="max-h-[90vh] mx-4 relative">
+    <div v-else-if="parsedReplayData" class="max-h-[90vh] mx-4 relative">
       <button @click="emit('close')" class="absolute -top-3 -right-3 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-600 transition-colors shadow-lg">
         <i class="ph-bold ph-x"></i>
       </button>
-      <RaceReplayVisualization :replay-data="replayData" :sim-data="simData" />
+      <RaceReplayVisualization :replay-data="parsedReplayData" :sim-data="simData" />
     </div>
   </div>
 </template>

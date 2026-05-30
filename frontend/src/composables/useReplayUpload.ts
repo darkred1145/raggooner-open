@@ -1,6 +1,4 @@
 import { ref } from 'vue';
-import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../firebase';
 import { raceKey } from '../utils/utils';
 
 type SecureUpdateFn = (data: Record<string, any>) => Promise<void>;
@@ -9,25 +7,21 @@ export function useReplayUpload(secureUpdate: SecureUpdateFn) {
   const uploading = ref(false);
   const error = ref<string | null>(null);
 
-  const getReplayPath = (tournamentId: string, stage: string, group: string, raceNumber: number) =>
-    `replays/${tournamentId}/${raceKey(stage, group, raceNumber)}.json`;
-
   const uploadReplay = async (
     file: File,
-    tournamentId: string,
+    _tournamentId: string,
     stage: string,
     group: string,
     raceNumber: number,
   ): Promise<void> => {
     uploading.value = true;
     error.value = null;
-    const path = getReplayPath(tournamentId, stage, group, raceNumber);
-    const ref = storageRef(storage, path);
 
     try {
-      await uploadBytes(ref, file);
+      const content = await file.text();
+      JSON.parse(content);
       const key = raceKey(stage, group, raceNumber);
-      await secureUpdate({ [`races.${key}.replayPath`]: path });
+      await secureUpdate({ [`races.${key}.replayData`]: content });
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Upload failed';
       throw e;
@@ -37,28 +31,13 @@ export function useReplayUpload(secureUpdate: SecureUpdateFn) {
   };
 
   const deleteReplay = async (
-    tournamentId: string,
+    _tournamentId: string,
     stage: string,
     group: string,
     raceNumber: number,
   ): Promise<void> => {
-    const path = getReplayPath(tournamentId, stage, group, raceNumber);
-    const ref = storageRef(storage, path);
-    await deleteObject(ref);
-
     const key = raceKey(stage, group, raceNumber);
-    await secureUpdate({ [`races.${key}.replayPath`]: null });
-  };
-
-  const getReplayUrl = async (path: string): Promise<string> => {
-    const ref = storageRef(storage, path);
-    return getDownloadURL(ref);
-  };
-
-  const fetchReplayData = async (path: string): Promise<any> => {
-    const url = await getReplayUrl(path);
-    const resp = await fetch(url);
-    return resp.json();
+    await secureUpdate({ [`races.${key}.replayData`]: null });
   };
 
   return {
@@ -66,7 +45,5 @@ export function useReplayUpload(secureUpdate: SecureUpdateFn) {
     error,
     uploadReplay,
     deleteReplay,
-    getReplayUrl,
-    fetchReplayData,
   };
 }

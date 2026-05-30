@@ -52,7 +52,7 @@ export interface Race {
     raceNumber: number;
     timestamp: string;
     placements: Record<string, number>; // playerId: position
-    replayPath?: string; // Firebase Storage path to replay JSON
+    replayData?: string; // JSON string of replay data (stored in Firestore)
 }
 
 export type FirestoreUpdate<T> = {

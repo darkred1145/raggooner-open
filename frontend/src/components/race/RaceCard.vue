@@ -70,7 +70,7 @@ const sortedPlayers = computed(() => [...props.activePlayers].sort((a, b) => a.n
 
 const key = computed(() => raceKey(props.stageId, props.groupId, props.raceNum));
 const currentRace = computed(() => props.tournament.races[key.value]);
-const hasReplay = computed(() => !!currentRace.value?.replayPath);
+const hasReplay = computed(() => !!currentRace.value?.replayData);
 const showReplayViewer = ref(false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -211,10 +211,8 @@ const onFileSelected = (e: Event) => {
 
   <input ref="fileInput" type="file" class="hidden" @change="onFileSelected" />
 
-  <RaceReplayViewer v-if="showReplayViewer && currentRace?.replayPath"
-    :replay-path="currentRace.replayPath"
-    :tournament-id="tournamentId"
-    :secure-update="secureUpdate"
+  <RaceReplayViewer v-if="showReplayViewer && currentRace?.replayData"
+    :replay-data="currentRace.replayData"
     @close="showReplayViewer = false"
   />
 </template>
