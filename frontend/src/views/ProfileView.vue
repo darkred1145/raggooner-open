@@ -354,6 +354,7 @@ const unknownCards = computed(() =>
                         <img
                             :src="getUmaImagePath(uma.name)"
                             :alt="uma.name"
+                            width="1" height="1"
                             class="w-full aspect-square object-cover object-top bg-slate-700"
                         />
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
@@ -475,6 +476,7 @@ const unknownCards = computed(() =>
                              <img :src="getSupportCardImagePath(card.id)"
                                   loading="lazy"
                                   :alt="card.name"
+                                  width="2" height="3"
                                   class="w-full aspect-[2/3] object-cover bg-slate-800" />
                              </a>
                              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
@@ -520,6 +522,7 @@ const unknownCards = computed(() =>
                             <img :src="getSupportCardImagePath(addCardId)"
                                  loading="lazy"
                                  :alt="getSupportCardDisplayName(addCardId)"
+                                 width="64" height="96"
                                  class="w-full h-full object-cover bg-slate-800" />
                             </a>
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent"></div>
@@ -601,6 +604,7 @@ const unknownCards = computed(() =>
                                 loading="lazy"
                                 :src="getSupportCardImagePath(entry.cardId)"
                                 :alt="getSupportCardDisplayName(entry.cardId)"
+                                width="2" height="3"
                                 class="w-full aspect-[2/3] object-cover bg-slate-800"
                             />
                             </a>

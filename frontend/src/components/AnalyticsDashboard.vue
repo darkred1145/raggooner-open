@@ -827,7 +827,7 @@ function perfIndicator(
                   {{ idx + 1 }}
                 </div>
 
-                <img :src="getUmaImagePath(uma.name)" :alt="uma.name" class="w-10 h-10 rounded-full object-cover shrink-0 bg-slate-700" />
+                <img :src="getUmaImagePath(uma.name)" :alt="uma.name" width="40" height="40" class="w-10 h-10 rounded-full object-cover shrink-0 bg-slate-700" />
 
                 <div class="flex-1 min-w-0">
                   <div class="font-bold text-white truncate">{{ uma.name }}</div>
@@ -1356,7 +1356,7 @@ function perfIndicator(
                               <td class="px-3 py-2 text-xs text-slate-500">{{ uIdx + 1 }}</td>
                               <td class="px-3 py-2 text-sm font-bold text-white">
                                 <div class="flex items-center gap-1.5">
-                                  <img :src="getUmaImagePath(uma.name)" :alt="uma.name" class="w-5 h-5 rounded-full object-cover shrink-0 bg-slate-700" />
+                                  <img :src="getUmaImagePath(uma.name)" :alt="uma.name" width="20" height="20" class="w-5 h-5 rounded-full object-cover shrink-0 bg-slate-700" />
                                   {{ uma.name }}
                                 </div>
                               </td>
@@ -1412,7 +1412,7 @@ function perfIndicator(
                               <td class="px-3 py-2 text-sm text-slate-400 whitespace-nowrap">{{ race.date ? new Date(race.date).toLocaleDateString() : '—' }}</td>
                               <td class="px-3 py-2 text-sm text-slate-300">
                                 <div class="flex items-center gap-1.5">
-                                  <img :src="getUmaImagePath(race.uma)" :alt="race.uma" class="w-5 h-5 rounded-full object-cover shrink-0 bg-slate-700" />
+                                  <img :src="getUmaImagePath(race.uma)" :alt="race.uma" width="20" height="20" class="w-5 h-5 rounded-full object-cover shrink-0 bg-slate-700" />
                                   {{ race.uma }}
                                 </div>
                               </td>
@@ -1519,7 +1519,7 @@ function perfIndicator(
                     <div class="flex items-center gap-2">
                       <i class="ph-bold text-slate-500 group-hover:text-indigo-400 transition-transform duration-200"
                          :class="expandedUmaName === uma.name ? 'ph-caret-down text-indigo-400' : 'ph-caret-right'"></i>
-                      <img :src="getUmaImagePath(uma.name)" :alt="uma.name" class="w-6 h-6 rounded-full object-cover shrink-0 bg-slate-700" />
+                      <img :src="getUmaImagePath(uma.name)" :alt="uma.name" width="24" height="24" class="w-6 h-6 rounded-full object-cover shrink-0 bg-slate-700" />
                       {{ uma.name }}
                     </div>
                   </td>
@@ -1780,7 +1780,7 @@ function perfIndicator(
                         :key="u.name"
                         class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-slate-500 transition-colors"
                     >
-                      <img :src="getUmaImagePath(u.name)" :alt="u.name" class="w-6 h-6 rounded-full object-cover shrink-0 bg-slate-700" />
+                      <img :src="getUmaImagePath(u.name)" :alt="u.name" width="24" height="24" class="w-6 h-6 rounded-full object-cover shrink-0 bg-slate-700" />
                       <span class="font-bold text-white text-sm">{{ u.name }}</span>
                       <span class="text-xs px-1.5 py-0.5 rounded font-bold" :class="tier.text + ' bg-slate-900'">{{ stageStatValue(u, tierCriterion) }}{{ TIER_CRITERIA[tierCriterion].suffix }}</span>
                     </div>
@@ -2242,7 +2242,7 @@ function perfIndicator(
                 :style="{ backgroundColor: diagramSelectedUmaNames.includes(umaName) ? diagramUmaColorMap.get(umaName) : undefined }"
                 :class="!diagramSelectedUmaNames.includes(umaName) ? 'bg-slate-700' : ''"
               ></div>
-              <img :src="getUmaImagePath(umaName)" :alt="umaName" class="w-4 h-4 rounded-full object-cover shrink-0 bg-slate-700" />
+              <img :src="getUmaImagePath(umaName)" :alt="umaName" width="16" height="16" class="w-4 h-4 rounded-full object-cover shrink-0 bg-slate-700" />
               <span class="truncate text-xs font-medium">{{ umaName }}</span>
             </button>
           </div>

@@ -55,7 +55,7 @@ onUnmounted(() => document.removeEventListener('click', closeUserMenu));
                                 <span v-else class="text-[10px] text-amber-500 font-bold uppercase tracking-tighter italic">Not Linked</span>
                             </div>
 
-                            <img v-if="user.photoURL" :src="user.photoURL" class="w-8 h-8 rounded-full border border-slate-700" alt="User" />
+                            <img v-if="user.photoURL" :src="user.photoURL" width="32" height="32" class="w-8 h-8 rounded-full border border-slate-700" alt="User" />
                             <div v-else class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
                                 <i class="ph-bold ph-user text-slate-400"></i>
                             </div>
