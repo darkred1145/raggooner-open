@@ -34,6 +34,7 @@ const emit = defineEmits<{
   (e: 'tapPlayer', playerId: string): void;
   (e: 'updatePlacement', pos: number, playerId: string): void;
   (e: 'uploadReplay', file: File, raceNum: number): void;
+  (e: 'deleteReplay', raceNum: number): void;
 }>();
 
 // --- Computed Helpers ---
@@ -100,6 +101,9 @@ const onFileSelected = (e: Event) => {
           <button v-if="hasReplay" @click="showReplayViewer = true" class="px-1.5 rounded bg-slate-800/80 hover:bg-emerald-600 text-emerald-400 hover:text-white transition-all backdrop-blur-sm text-[10px] flex items-center gap-1">
             <i class="ph-bold ph-play"></i>
           </button>
+          <button v-if="hasReplay && isAdmin" @click="$emit('deleteReplay', raceNum)" class="px-1.5 rounded bg-slate-800/80 hover:bg-rose-600 text-rose-400 hover:text-white transition-all backdrop-blur-sm text-[10px] flex items-center gap-1">
+            <i class="ph-bold ph-trash"></i>
+          </button>
           <span class="text-xs text-slate-500">{{ getRaceTimestamp(groupId, raceNum, tournament, currentView) }}</span>
         </div>
       </div>
@@ -137,6 +141,9 @@ const onFileSelected = (e: Event) => {
             </button>
             <button v-if="isAdmin && hasResults" @click="triggerUpload" class="px-1.5 rounded bg-slate-800/80 hover:bg-indigo-600 text-indigo-400 hover:text-white transition-all backdrop-blur-sm text-[10px] flex items-center gap-1">
               <i class="ph-bold ph-upload"></i> <span class="hidden sm:inline">Replay</span>
+            </button>
+            <button v-if="hasReplay && isAdmin" @click="$emit('deleteReplay', raceNum)" class="px-1.5 rounded bg-slate-800/80 hover:bg-rose-600 text-rose-400 hover:text-white transition-all backdrop-blur-sm text-[10px] flex items-center gap-1">
+              <i class="ph-bold ph-trash"></i>
             </button>
             <button v-if="canEdit" @click="$emit('toggleEdit', raceNum)" class="px-1.5 rounded bg-slate-800/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all backdrop-blur-sm">
               <i class="ph-bold ph-pencil-simple"></i>

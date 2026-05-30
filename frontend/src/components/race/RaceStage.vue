@@ -27,6 +27,7 @@ const emit = defineEmits<{
   (e: 'updatePlacement', groupId: string, raceNum: number, pos: number, playerId: string): void;
   (e: 'update:raceInputMode', value: 'tap' | 'dropdown'): void;
   (e: 'uploadReplay', file: File, groupId: string, raceNum: number): void;
+  (e: 'deleteReplay', groupId: string, raceNum: number): void;
 }>();
 
 </script>
@@ -81,6 +82,7 @@ const emit = defineEmits<{
             @tap-player="$emit('tapPlayer', $event)"
             @update-placement="(pos:number, pid:string) => $emit('updatePlacement', groupData.id, raceNum, pos, pid)"
             @upload-replay="(file: File, raceNum: number) => $emit('uploadReplay', file, groupData.id, raceNum)"
+            @delete-replay="(raceNum: number) => $emit('deleteReplay', groupData.id, raceNum)"
         />
       </div>
     </div>

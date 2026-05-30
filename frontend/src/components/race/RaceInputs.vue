@@ -37,7 +37,7 @@ const {
 
 const { getPlayerColor } = useRoster(tournament, props.secureUpdate, isAdminRef);
 
-const { uploadReplay } = useReplayUpload(props.secureUpdate);
+const { uploadReplay, deleteReplay } = useReplayUpload(props.secureUpdate);
 
 const raceInputMode = ref<'tap' | 'dropdown'>('tap');
 const captainSaving = ref(false);
@@ -135,6 +135,15 @@ const handleUploadReplay = async (file: File, groupId: string, raceNum: number) 
   }
 };
 
+const handleDeleteReplay = async (groupId: string, raceNum: number) => {
+  if (!confirm('Delete this replay?')) return;
+  try {
+    await deleteReplay(props.tournamentId, currentView.value, groupId, raceNum);
+  } catch {
+    alert('Failed to delete replay.');
+  }
+};
+
 const handleUpdatePlacement = async (groupId: string, raceNum: number, pos: number, pid: string) => {
   if (props.isAdmin) {
     await updateRacePlacement(groupId, raceNum, pos, pid);
@@ -178,6 +187,7 @@ const handleUpdatePlacement = async (groupId: string, raceNum: number, pos: numb
         @tap-player="handleTapToRank"
         @update-placement="handleUpdatePlacement"
         @upload-replay="handleUploadReplay"
+        @delete-replay="handleDeleteReplay"
     />
   </div>
 </template>
