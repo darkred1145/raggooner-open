@@ -83,6 +83,7 @@ function parseRaceSimData(buf: ArrayBuffer): RaceSimulateData {
     frames.push({ time, horseFrames });
     offset += frameSize;
   }
+  enforceMonotonicDistance(frames, horseNum);
 
   const paddingSize2 = dv.getInt32(offset, true); offset += 4;
   offset += paddingSize2;
@@ -134,6 +135,21 @@ function parseRaceSimData(buf: ArrayBuffer): RaceSimulateData {
     horseResults,
     events,
   };
+}
+
+function enforceMonotonicDistance(frames: FrameData[], horseNum: number): void {
+  for (let h = 0; h < horseNum; h++) {
+    let maxDist = -Infinity;
+    for (const f of frames) {
+      const hf = f.horseFrames[h];
+      if (!hf) continue;
+      if (hf.distance < maxDist) {
+        hf.distance = maxDist;
+      } else {
+        maxDist = hf.distance;
+      }
+    }
+  }
 }
 
 export async function decodeRaceSimData(base64Gzip: string): Promise<RaceSimulateData> {
@@ -209,10 +225,13 @@ export function parseRaceSimDataFromJson(json: any): RaceSimulateData {
     };
   });
 
+  const horseNum = d.horseNum ?? (d.frame?.[0]?.horseFrame?.length ?? d.frames?.[0]?.horseFrames?.length ?? frames.length);
+  enforceMonotonicDistance(frames, horseNum);
+
   return {
     header,
     distanceDiffMax: d.distanceDiffMax ?? 0,
-    horseNum: d.horseNum ?? (d.frame?.[0]?.horseFrame?.length ?? d.frames?.[0]?.horseFrames?.length ?? frames.length),
+    horseNum,
     horseFrameSize: d.horseFrameSize ?? 12,
     horseResultSize: d.horseResultSize ?? 31,
     frameCount: frames.length,

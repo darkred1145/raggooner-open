@@ -2,6 +2,7 @@ import type { SupportCardType } from '../types';
 import supportCardData from '../data/support-cards.json';
 
 type RawSupportCard = {
+    support_id: number;
     url_name: string;
     char_name: string;
     type: string;
@@ -90,9 +91,11 @@ function to5LevelArray(values: number[]): number[] {
 }
 
 export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {};
+export const SUPPORT_CARD_BY_NUM_ID: Map<number, string> = new Map();
 
 for (const card of supportCardData as RawSupportCard[]) {
     const cardId = card.url_name;
+    SUPPORT_CARD_BY_NUM_ID.set(card.support_id, cardId);
     const effects: Record<string, number[]> = {};
     for (const eff of card.effects || []) {
         const effType = eff[0];
@@ -112,6 +115,12 @@ for (const card of supportCardData as RawSupportCard[]) {
         ...effects,
     };
     supportCardTitleMap.set(cardId, { gametora: cardId, title_en: card.title_en });
+}
+
+export function getSupportCardNameByNumericId(numId: number): string {
+    const urlName = SUPPORT_CARD_BY_NUM_ID.get(numId);
+    if (!urlName) return `#${numId}`;
+    return getSupportCardDisplayName(urlName);
 }
 
 export const SUPPORT_CARD_LIST = Object.values(SUPPORT_CARD_DICT);

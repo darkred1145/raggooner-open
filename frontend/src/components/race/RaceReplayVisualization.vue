@@ -5,6 +5,72 @@ import type { RaceSimulateData, FrameData, HorseFrameData, EventData } from '../
 import { loadSkillDatabase, buildSkillIndex } from '../../utils/skillDatabase';
 import type { SkillEntry, SkillEffectCategory } from '../../utils/skillDatabase';
 import { getSkillName } from '../../utils/skillData';
+import { courseDataLoader } from '../../utils/courseDataLoader';
+import {
+  BASE_SPEED_CONSTANT, BASE_SPEED_COURSE_OFFSET, BASE_SPEED_COURSE_SCALE,
+  HP_CONSUMPTION_SCALE, HP_CONSUMPTION_SPEED_OFFSET, HP_CONSUMPTION_DIVISOR,
+  DOWNHILL_BONUS_BASE, DOWNHILL_BONUS_DIVISOR,
+  DOWNHILL_HP_RATIO_THRESHOLD, DOWNHILL_HP_RATIO_STRONG,
+  PACE_UP_MULTIPLIER, PACE_DOWN_MULTIPLIER,
+  MIN_EVENT_DURATION,
+} from '../../utils/raceConstants';
+import { getSkillName as getSkillNameFromData } from '../../utils/skillData';
+import { getSupportCardNameByNumericId } from '../../utils/supportCardData';
+
+const GRADE_LETTERS = ['', 'G', 'F', 'E', 'D', 'C', 'B', 'A', 'S'];
+const GRADE_COLORS: Record<string, string> = {
+  'S': 'text-yellow-300', 'A': 'text-green-400', 'B': 'text-blue-400',
+  'C': 'text-slate-300', 'D': 'text-slate-400', 'E': 'text-slate-500',
+  'F': 'text-slate-500', 'G': 'text-slate-600',
+};
+
+function gradeLetter(val: number): string {
+  return GRADE_LETTERS[val] || '?';
+}
+
+function gradeColor(val: number): string {
+  const letter = GRADE_LETTERS[val];
+  return (letter ? GRADE_COLORS[letter] : undefined) || 'text-slate-500';
+}
+
+const MOOD_INPUT_MAP: Record<string, { label: string; cls: string }> = {
+  'great':            { label: 'Great', cls: 'text-amber-400' },
+  'good':             { label: 'Good',  cls: 'text-lime-400' },
+  'normal':           { label: 'Normal', cls: 'text-slate-400' },
+  'bad':              { label: 'Bad',   cls: 'text-blue-400' },
+  'awful':            { label: 'Awful', cls: 'text-slate-500' },
+  'very motivated':   { label: 'Great', cls: 'text-amber-400' },
+  'motivated':        { label: 'Good',  cls: 'text-lime-400' },
+  'unmotivated':      { label: 'Bad',   cls: 'text-blue-400' },
+  'very unmotivated': { label: 'Awful', cls: 'text-slate-500' },
+  'very high':        { label: 'Great', cls: 'text-amber-400' },
+  'high':             { label: 'Good',  cls: 'text-lime-400' },
+  'medium':           { label: 'Normal', cls: 'text-slate-400' },
+  'low':              { label: 'Bad',   cls: 'text-blue-400' },
+  'very low':         { label: 'Awful', cls: 'text-slate-500' },
+  '絶好調':            { label: 'Great', cls: 'text-amber-400' },
+  '好調':             { label: 'Good',  cls: 'text-lime-400' },
+  '普通':             { label: 'Normal', cls: 'text-slate-400' },
+  '不調':             { label: 'Bad',   cls: 'text-blue-400' },
+  '絶不調':            { label: 'Awful', cls: 'text-slate-500' },
+};
+function moodLabel(v: string): string {
+  return MOOD_INPUT_MAP[v.toLowerCase().trim()]?.label ?? v;
+}
+function moodClass(v: string): string {
+  return MOOD_INPUT_MAP[v.toLowerCase().trim()]?.cls ?? 'text-slate-500';
+}
+
+function resolveSkillName(skillId: number): string {
+  const se = skillDb.value?.get(skillId);
+  return se?.name_en || se?.enname || getSkillNameFromData(skillId) || `Skill #${skillId}`;
+}
+
+function resolveSupportCardRarity(cardId: number): string {
+  if (cardId >= 30000) return 'SSR';
+  if (cardId >= 20000) return 'SR';
+  return 'R';
+}
 
 export type ReplayHorse = {
   horseIndex: number;
@@ -36,13 +102,51 @@ export type ReplayHorse = {
     pow: number;
     guts: number;
     wiz: number;
+    skill_array?: { skill_id: number; level: number }[];
+    proper_ground_turf?: number;
+    proper_ground_dirt?: number;
+    proper_distance_short?: number;
+    proper_distance_mile?: number;
+    proper_distance_middle?: number;
+    proper_distance_long?: number;
+    proper_running_style_nige?: number;
+    proper_running_style_senko?: number;
+    proper_running_style_sashi?: number;
+    proper_running_style_oikomi?: number;
+    popularity?: number;
+  };
+  TrainedCharaData?: {
+    _cardId?: number;
+    AcquiredSkillArray?: { _masterId: number; _level: number }[];
+    FactorDataArray?: { FactorId: number; FactorLv: number }[];
+    SupportCardArray?: { SupportCardId: number; LimitBreakCount: number }[];
+    SuccessionCharaList?: {
+      _items?: {
+        _positionId: number;
+        CardId: number;
+        Rarity: number;
+        Level: number;
+        _rank: number;
+        FactorDataArray?: { FactorId: number; FactorLv: number }[];
+      }[];
+    };
+    _properGroundTurf?: number;
+    _properGroundDirt?: number;
+    _properDistanceShort?: number;
+    _properDistanceMile?: number;
+    _properDistanceMiddle?: number;
+    _properDistanceLong?: number;
+    _properRunningStyleNige?: number;
+    _properRunningStyleSenko?: number;
+    _properRunningStyleSashi?: number;
+    _properRunningStyleOikomi?: number;
   };
 };
 
 export type ReplayData = {
   RaceType: string;
   RandomSeed: number;
-  RaceCourseSet: { Distance: number; Ground: number; Turn: number; FloatLaneMax?: number; };
+  RaceCourseSet: { Distance: number; Ground: number; Turn: number; FloatLaneMax?: number; Id?: number; RaceTrackId?: number; };
   RotationCategory: string;
   CourseDistanceType: string;
   GroundCondition: string;
@@ -542,7 +646,7 @@ function drawSkillEvents(ctx: CanvasRenderingContext2D, horseFrames: HorseFrameD
       const sid = e.param[1] ?? 0;
       const dur = _getCachedSkillDur(sid, e.frameTime, e.param[2]);
       const se = db?.get(sid);
-      const sname = se?.enname || se?.name_en || getSkillName(sid) || '';
+      const sname = se?.name_en || se?.enname || getSkillName(sid) || '';
       const cat = se ? _catSkill(se) : 'other';
       const desc = se?.endesc || se?.desc_en || '';
       return {
@@ -569,7 +673,7 @@ function drawSkillEvents(ctx: CanvasRenderingContext2D, horseFrames: HorseFrameD
     const se = db?.get(evt.param[1] ?? 0);
     const cat = se ? _catSkill(se) : 'other';
     const ecolor = effectColors[cat] || '#22d3ee';
-    const sname = se?.enname || se?.name_en || getSkillName(evt.param[1] ?? 0) || `Skill #${evt.param[1]}`;
+    const sname = se?.name_en || se?.enname || getSkillName(evt.param[1] ?? 0) || `Skill #${evt.param[1]}`;
     const label = '✦ ' + sname;
     ctx.font = 'bold 12px sans-serif';
     const lblW = Math.min(ctx.measureText(label).width + 10, 170);
@@ -600,7 +704,8 @@ function drawSkillEvents(ctx: CanvasRenderingContext2D, horseFrames: HorseFrameD
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
-    ctx.fillText(evt.param[2] ? (evt.param[2] / 10000).toFixed(1) + 's' : '', lx + lblW - 2, ly + 1);
+    const remaining = Math.max(0, _getCachedSkillDur(evt.param[1] ?? 0, evt.frameTime, evt.param[2]) - (time - evt.frameTime));
+    ctx.fillText(remaining > 0 ? remaining.toFixed(1) + 's' : '', lx + lblW - 2, ly + 1);
   }
 }
 
@@ -697,6 +802,12 @@ onMounted(async () => {
   } catch {
     console.warn('Skill database not available, using fallback names');
   }
+  try {
+    await courseDataLoader.initialize();
+    courseDataReady.value = true;
+  } catch {
+    console.warn('Course data not available, slope analysis disabled');
+  }
   if (hasSimData.value && props.simData) {
     nextTick(() => render(0, props.simData!));
   }
@@ -768,6 +879,295 @@ const horseProgress = (horseIndex: number) => {
   if (!hf) return 0;
   return clamp(hf.distance / totalDistance.value, 0, 1);
 };
+
+const styleDisplayNames: Record<number, string> = {
+  1: 'Front Runner', 2: 'Pace Chaser', 3: 'End Closer', 4: 'Late Surger',
+};
+
+function formatRaceTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toFixed(4).padStart(7, '0')}`;
+}
+
+const expandedRow = ref<number | null>(null);
+const courseDataReady = ref(false);
+
+const DUEL_HP_THRESHOLD_RATIO = 0.05;
+const DEATH_EPSILON = 0.1;
+
+function getCurrentSlope(dist: number, slopes: { start: number; length: number; slope: number }[]): number {
+  const seg = slopes.find(s => dist >= s.start && dist < s.start + s.length);
+  return seg?.slope ?? 0;
+}
+
+function computeReferenceHpConsumption(speed: number, courseDistance: number): number {
+  const baseSpeed = BASE_SPEED_CONSTANT - (courseDistance - BASE_SPEED_COURSE_OFFSET) / BASE_SPEED_COURSE_SCALE;
+  return HP_CONSUMPTION_SCALE * Math.pow(Math.max(0, speed - baseSpeed + HP_CONSUMPTION_SPEED_OFFSET), 2) / HP_CONSUMPTION_DIVISOR;
+}
+
+function computeHeuristicEvents(
+  frames: import('../../utils/raceSimDecoder').FrameData[],
+  courseDistance: number,
+  slopes: { start: number; length: number; slope: number }[],
+  horseCount: number,
+): Map<number, { downhillDuration: number; paceUpDuration: number; paceDownDuration: number; overtakeDuration: number; speedUpDuration: number }> {
+  const result = new Map<number, { downhillDuration: number; paceUpDuration: number; paceDownDuration: number; overtakeDuration: number; speedUpDuration: number }>();
+  if (!frames.length || courseDistance <= 0) return result;
+
+  for (let i = 0; i < horseCount; i++) {
+    let dhActive = false, dhStart = 0, dhTotal = 0;
+    let puActive = false, puStart = 0, puTotal = 0;
+    let pdActive = false, pdStart = 0, pdTotal = 0;
+    let otActive = false, otStart = 0, otTotal = 0;
+    let suActive = false, suStart = 0, suTotal = 0;
+
+    const baseSpeed = BASE_SPEED_CONSTANT - (courseDistance - BASE_SPEED_COURSE_OFFSET) / BASE_SPEED_COURSE_SCALE;
+
+    for (let f = 0; f < frames.length - 1; f++) {
+      const frame = frames[f]!;
+      const nextFrame = frames[f + 1]!;
+      if (!frame.horseFrames[i] || !nextFrame.horseFrames[i]) continue;
+      const time = frame.time;
+      const dt = nextFrame.time - time;
+      if (dt <= 0) continue;
+
+      const h = frame.horseFrames[i]!;
+      const hn = nextFrame.horseFrames[i]!;
+
+      const dist = h.distance;
+      const speed = h.speed / 100;
+      const nextSpeed = hn.speed / 100;
+      const accel = (nextSpeed - speed) / dt;
+      const hpDiff = (h.hp - hn.hp) / dt;
+
+      const slope = getCurrentSlope(dist, slopes);
+      const expected = computeReferenceHpConsumption(speed, courseDistance);
+      const hpRatio = expected > 0 && hpDiff > 0 ? hpDiff / expected : 1;
+
+      let leaderDist = 0;
+      for (const hf of frame.horseFrames) {
+        if (hf && hf.distance > leaderDist) leaderDist = hf.distance;
+      }
+      const distFromLeader = leaderDist - dist;
+
+      const positionKeepEnd = courseDistance * (10 / 24);
+      const isPastPK = dist >= positionKeepEnd;
+
+      const paceUpThreshold = baseSpeed * PACE_UP_MULTIPLIER;
+      const paceDownThreshold = baseSpeed * PACE_DOWN_MULTIPLIER;
+
+      // Downhill Mode detection
+      let isDownhill = false;
+      if (slope < 0) {
+        const downhillBonus = DOWNHILL_BONUS_BASE + Math.abs(slope) / DOWNHILL_BONUS_DIVISOR;
+        if (expected > 0 && hpDiff > 0 && hpRatio < DOWNHILL_HP_RATIO_THRESHOLD) {
+          if (hpRatio < DOWNHILL_HP_RATIO_STRONG) {
+            isDownhill = true;
+          } else {
+            const refMax = baseSpeed + downhillBonus;
+            const diffDownhill = Math.abs(speed - refMax);
+            const diffNormal = Math.abs(speed - baseSpeed);
+            if (diffDownhill < diffNormal + 0.2) {
+              isDownhill = true;
+            }
+          }
+        }
+      }
+
+      if (isDownhill && !dhActive) { dhActive = true; dhStart = time; }
+      else if (!isDownhill && dhActive) { dhActive = false; if (time - dhStart > MIN_EVENT_DURATION) dhTotal += time - dhStart; }
+
+      if (!isPastPK) {
+        let isPaceUp = false, isPaceDown = false, isOvertake = false, isSpeedUp = false;
+
+        if (speed > paceUpThreshold * 1.02 || (speed > paceUpThreshold && accel > 0.2)) {
+          if (distFromLeader < 0.05) {
+            isSpeedUp = true;
+          } else {
+            isPaceUp = true;
+          }
+        }
+
+        if (speed < paceDownThreshold * 0.98 || (speed < paceDownThreshold && accel < -0.2)) {
+          isPaceDown = true;
+        }
+
+        if (isPaceUp && distFromLeader < 0.05) {
+          isOvertake = true;
+          isPaceUp = false;
+        }
+
+        if (isPaceUp && !puActive) { puActive = true; puStart = time; }
+        else if (!isPaceUp && puActive) { puActive = false; if (time - puStart > MIN_EVENT_DURATION) puTotal += time - puStart; }
+
+        if (isPaceDown && !pdActive) { pdActive = true; pdStart = time; }
+        else if (!isPaceDown && pdActive) { pdActive = false; if (time - pdStart > MIN_EVENT_DURATION) pdTotal += time - pdStart; }
+
+        if (isOvertake && !otActive) { otActive = true; otStart = time; }
+        else if (!isOvertake && otActive) { otActive = false; if (time - otStart > MIN_EVENT_DURATION) otTotal += time - otStart; }
+
+        if (isSpeedUp && !suActive) { suActive = true; suStart = time; }
+        else if (!isSpeedUp && suActive) { suActive = false; if (time - suStart > MIN_EVENT_DURATION) suTotal += time - suStart; }
+      } else {
+        if (puActive) { puActive = false; if (time - puStart > MIN_EVENT_DURATION) puTotal += time - puStart; }
+        if (pdActive) { pdActive = false; if (time - pdStart > MIN_EVENT_DURATION) pdTotal += time - pdStart; }
+        if (otActive) { otActive = false; if (time - otStart > MIN_EVENT_DURATION) otTotal += time - otStart; }
+        if (suActive) { suActive = false; if (time - suStart > MIN_EVENT_DURATION) suTotal += time - suStart; }
+      }
+    }
+
+    // Close any remaining active events
+    const lastTime = frames[frames.length - 1]!.time;
+    if (dhActive) { dhActive = false; if (lastTime - dhStart > MIN_EVENT_DURATION) dhTotal += lastTime - dhStart; }
+    if (puActive) { puActive = false; if (lastTime - puStart > MIN_EVENT_DURATION) puTotal += lastTime - puStart; }
+    if (pdActive) { pdActive = false; if (lastTime - pdStart > MIN_EVENT_DURATION) pdTotal += lastTime - pdStart; }
+    if (otActive) { otActive = false; if (lastTime - otStart > MIN_EVENT_DURATION) otTotal += lastTime - otStart; }
+    if (suActive) { suActive = false; if (lastTime - suStart > MIN_EVENT_DURATION) suTotal += lastTime - suStart; }
+
+    result.set(i, {
+      downhillDuration: dhTotal,
+      paceUpDuration: puTotal,
+      paceDownDuration: pdTotal,
+      overtakeDuration: otTotal,
+      speedUpDuration: suTotal,
+    });
+  }
+
+  return result;
+}
+
+function computeHpOutcome(horseIndex: number, frames: import('../../utils/raceSimDecoder').FrameData[], raceDistance: number): { current: number; max: number; died: boolean; deathDist?: number; deficit?: number } {
+  if (!frames.length) return { current: 0, max: 1000, died: false };
+  const startHp = frames[0]!.horseFrames[horseIndex]?.hp ?? 1000;
+  let minHp = startHp;
+  let deathDist: number | undefined;
+  for (const f of frames) {
+    const hp = f.horseFrames[horseIndex]?.hp ?? 0;
+    if (hp < minHp) minHp = hp;
+    if (hp <= 0 && deathDist === undefined) {
+      deathDist = f.horseFrames[horseIndex]?.distance ?? 0;
+    }
+  }
+  const finalHp = frames[frames.length - 1]!.horseFrames[horseIndex]?.hp ?? 0;
+  const died = deathDist !== undefined && deathDist < raceDistance - DEATH_EPSILON;
+  let deficit: number | undefined;
+  if (died && deathDist !== undefined) {
+    const dist = raceDistance - deathDist;
+    const lostSpeed = (deathDist > 0) ? (frames.find(f => (f.horseFrames[horseIndex]?.distance ?? 0) >= deathDist)?.horseFrames[horseIndex]?.speed ?? 0) / 100 : BASE_SPEED_CONSTANT;
+    const currentSpeed = Math.max(lostSpeed, BASE_SPEED_CONSTANT * 0.8);
+    const baseSpeed = BASE_SPEED_CONSTANT - (raceDistance - BASE_SPEED_COURSE_OFFSET) / BASE_SPEED_COURSE_SCALE;
+    const hpPerSec = HP_CONSUMPTION_SCALE * Math.pow(currentSpeed - baseSpeed + HP_CONSUMPTION_SPEED_OFFSET, 2) / HP_CONSUMPTION_DIVISOR;
+    const time = dist / currentSpeed;
+    deficit = time * hpPerSec;
+  }
+  return { current: died ? 0 : finalHp, max: startHp, died, deathDist, deficit };
+}
+
+function computeDuelDurations(horseIndex: number, frames: import('../../utils/raceSimDecoder').FrameData[], events: import('../../utils/raceSimDecoder').EventData[]): number {
+  const COMPETE_FIGHT = 5;
+  const duelEvents = events.filter(e => e.type === COMPETE_FIGHT && e.param[0] === horseIndex);
+  if (!duelEvents.length) return 0;
+  const startHp = frames[0]?.horseFrames[horseIndex]?.hp ?? 1000;
+  const hpThreshold = startHp * DUEL_HP_THRESHOLD_RATIO;
+  let totalDuration = 0;
+  for (const evt of duelEvents) {
+    const startTime = evt.frameTime;
+    let endTime = frames[frames.length - 1]!.time;
+    for (let i = 0; i < frames.length; i++) {
+      if (frames[i]!.time < startTime) continue;
+      if ((frames[i]!.horseFrames[horseIndex]?.hp ?? 0) < hpThreshold) {
+        endTime = frames[i]!.time;
+        break;
+      }
+    }
+    totalDuration += endTime - startTime;
+  }
+  return totalDuration;
+}
+
+const horsesDetailed = computed(() => {
+  const sd = props.simData;
+  const frames = sd?.frames ?? [];
+  const events = sd?.events ?? [];
+  const totalDist = totalDistance.value;
+
+  const deathInfo = new Map<number, ReturnType<typeof computeHpOutcome>>();
+  const duelDurations = new Map<number, number>();
+  const lateStart = new Map<number, boolean>();
+  const usedSkills = new Map<number, Map<number, number>>();
+
+  const slopes = courseDataReady.value && props.replayData.RaceCourseSet.Id
+    ? courseDataLoader.getSlopes(props.replayData.RaceCourseSet.Id)
+    : [];
+  type HeuristicSummary = { downhillDuration: number; paceUpDuration: number; paceDownDuration: number; overtakeDuration: number; speedUpDuration: number };
+  const heuristicEvents: Map<number, HeuristicSummary> = slopes.length > 0 && frames.length > 0
+    ? computeHeuristicEvents(frames, totalDist, slopes, frames[0]?.horseFrames.length ?? 0)
+    : new Map();
+
+  if (frames.length) {
+    for (let j = 0; j < (frames[0]?.horseFrames.length ?? 0); j++) {
+      deathInfo.set(j, computeHpOutcome(j, frames, totalDist));
+      duelDurations.set(j, computeDuelDurations(j, frames, events));
+      const accel0 = frames.length > 1 ? ((frames[1]!.horseFrames[j]?.speed ?? 0) / 100 - (frames[0]!.horseFrames[j]?.speed ?? 0) / 100) / (frames[1]!.time - frames[0]!.time) : 0;
+      lateStart.set(j, accel0 < 0.0001);
+      const horseSkillEvents = events.filter(e => e.type === 3 && e.param[0] === j).map(e => e.param[1]).filter((s): s is number => s != null);
+      const counts = new Map<number, number>();
+      for (const sid of horseSkillEvents) counts.set(sid, (counts.get(sid) ?? 0) + 1);
+      usedSkills.set(j, counts);
+    }
+  }
+
+  return horsesByFinish.value.map(horse => {
+    const hr = sd?.horseResults?.[horse.horseIndex];
+    const hpInfo = deathInfo.get(horse.horseIndex) ?? { current: 0, max: 1000, died: false };
+    const styleNum = horse._responseHorseData?.running_style ?? 0;
+    const phase3Start = totalDist * 2 / 3;
+    const spurtDist = hr?.lastSpurtStartDistance ?? 0;
+    const spurtDelay = spurtDist > 0 ? spurtDist - phase3Start : 0;
+    return {
+      finishPosition: horse.finishPosition,
+      postNumber: horse.postNumber,
+      charaName: horse.charaName,
+      trainerName: horse._responseHorseData?.trainer_name || '???',
+      styleNum,
+      styleName: styleDisplayNames[styleNum] || styleNames[styleNum] || '???',
+      motivation: horse._raceParam?.Motivation || '-',
+      finishTime: horse.FinishTimeScaled,
+      finishTimeDisplay: formatRaceTime(horse.FinishTimeScaled),
+      gapDisplay: horse.FinishDiffTimeFromPrev > 0 ? `+${horse.FinishDiffTimeFromPrev.toFixed(1)}m` : '',
+      speed: horse._raceParam?.RawSpeed ?? 0, stamina: horse._raceParam?.RawStamina ?? 0,
+      power: horse._raceParam?.RawPow ?? 0, guts: horse._raceParam?.RawGuts ?? 0, wiz: horse._raceParam?.RawWiz ?? 0,
+      startDelayMs: hr ? Math.round(hr.startDelayTime * 1000) : 0,
+      isLateStart: lateStart.get(horse.horseIndex) ?? false,
+      lastSpurtDist: spurtDist,
+      spurtDelay: spurtDelay,
+      defeat: hr?.defeat ?? 0,
+      hpCurrent: hpInfo.current, hpMax: hpInfo.max,
+      hpPercent: hpInfo.max > 0 ? (hpInfo.current / hpInfo.max * 100) : 0,
+      hpDied: hpInfo.died,
+      hpDeathDist: hpInfo.deathDist,
+      hpDeficit: hpInfo.deficit,
+      duelDuration: duelDurations.get(horse.horseIndex) ?? 0,
+      ...heuristicEvents.get(horse.horseIndex) ?? { downhillDuration: 0, paceUpDuration: 0, paceDownDuration: 0, overtakeDuration: 0, speedUpDuration: 0 },
+      skills: (horse._responseHorseData?.skill_array ?? []).filter(sk => sk != null).map(sk => ({ ...sk, usedCount: usedSkills.get(horse.horseIndex)?.get(sk.skill_id) ?? 0 })),
+      factors: (horse.TrainedCharaData?.FactorDataArray ?? []).filter(f => f != null).map(f => ({ factorId: f.FactorId, level: f.FactorLv })),
+      supportCards: (horse.TrainedCharaData?.SupportCardArray ?? []).filter(sc => sc != null).map(sc => ({ id: sc.SupportCardId, lb: sc.LimitBreakCount })),
+      parents: (horse.TrainedCharaData?.SuccessionCharaList?._items ?? []).filter(p => p != null).map(p => ({ cardId: p.CardId, rarity: p.Rarity, level: p.Level })),
+      properTurf: horse._responseHorseData?.proper_ground_turf ?? 0,
+      properDirt: horse._responseHorseData?.proper_ground_dirt ?? 0,
+      properShort: horse._responseHorseData?.proper_distance_short ?? 0,
+      properMile: horse._responseHorseData?.proper_distance_mile ?? 0,
+      properMiddle: horse._responseHorseData?.proper_distance_middle ?? 0,
+      properLong: horse._responseHorseData?.proper_distance_long ?? 0,
+      properNige: horse._responseHorseData?.proper_running_style_nige ?? 0,
+      properSenko: horse._responseHorseData?.proper_running_style_senko ?? 0,
+      properSashi: horse._responseHorseData?.proper_running_style_sashi ?? 0,
+      properOikomi: horse._responseHorseData?.proper_running_style_oikomi ?? 0,
+      horseIndex: horse.horseIndex,
+    };
+  });
+});
 </script>
 
 <template>
@@ -836,13 +1236,18 @@ const horseProgress = (horseIndex: number) => {
         <button @click="toggleFullscreen" class="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-slate-700 text-slate-500 hover:text-white transition-colors ml-1" :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'">
           <i :class="isFullscreen ? 'ph-bold ph-compress' : 'ph-bold ph-arrows-out'"></i>
         </button>
-        <div class="flex items-center gap-2 ml-1 text-[10px] text-slate-500 hidden md:flex">
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#ef4444"></span>Blocked</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#fbbf24"></span>Low HP</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#22d3ee"></span>Speed</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#f97316"></span>Accel</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#34d399"></span>Stamina</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#f43f5e"></span>Debuff</span>
+        <div class="flex items-center gap-3 ml-2 text-[10px] text-slate-500 hidden lg:flex">
+          <span class="flex items-center gap-1" title="✦ Skill name shown above horse during activation"><span class="w-2 h-2 rounded-full inline-block" style="background:#22d3ee"></span>Skillⓘ</span>
+          <span class="flex items-center gap-1" title="Countdown timer on skill labels"><span class="w-2 h-2 rounded-full inline-block" style="background:#22d3ee"></span>Timerⓘ</span>
+          <span class="flex items-center gap-1" title="HP bar below each horse icon"><span class="w-2 h-2 rounded-full inline-block" style="background:#34d399"></span>HPⓘ</span>
+          <span class="flex items-center gap-1" title="⛔ indicator when blocked by another horse"><span class="w-2 h-2 rounded-full inline-block" style="background:#ef4444"></span>Blockⓘ</span>
+          <span class="flex items-center gap-1" title="Green/amber bands on track indicate slopes"><span class="w-2 h-2 rounded-full inline-block" style="background:#84cc16"></span>Slopesⓘ</span>
+          <span class="flex items-center gap-1" title="Speed in m/s shown near each horse"><span class="w-2 h-2 rounded-full inline-block" style="background:#22d3ee"></span>Speedⓘ</span>
+          <span class="flex items-center gap-1" title="Acceleration in m/s² computed from speed delta"><span class="w-2 h-2 rounded-full inline-block" style="background:#f97316"></span>Accelⓘ</span>
+          <span class="flex items-center gap-1" title="Pace up/down/downhill heuristics based on speed thresholds"><span class="w-2 h-2 rounded-full inline-block" style="background:#a78bfa"></span>Modeⓘ</span>
+          <span class="flex items-center gap-1" title="Course segments: corners (↩) and straights"><span class="w-2 h-2 rounded-full inline-block" style="background:#c08b5b"></span>Courseⓘ</span>
+          <span class="flex items-center gap-1" title="Position Keep phase (first 10/24 of race distance)"><span class="w-2 h-2 rounded-full inline-block" style="background:#fbbf24"></span>PKⓘ</span>
+          <span class="flex items-center gap-1" title="Track map with distance markers and phase labels"><span class="w-2 h-2 rounded-full inline-block" style="background:#c08b5b"></span>Mapⓘ</span>
         </div>
       </div>
     </div>
@@ -949,52 +1354,197 @@ const horseProgress = (horseIndex: number) => {
     <div class="px-6 pb-6">
       <h3 class="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">
         <i class="ph-bold ph-list-checks text-indigo-400"></i>
-        Horse Details
+        Race Results
+        <span class="text-[10px] text-slate-600 font-normal ml-auto">Click a row for details</span>
       </h3>
       <div class="overflow-x-auto">
         <table class="w-full text-xs font-mono">
           <thead>
             <tr class="text-slate-500 border-b border-slate-700">
-              <th class="text-left py-2 pr-2">#</th>
-              <th class="text-left py-2 pr-2"></th>
-              <th class="text-left py-2 pr-2">Horse</th>
-              <th class="text-left py-2 pr-2">Trainer</th>
-              <th class="text-left py-2 pr-2">Style</th>
-              <th class="text-right py-2 pr-2">SPD</th>
-              <th class="text-right py-2 pr-2">STA</th>
-              <th class="text-right py-2 pr-2">POW</th>
-              <th class="text-right py-2 pr-2">GUT</th>
-              <th class="text-right py-2 pr-2">WIZ</th>
-              <th class="text-right py-2">Time</th>
+              <th class="text-left py-2 pr-1.5">#</th>
+              <th class="text-left py-2 pr-1.5">No.</th>
+              <th class="text-left py-2 pr-1.5"></th>
+              <th class="text-left py-2 pr-1.5">Horse</th>
+              <th class="text-left py-2 pr-1.5">Style</th>
+              <th class="text-left py-2 pr-1.5">Mood</th>
+              <th class="text-right py-2 pr-1.5">Time</th>
+              <th class="text-right py-2 pr-1.5">Delay</th>
+              <th class="text-right py-2 pr-1.5">Spurt</th>
+              <th class="text-right py-2 pr-1.5">HP</th>
+   <th class="text-right py-2 pr-1.5">Duel</th>
+   <th class="text-right py-2 pr-1.5 text-amber-400/70" title="Downhill Duration">DnH</th>
+   <th class="text-right py-2 pr-1.5 text-indigo-400/70" title="Pace Up Duration">P↑</th>
+   <th class="text-right py-2 pr-1.5 text-orange-400/70" title="Pace Down Duration">P↓</th>
+   <th class="text-right py-2 pr-1.5">SPD</th>
+              <th class="text-right py-2 pr-1.5">STA</th>
+              <th class="text-right py-2 pr-1.5">POW</th>
+              <th class="text-right py-2 pr-1.5">GUT</th>
+              <th class="text-right py-2">WIZ</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="horse in horsesByFinish" :key="horse.horseIndex"
-                class="border-b border-slate-800 hover:bg-slate-800/30">
-              <td class="py-1.5 pr-2">
-                <span class="font-black" :class="horse.finishPosition === 1 ? 'text-amber-500' : horse.finishPosition === 2 ? 'text-slate-300' : horse.finishPosition === 3 ? 'text-orange-600' : 'text-slate-500'">
-                  #{{ horse.finishPosition }}
-                </span>
-              </td>
-              <td class="py-1.5 pr-2">
-                <img :src="getUmaImagePath(horse.charaName)" :alt="horse.charaName"
-                     class="w-6 h-6 rounded-full object-cover bg-slate-700 shrink-0"
-                     @error="($event.target as HTMLImageElement).style.display='none'" />
-              </td>
-              <td class="py-1.5 pr-2 text-white font-bold">{{ horse.charaName }}</td>
-              <td class="py-1.5 pr-2 text-slate-400">{{ horse._responseHorseData?.trainer_name || '???' }}</td>
-              <td class="py-1.5 pr-2">
-                <span class="px-1 py-0.5 rounded text-[9px] font-bold" :style="{ background: styleColors[horse._responseHorseData?.running_style] || '#6366f1', color: '#fff' }">
-                  {{ styleNames[horse._responseHorseData?.running_style] || '???' }}
-                </span>
-              </td>
-              <td class="py-1.5 pr-2 text-right text-sky-300">{{ horse._raceParam?.RawSpeed || '-' }}</td>
-              <td class="py-1.5 pr-2 text-right text-emerald-300">{{ horse._raceParam?.RawStamina || '-' }}</td>
-              <td class="py-1.5 pr-2 text-right text-rose-300">{{ horse._raceParam?.RawPow || '-' }}</td>
-              <td class="py-1.5 pr-2 text-right text-amber-300">{{ horse._raceParam?.RawGuts || '-' }}</td>
-              <td class="py-1.5 pr-2 text-right text-violet-300">{{ horse._raceParam?.RawWiz || '-' }}</td>
-              <td class="py-1.5 text-right text-slate-400">{{ horse.FinishTimeScaled.toFixed(2) }}s</td>
-            </tr>
+            <template v-for="h in horsesDetailed" :key="h.horseIndex">
+              <tr @click="expandedRow = expandedRow === h.horseIndex ? null : h.horseIndex"
+                  class="border-b border-slate-800 hover:bg-slate-800/30 cursor-pointer select-none"
+                  :class="{ 'bg-slate-800/20': expandedRow === h.horseIndex }">
+                <td class="py-1.5 pr-1.5">
+                  <span class="font-black" :class="h.finishPosition === 1 ? 'text-amber-500' : h.finishPosition === 2 ? 'text-slate-300' : h.finishPosition === 3 ? 'text-orange-600' : 'text-slate-500'">
+                    {{ h.finishPosition }}
+                  </span>
+                </td>
+                <td class="py-1.5 pr-1.5 text-slate-500">{{ h.postNumber }}</td>
+                <td class="py-1.5 pr-1.5">
+                  <img :src="getUmaImagePath(h.charaName)" :alt="h.charaName"
+                       class="w-6 h-6 rounded-full object-cover bg-slate-700 shrink-0"
+                       @error="($event.target as HTMLImageElement).style.display='none'" />
+                </td>
+                <td class="py-1.5 pr-1.5 text-white font-bold truncate max-w-[120px]">{{ h.charaName }}</td>
+                <td class="py-1.5 pr-1.5">
+                  <span class="px-1 py-0.5 rounded text-[9px] font-bold whitespace-nowrap" :style="{ background: styleColors[h.styleNum] || '#6366f1', color: '#fff' }">
+                    {{ h.styleName }}
+                  </span>
+                </td>
+                <td class="py-1.5 pr-1.5">
+                  <span class="text-[10px]" :class="moodClass(h.motivation)">{{ moodLabel(h.motivation) }}</span>
+                </td>
+                <td class="py-1.5 pr-1.5 text-right">
+                  <div class="text-slate-300">{{ h.finishTimeDisplay }}</div>
+                  <div v-if="h.gapDisplay" class="text-[9px] text-rose-400">{{ h.gapDisplay }}</div>
+                </td>
+                <td class="py-1.5 pr-1.5 text-right">
+                  <div class="text-sky-300">{{ h.startDelayMs }}ms</div>
+                  <div class="text-[9px]">
+                    <span :class="h.isLateStart ? 'text-rose-400' : 'text-emerald-400'">{{ h.isLateStart ? 'Late' : 'Normal' }}</span>
+                  </div>
+                </td>
+                <td class="py-1.5 pr-1.5 text-right">
+                  <div :class="h.spurtDelay > 0 && h.spurtDelay > 20 ? 'text-rose-400' : h.spurtDelay > 4 ? 'text-amber-400' : 'text-cyan-300'">
+                    {{ h.spurtDelay > 0 ? `Delay ${h.spurtDelay.toFixed(1)}m` : (h.lastSpurtDist > 0 ? `${h.lastSpurtDist.toFixed(0)}m` : '-') }}
+                  </div>
+                </td>
+                <td class="py-1.5 pr-1.5 text-right">
+                  <div :class="h.hpDied ? 'text-rose-400' : 'text-emerald-400'">
+                    {{ h.hpDied ? `Died (-${(h.hpDeathDist ?? 0).toFixed(0)}m)` : 'Survived' }}
+                  </div>
+                  <div class="text-[9px] text-slate-500">
+                    {{ h.hpDeficit !== undefined ? `-${h.hpDeficit.toFixed(0)} HP` : `${h.hpCurrent} HP` }} ({{ h.hpPercent.toFixed(1) }}%)
+                  </div>
+                </td>
+     <td class="py-1.5 pr-1.5 text-right text-amber-300">{{ h.duelDuration > 0 ? h.duelDuration.toFixed(1) + 's' : '-' }}</td>
+     <td class="py-1.5 pr-1.5 text-right text-amber-400/80 text-[10px]">{{ h.downhillDuration > 0.5 ? h.downhillDuration.toFixed(1) + 's' : '-' }}</td>
+     <td class="py-1.5 pr-1.5 text-right text-indigo-400/80 text-[10px]">{{ h.paceUpDuration > 0.5 ? h.paceUpDuration.toFixed(1) + 's' : '-' }}</td>
+     <td class="py-1.5 pr-1.5 text-right text-orange-400/80 text-[10px]">{{ h.paceDownDuration > 0.5 ? h.paceDownDuration.toFixed(1) + 's' : '-' }}</td>
+     <td class="py-1.5 pr-1.5 text-right text-sky-300">{{ h.speed || '-' }}</td>
+                <td class="py-1.5 pr-1.5 text-right text-emerald-300">{{ h.stamina || '-' }}</td>
+                <td class="py-1.5 pr-1.5 text-right text-rose-300">{{ h.power || '-' }}</td>
+                <td class="py-1.5 pr-1.5 text-right text-amber-300">{{ h.guts || '-' }}</td>
+                <td class="py-1.5 text-right text-violet-300">{{ h.wiz || '-' }}</td>
+              </tr>
+              <tr v-if="expandedRow === h.horseIndex" class="border-b border-slate-700/50">
+                <td colspan="19" class="py-3 px-4 bg-slate-900/40">
+                  <div class="space-y-3 text-[11px]">
+
+                    <!-- Row 1: basic stats -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">Trainer</span>
+                        <span class="text-white">{{ h.trainerName }}</span>
+                      </div>
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">Finish Time</span>
+                        <span class="text-white">{{ h.finishTimeDisplay }} ({{ h.finishTime.toFixed(3) }}s)</span>
+                      </div>
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">Gap</span>
+                        <span class="text-rose-400">{{ h.gapDisplay || '-' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">Defeat</span>
+                        <span :class="h.defeat > 0 ? 'text-rose-400' : 'text-emerald-400'">{{ h.defeat > 0 ? `Defeated (${h.defeat})` : 'Normal' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">Start Delay</span>
+                        <span class="text-sky-300">{{ h.startDelayMs }}ms</span>
+                        <span :class="h.isLateStart ? 'text-rose-400' : 'text-emerald-400'" class="text-[10px]">{{ h.isLateStart ? 'Late start' : 'Normal start' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">HP (Final/Max)</span>
+                        <span :class="h.hpDied ? 'text-rose-400' : 'text-emerald-400'">
+                          {{ h.hpCurrent }} / {{ h.hpMax }}
+                          <span class="text-slate-500">({{ h.hpPercent.toFixed(1) }}%)</span>
+                        </span>
+                      </div>
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">Duel</span>
+                        <span class="text-amber-300">{{ h.duelDuration > 0 ? `${h.duelDuration.toFixed(1)}s` : 'None' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-slate-500 block text-[10px]">Last Spurt</span>
+                        <span class="text-cyan-300">{{ h.lastSpurtDist > 0 ? `${h.lastSpurtDist.toFixed(0)}m` : 'No spurt' }}</span>
+                        <span v-if="h.spurtDelay > 0" class="text-rose-400">(delay {{ h.spurtDelay.toFixed(1) }}m)</span>
+                      </div>
+                    </div>
+
+                    <!-- Aptitudes -->
+                    <div v-if="h.properTurf > 0" class="border-t border-slate-700/50 pt-2">
+                      <span class="text-slate-400 font-bold text-[10px] tracking-wide">APTITUDES</span>
+                      <div class="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+                        <span class="text-slate-300">Turf <span class="font-bold" :class="gradeColor(h.properTurf)">{{ gradeLetter(h.properTurf) }}</span></span>
+                        <span class="text-slate-300">Dirt <span class="font-bold" :class="gradeColor(h.properDirt)">{{ gradeLetter(h.properDirt) }}</span></span>
+                        <span class="text-slate-300">Short <span class="font-bold" :class="gradeColor(h.properShort)">{{ gradeLetter(h.properShort) }}</span></span>
+                        <span class="text-slate-300">Mile <span class="font-bold" :class="gradeColor(h.properMile)">{{ gradeLetter(h.properMile) }}</span></span>
+                        <span class="text-slate-300">Mid <span class="font-bold" :class="gradeColor(h.properMiddle)">{{ gradeLetter(h.properMiddle) }}</span></span>
+                        <span class="text-slate-300">Long <span class="font-bold" :class="gradeColor(h.properLong)">{{ gradeLetter(h.properLong) }}</span></span>
+                        <span class="text-slate-300">Nige <span class="font-bold" :class="gradeColor(h.properNige)">{{ gradeLetter(h.properNige) }}</span></span>
+                        <span class="text-slate-300">Senko <span class="font-bold" :class="gradeColor(h.properSenko)">{{ gradeLetter(h.properSenko) }}</span></span>
+                        <span class="text-slate-300">Sashi <span class="font-bold" :class="gradeColor(h.properSashi)">{{ gradeLetter(h.properSashi) }}</span></span>
+                        <span class="text-slate-300">Oikomi <span class="font-bold" :class="gradeColor(h.properOikomi)">{{ gradeLetter(h.properOikomi) }}</span></span>
+                      </div>
+                    </div>
+
+                    <!-- Acquired Skills -->
+                    <div v-if="h.skills.length" class="border-t border-slate-700/50 pt-2">
+                      <span class="text-slate-400 font-bold text-[10px] tracking-wide">SKILLS ({{ h.skills.length }})</span>
+                      <div class="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 max-h-24 overflow-y-auto">
+                        <span v-for="sk in h.skills" :key="sk.skill_id"
+                              class="text-[10px] whitespace-nowrap"
+                              :class="sk.usedCount > 0 ? 'text-emerald-300' : 'text-slate-500'">
+                          <span :class="sk.usedCount > 0 ? 'text-emerald-400' : 'text-slate-600'">{{ sk.usedCount > 0 ? '●' : '○' }}</span>
+                          <span class="text-white">{{ resolveSkillName(sk.skill_id) }}</span>
+                          <span v-if="sk.level > 1" class="text-amber-400">({{ sk.level }})</span>
+                          <span v-if="sk.usedCount > 0" class="text-emerald-400 ml-0.5">{{ sk.usedCount }}x</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Support Cards -->
+                    <div v-if="h.supportCards.length" class="border-t border-slate-700/50 pt-2">
+                      <span class="text-slate-400 font-bold text-[10px] tracking-wide">SUPPORT DECK</span>
+                      <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-0.5">
+                        <span v-for="sc in h.supportCards" :key="sc.id" class="text-slate-400">
+                          <span class="text-amber-400 text-[10px]">{{ resolveSupportCardRarity(sc.id) }}</span>
+                          <span class="text-white">{{ getSupportCardNameByNumericId(sc.id) }}</span>
+                          <span class="text-amber-400">LB{{ sc.lb }}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Parents -->
+                    <div v-if="h.parents.length" class="border-t border-slate-700/50 pt-2">
+                      <span class="text-slate-400 font-bold text-[10px] tracking-wide">PARENTS</span>
+                      <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-0.5">
+                        <span v-for="(p, pi) in h.parents" :key="pi" class="text-slate-400">
+                          <span class="text-violet-300">#{{ p.cardId }}</span>
+                          <span class="text-amber-400 text-[10px]">{{ ['', 'R', 'SR', 'SSR', 'SSR+'][p.rarity] || 'R' }}</span>
+                          <span class="text-slate-500">Lv{{ p.level }}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>

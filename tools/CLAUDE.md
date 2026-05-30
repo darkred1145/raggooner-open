@@ -23,7 +23,7 @@ Standalone Python scripts for extracting game data from the Umamusume Pretty Der
 
 All msgpack data found in memory is training-deck snapshots inside trained uma entries (`support_card_list` fixarray(6) inside trained uma maps, alongside `skill_array`, `proper_distance_*` fields). The actual card inventory (all owned cards + limit break counts) is a C# object in the IL2CPP managed heap and cannot be found by scanning for msgpack byte patterns.
 
-## IL2CPP-based Scripts (new approach)
+## IL2CPP-based Scripts
 
 The msgpack scanning approach cannot reach the managed heap.  These scripts use
 the IL2CPP runtime API (`GameAssembly.dll` exports) to read C# objects directly —
@@ -31,9 +31,10 @@ the same technique used by the horseACT Hachimi plugin.
 
 | Script | Purpose |
 |---|---|
-| `dump_il2cpp_classes.py` | Static dump of every IL2CPP class + methods in the process. Use `--filter` to search by keyword (e.g. `--filter SupportCard`). Produces a JSON you can grep offline to find the right class/method to hook. |
-| `track_active_classes.py` | Hooks `il2cpp_object_new` and records every class being instantiated. Navigate to a specific screen, press Enter to snapshot what was created. Useful for narrowing down which class backs a given UI screen. |
-| `extract_inventory.py` | **Main extractor.** Hooks `WorkSupportCardData.GetSupportCardList()` and `WorkTrainedCharaData.get_List()` to read the full owned support-card inventory and trained-uma roster. Navigate to the relevant screens, then press Enter to save JSON. |
+| `dump_il2cpp_classes.py` | Static dump of every IL2CPP class + methods. Use `--filter` to search by keyword. Produces a JSON you can grep offline. |
+| `track_active_classes.py` | Hooks `il2cpp_object_new` and records every class instantiated on screen. |
+| `extract_inventory.py` | Extracts owned support-card inventory and trained-uma roster. |
+| `extract_game_data.py` | **Self-hosted data generator.** Extracts skill, character, and card name databases from the game to produce `skills.json`, `charas.json`, `cards.json` — replacing third-party sources like `umdb.binarypb`. |
 
 ### Recommended workflow for finding a new data source
 
