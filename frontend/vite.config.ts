@@ -1,9 +1,29 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
+import type { Plugin } from 'vite'
 
-// https://vite.dev/config/
+function reorderHeadPlugin(): Plugin {
+  return {
+    name: 'reorder-head',
+    enforce: 'post',
+    transformIndexHtml(html: string) {
+      // Make external resources non-blocking so the parser reaches
+      // the Vite-injected CSS link before first paint
+      html = html.replace(
+        '<script src="https://unpkg.com/@phosphor-icons/web"></script>',
+        '<script src="https://unpkg.com/@phosphor-icons/web" defer></script>',
+      )
+      html = html.replace(
+        '<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">',
+        '<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" media="print" onload="this.media=\'all\'">',
+      )
+      return html
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), reorderHeadPlugin()],
   test: {
     globals: true,
     environment: 'happy-dom',
@@ -21,6 +41,6 @@ export default defineConfig({
     }
   },
   build: {
-    chunkSizeWarningLimit: 1000 // Set limit to 1000kB (1MB)
+    chunkSizeWarningLimit: 1000
   }
 })
