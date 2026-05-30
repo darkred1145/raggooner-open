@@ -60,6 +60,8 @@ const props = defineProps<{
 }>();
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
+const replayWrap = ref<HTMLDivElement | null>(null);
+const isFullscreen = ref(false);
 const playing = ref(false);
 const done = ref(false);
 const elapsedTime = ref(0);
@@ -698,7 +700,25 @@ onMounted(async () => {
   }
 });
 
-onUnmounted(() => { cancelAnimationFrame(animFrame); });
+const toggleFullscreen = () => {
+  if (!replayWrap.value) return;
+  if (!document.fullscreenElement) {
+    replayWrap.value.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('fullscreenchange', () => {
+    isFullscreen.value = !!document.fullscreenElement;
+  });
+});
+
+onUnmounted(() => {
+  cancelAnimationFrame(animFrame);
+  document.removeEventListener('fullscreenchange', () => {});
+});
 
 watch(() => props.simData, (sd) => { if (sd) nextTick(() => render(0, sd)); });
 
@@ -749,7 +769,8 @@ const horseProgress = (horseIndex: number) => {
 </script>
 
 <template>
-  <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+  <div ref="replayWrap" class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar"
+       :class="{ '!max-h-none !rounded-none !border-0': isFullscreen }">
     <div class="p-6 border-b border-slate-700 flex items-start justify-between gap-4">
       <div class="space-y-1 w-full">
         <h2 class="text-2xl font-bold text-white flex items-center gap-3">
@@ -810,7 +831,10 @@ const horseProgress = (horseIndex: number) => {
             {{ s }}x
           </button>
         </div>
-        <div class="flex items-center gap-2 ml-2 text-[10px] text-slate-500 hidden md:flex">
+        <button @click="toggleFullscreen" class="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-slate-700 text-slate-500 hover:text-white transition-colors ml-1" :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'">
+          <i :class="isFullscreen ? 'ph-bold ph-compress' : 'ph-bold ph-arrows-out'"></i>
+        </button>
+        <div class="flex items-center gap-2 ml-1 text-[10px] text-slate-500 hidden md:flex">
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#ef4444"></span>Blocked</span>
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#fbbf24"></span>Low HP</span>
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#22d3ee"></span>Speed</span>
