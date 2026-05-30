@@ -570,7 +570,8 @@ const unknownCards = computed(() =>
                     </div>
                 </div>
 
-                <!-- Unknown cards warning -->
+                <!-- Unknown cards warning (always reserve space) -->
+                <div class="min-h-[56px]">
                 <div v-if="unknownCards.length > 0" class="px-5 py-3 border-b border-amber-500/20 bg-amber-500/5">
                     <div class="text-xs text-amber-400 font-bold mb-2">
                         <i class="ph-bold ph-warning"></i> {{ unknownCards.length }} card(s) with outdated IDs
@@ -587,6 +588,7 @@ const unknownCards = computed(() =>
                             </button>
                         </div>
                     </div>
+                </div>
                 </div>
 
                 <!-- Card grid -->

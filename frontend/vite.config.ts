@@ -15,7 +15,7 @@ function reorderHeadPlugin(): Plugin {
       )
       html = html.replace(
         '<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">',
-        '<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=optional" rel="stylesheet">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap">\n    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">',
       )
       return html
     },
