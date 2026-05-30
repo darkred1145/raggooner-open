@@ -8,23 +8,18 @@ const route = useRoute();
 const { linkedPlayer } = useAuth();
 const { can } = useUserRoles();
 
-const baseNav = [
-    { to: '/',          icon: 'ph-fill ph-flag-checkered', label: 'Play',      sub: 'Tournaments' },
-    { to: '/analytics', icon: 'ph-fill ph-chart-line-up',  label: 'Analytics', sub: 'Global Stats' },
-    { to: '/tools',     icon: 'ph-fill ph-wrench',          label: 'Tools',     sub: 'Rollers' },
-];
+interface NavItem {
+    to: string; icon: string; label: string; sub: string; visible: boolean;
+}
 
-const profileNav = { to: '/profile', icon: 'ph-fill ph-user-circle', label: 'Profile', sub: 'My Account' };
-const settingsNav = { to: '/settings', icon: 'ph-fill ph-sliders', label: 'Settings', sub: 'Defaults' };
-const adminNav = { to: '/admin/users', icon: 'ph-fill ph-shield-check', label: 'Admin', sub: 'User Roles' };
-
-const nav = computed(() => {
-    const items = [...baseNav];
-    if (linkedPlayer.value) items.push(profileNav);
-    if (can('create_official_tournament')) items.push(settingsNav);
-    if (can('manage_users')) items.push(adminNav);
-    return items;
-});
+const nav = computed<NavItem[]>(() => [
+    { to: '/',          icon: 'ph-fill ph-flag-checkered', label: 'Play',      sub: 'Tournaments', visible: true },
+    { to: '/analytics', icon: 'ph-fill ph-chart-line-up',  label: 'Analytics', sub: 'Global Stats', visible: true },
+    { to: '/tools',     icon: 'ph-fill ph-wrench',          label: 'Tools',     sub: 'Rollers',      visible: true },
+    { to: '/profile',   icon: 'ph-fill ph-user-circle',    label: 'Profile',   sub: 'My Account',   visible: !!linkedPlayer.value },
+    { to: '/settings',  icon: 'ph-fill ph-sliders',        label: 'Settings',  sub: 'Defaults',     visible: can('create_official_tournament') },
+    { to: '/admin/users', icon: 'ph-fill ph-shield-check', label: 'Admin',     sub: 'User Roles',   visible: can('manage_users') },
+]);
 
 function isActive(to: string) {
     if (to === '/') return route.path === '/';
@@ -40,9 +35,12 @@ function isActive(to: string) {
             :key="item.to"
             :to="item.to"
             class="group flex-1 basis-12 rounded-xl p-2 md:p-4 flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 transition-colors border"
-            :class="isActive(item.to)
-                ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20 cursor-default pointer-events-none'
-                : 'bg-slate-800 border-slate-700 hover:border-indigo-500 hover:bg-slate-750 cursor-pointer'"
+            :class="[
+                item.visible ? '' : 'invisible pointer-events-none',
+                isActive(item.to)
+                    ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20 cursor-default pointer-events-none'
+                    : 'bg-slate-800 border-slate-700 hover:border-indigo-500 hover:bg-slate-750 cursor-pointer'
+            ]"
         >
             <i :class="[item.icon, 'text-2xl', isActive(item.to) ? 'text-white' : 'text-indigo-400 group-hover:text-indigo-300']"></i>
             <div class="hidden md:block">

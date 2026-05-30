@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineOptions({ inheritAttrs: false });
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useAuth } from '../composables/useAuth';
 import { getFilteredUmas, getUmaImagePath } from '../utils/umaData';
 import {
@@ -87,22 +87,36 @@ const toggleUma = async (umaName: string) => {
 const savingCards = ref(false);
 const selectedForEdit = ref<string | null>(null);
 const cardSearch = ref('');
+const debouncedCardSearch = ref('');
+let cardSearchTimer: ReturnType<typeof setTimeout>;
+watch(cardSearch, (v) => {
+    clearTimeout(cardSearchTimer);
+    cardSearchTimer = setTimeout(() => { debouncedCardSearch.value = v; }, 200);
+});
 
 const ownedCards = computed<ProfileSupportCard[]>(() =>
     linkedPlayer.value?.supportCards ?? []
 );
 
+const cardDataCache = computed(() => {
+    const map = new Map<string, ReturnType<typeof resolveCardData>>();
+    for (const c of ownedCards.value) {
+        map.set(c.cardId, resolveCardData(c.cardId));
+    }
+    return map;
+});
+
 const filteredOwnedCards = computed(() => {
-    const q = cardSearch.value.toLowerCase();
+    const q = debouncedCardSearch.value.toLowerCase();
     return ownedCards.value
         .filter(c => {
-            const meta = resolveCardData(c.cardId);
+            const meta = cardDataCache.value.get(c.cardId);
             if (!meta) return false;
             return matchesSupportCardSearch(c.cardId, q);
         })
         .sort((a, b) => {
-            const ca = resolveCardData(a.cardId);
-            const cb = resolveCardData(b.cardId);
+            const ca = cardDataCache.value.get(a.cardId);
+            const cb = cardDataCache.value.get(b.cardId);
             if (!ca || !cb) return 0;
             if (ca.type !== cb.type) return ca.type.localeCompare(cb.type);
             return ca.name.localeCompare(cb.name);
