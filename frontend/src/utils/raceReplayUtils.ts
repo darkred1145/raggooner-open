@@ -196,7 +196,7 @@ function classifyFactorId(factorId: number): 'stat' | 'aptitude' | 'race' | 'sce
 }
 
 export function getFactorLabel(factorId: number, _level: number, skillDb: Map<number, SkillEntry> | null | undefined, factorNames?: Map<number, string> | null): string {
-  const lvl = Math.max(1, factorId % 100);
+  const lvl = Math.max(1, _level);
   const baseId = Math.floor(factorId / 100);
 
   // Canonical name from TextData[147] — use it for any factor type if available
@@ -258,11 +258,12 @@ export function aggregateFactors(factors: { factorId: number; level: number }[])
   const groups = new Map<string, { factorId: number; level: number }>();
   for (const f of factors) {
     const key = getFactorKey(f.factorId);
+    const lvl = Math.max(1, f.factorId % 100);
     const existing = groups.get(key);
     if (existing) {
-      existing.level += f.level;
+      existing.level += lvl;
     } else {
-      groups.set(key, { factorId: f.factorId, level: f.level });
+      groups.set(key, { factorId: f.factorId, level: lvl });
     }
   }
   return [...groups.values()].sort((a, b) => getFactorSortOrder(a.factorId) - getFactorSortOrder(b.factorId));
