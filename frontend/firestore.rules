@@ -66,6 +66,15 @@ service cloud.firestore {
         allow create, update: if request.auth != null && request.auth.uid == userId;
       }
 
+      // 10. SHARED REPLAYS
+      match /sharedReplays/{docId} {
+        allow read: if true;
+        allow create: if request.resource.data.keys().hasAll(['json', 'createdAt'])
+          && request.resource.data.json is string
+          && request.resource.data.json.size() < 500000;
+        allow delete: if request.auth != null;
+      }
+
       // 9. USER ROLES
       match /userRoles/{uid} {
         // Anyone logged in can read roles (needed for the UI list to render)
