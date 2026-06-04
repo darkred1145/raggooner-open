@@ -20,6 +20,11 @@ const sharing = ref(false);
 const shareCopied = ref(false);
 const loadingFromShare = ref(false);
 
+const shareId = getShareIdFromUrl();
+if (shareId) {
+  loadingFromShare.value = true;
+}
+
 const loadRawJson = (text: string, name: string) => {
   error.value = null;
   replayData.value = null;
@@ -185,9 +190,8 @@ const loadFromShare = async (id: string) => {
 };
 
 onMounted(() => {
-  const id = getShareIdFromUrl();
-  if (id) {
-    loadFromShare(id);
+  if (shareId) {
+    loadFromShare(shareId);
   }
 });
 
