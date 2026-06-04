@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import RaceReplayVisualization, { type ReplayData } from '../components/race/RaceReplayVisualization.vue';
 import { normalizeReplayData, extractSimDataBase64 } from '../utils/replayUtils';
 import { decodeRaceSimData, parseRaceSimDataFromJson, extendFramesToFinish, type RaceSimulateData } from '../utils/raceSimDecoder';
-import { fetchReplayJson, uploadReplayJson, buildShareUrl, getShareIdFromUrl } from '../utils/replayShare';
+import { fetchReplayJson, uploadReplayJson, buildShareUrl } from '../utils/replayShare';
 
 const props = defineProps<{ standalone?: boolean }>();
+const route = useRoute();
 const loading = ref(false);
 const fileInputEl = ref<HTMLInputElement | null>(null);
 const triggerFileInput = () => fileInputEl.value?.click();
@@ -20,7 +22,7 @@ const sharing = ref(false);
 const shareCopied = ref(false);
 const loadingFromShare = ref(false);
 
-const shareId = getShareIdFromUrl();
+const shareId = route.query.id as string | undefined;
 if (shareId) {
   loadingFromShare.value = true;
 }
