@@ -57,12 +57,41 @@ function decodeChara(bytes: Uint8Array, offset: number, end: number): { entry: C
   return { entry: { id, name }, nextOffset: pos };
 }
 
-function decodeUmdb(bytes: Uint8Array): CharNameEntry[] {
+type TextDataEntry = { index: number; text: string };
+
+function decodeTextDataEntry(bytes: Uint8Array, offset: number, end: number): { entry: TextDataEntry; category: number; nextOffset: number } {
+  let category = 0, index = 0, text = '';
+  let pos = offset;
+  while (pos < end) {
+    const [fieldNum, wireType, next] = readTag(bytes, pos);
+    pos = next;
+    if (fieldNum === 2 && wireType === 0) {
+      const [val, n] = readVarint(bytes, pos);
+      category = val;
+      pos = n;
+    } else if (fieldNum === 3 && wireType === 0) {
+      const [val, n] = readVarint(bytes, pos);
+      index = val;
+      pos = n;
+    } else if (fieldNum === 4 && wireType === 2) {
+      const [len, n] = readVarint(bytes, pos);
+      pos = n;
+      text = new TextDecoder().decode(bytes.slice(pos, pos + len));
+      pos += len;
+    } else {
+      pos = skipField(bytes, pos, wireType);
+    }
+  }
+  return { entry: { index, text }, category, nextOffset: pos };
+}
+
+function decodeUmdb(bytes: Uint8Array): { charas: CharNameEntry[]; factorNames: Map<number, string> } {
   const charas: CharNameEntry[] = [];
+  const factorNames = new Map<number, string>();
   let pos = 0;
   while (pos < bytes.length) {
     const [fieldNum, wireType, next] = readTag(bytes, pos);
-    if (fieldNum === 0 && wireType === 0) break; // end of stream
+    if (fieldNum === 0 && wireType === 0) break;
     pos = next;
     if (fieldNum === 2 && wireType === 2) {
       const [len, n] = readVarint(bytes, pos);
@@ -71,29 +100,55 @@ function decodeUmdb(bytes: Uint8Array): CharNameEntry[] {
       const { entry } = decodeChara(bytes, pos, msgEnd);
       charas.push(entry);
       pos = msgEnd;
+    } else if (fieldNum === 12 && wireType === 2) {
+      const [len, n] = readVarint(bytes, pos);
+      pos = n;
+      const msgEnd = pos + len;
+      const { entry, category } = decodeTextDataEntry(bytes, pos, msgEnd);
+      if (category === 147 && entry.text) {
+        factorNames.set(entry.index, entry.text);
+      }
+      pos = msgEnd;
     } else {
       pos = skipField(bytes, pos, wireType);
     }
   }
-  return charas;
+  return { charas, factorNames };
 }
 
 let charaNameMap: Map<number, string> | null = null;
+let factorNameMap: Map<number, string> | null = null;
 
 export async function loadUmdbCharacterNames(): Promise<Map<number, string>> {
   if (charaNameMap) return charaNameMap;
+  await loadUmdbData();
+  return charaNameMap!;
+}
 
-  const response = await fetch('/data/umdb.binarypb.gz', { cache: 'no-cache' });
-  if (!response.ok) throw new Error(`Failed to fetch umdb.binarypb.gz (${response.status})`);
-  const compressed = await response.arrayBuffer();
-  const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
-  const buf = await new Response(stream).arrayBuffer();
-  const bytes = new Uint8Array(buf);
+export async function loadFactorNames(): Promise<Map<number, string>> {
+  if (factorNameMap) return factorNameMap;
+  await loadUmdbData();
+  return factorNameMap!;
+}
 
-  const entries = decodeUmdb(bytes);
-  charaNameMap = new Map();
-  for (const e of entries) {
-    charaNameMap.set(e.id, e.name);
-  }
-  return charaNameMap;
+let loadingPromise: Promise<void> | null = null;
+
+async function loadUmdbData(): Promise<void> {
+  if (loadingPromise) return loadingPromise;
+  loadingPromise = (async () => {
+    const response = await fetch('/data/umdb.binarypb.gz', { cache: 'no-cache' });
+    if (!response.ok) throw new Error(`Failed to fetch umdb.binarypb.gz (${response.status})`);
+    const compressed = await response.arrayBuffer();
+    const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const buf = await new Response(stream).arrayBuffer();
+    const bytes = new Uint8Array(buf);
+
+    const { charas, factorNames } = decodeUmdb(bytes);
+    charaNameMap = new Map();
+    for (const e of charas) {
+      charaNameMap.set(e.id, e.name);
+    }
+    factorNameMap = factorNames;
+  })();
+  return loadingPromise;
 }

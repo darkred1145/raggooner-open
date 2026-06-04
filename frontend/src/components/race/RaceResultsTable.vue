@@ -62,6 +62,7 @@ const props = defineProps<{
   horsesDetailed: HorseDetail[];
   expandedRow: number | null;
   skillDb: Map<number, SkillEntry> | null | undefined;
+  factorNames: Map<number, string> | null | undefined;
   effectColors: Record<string, string>;
   styleColors: Record<string, string>;
   styleNames: Record<string, string>;
@@ -273,7 +274,7 @@ function getParentGroup(parents: HorseDetail['parents'], groupIndex: number) {
                         <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-0.5 mb-1">
                           <span v-for="(f, fi) in aggregateFactors(getParentGroup(h.parents, gi).flatMap(p => p.factors))" :key="gi + '-' + fi"
                                 :class="getFactorColor(f.factorId)" class="text-[11px]">
-                            {{ getFactorLabel(f.factorId, f.level, skillDb) }}
+                            {{ getFactorLabel(f.factorId, f.level, skillDb, factorNames) }}
                           </span>
                         </div>
                       </template>

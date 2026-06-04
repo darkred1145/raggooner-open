@@ -14,7 +14,7 @@ import { computeHeuristicEvents, computeHpOutcome, computeDuelDurations, compute
 import type { HeuristicSummary, HeuristicHorseInfo } from '../../utils/raceHeuristicEvents';
 import { computeGroundPowerBonus, getTrackStatThresholdModifier } from '../../utils/speedCalculations';
 import { gameDataLoader } from '../../utils/gameDataLoader';
-import { loadUmdbCharacterNames } from '../../utils/umdbLoader';
+import { loadUmdbCharacterNames, loadFactorNames } from '../../utils/umdbLoader';
 import { MOOD_INPUT_MAP } from '../../utils/raceReplayUtils';
 import { useRaceCanvas } from '../../composables/useRaceCanvas';
 import RaceReplayControls from './RaceReplayControls.vue';
@@ -49,6 +49,7 @@ const expandedRow = ref<number | null>(null);
 const courseDataReady = ref(false);
 const gameDataReady = ref(false);
 const umdbCharacterNames = ref<Map<number, string> | null>(null);
+const factorNames = ref<Map<number, string> | null>(null);
 
 const GROUND_CONDITION_MAP: Record<string, number> = { Firm: 1, Good: 2, Soft: 3, Heavy: 4 };
 
@@ -417,6 +418,11 @@ onMounted(async () => {
   } catch {
     console.warn('UMDB character names not available, using fallback names');
   }
+  try {
+    factorNames.value = await loadFactorNames();
+  } catch {
+    console.warn('Factor names not available, using fallback labels');
+  }
   if (hasSimData.value && props.simData) {
     nextTick(() => canvasRender(0, props.simData!));
   }
@@ -499,6 +505,7 @@ watch(() => props.simData, (sd) => {
       :horses-detailed="horsesDetailed"
       :expanded-row="expandedRow"
       :skill-db="skillDb"
+      :factor-names="factorNames"
       :effect-colors="effectColors"
       :style-colors="styleColors"
       :style-names="styleNames"

@@ -195,10 +195,15 @@ function classifyFactorId(factorId: number): 'stat' | 'aptitude' | 'race' | 'sce
   return 'skill';
 }
 
-export function getFactorLabel(factorId: number, _level: number, skillDb: Map<number, SkillEntry> | null | undefined): string {
-  const cls = classifyFactorId(factorId);
+export function getFactorLabel(factorId: number, _level: number, skillDb: Map<number, SkillEntry> | null | undefined, factorNames?: Map<number, string> | null): string {
   const lvl = Math.max(1, factorId % 100);
   const baseId = Math.floor(factorId / 100);
+
+  // Canonical name from TextData[147] — use it for any factor type if available
+  const canonicalName = factorNames?.get(factorId);
+  if (canonicalName) return `${canonicalName} ${'★'.repeat(lvl)}`;
+
+  const cls = classifyFactorId(factorId);
   if (cls === 'stat') {
     const name = FACTOR_STAT_NAMES[baseId] || '?';
     return `${name} ${'★'.repeat(lvl)}`;
