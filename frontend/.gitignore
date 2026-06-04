@@ -32,3 +32,6 @@ index-backup.html
 emulator-data/
 analytics.json
 *-database-backup.json
+
+# Game data gz files — copied locally from game client, never committed
+public/data/*.gz

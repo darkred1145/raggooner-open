@@ -12,6 +12,7 @@ export type ReplayParentEntry = {
   cardId: number;
   rarity: number;
   level: number;
+  positionId: number;
   charaName: string;
   factors: ReplayParentFactor[];
 };
@@ -184,47 +185,68 @@ export function lerp(a: number, b: number, t: number) { return a + (b - a) * t; 
 
 export function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)); }
 
-export function getFactorLabel(factorId: number, level: number, skillDb: Map<number, SkillEntry> | null | undefined): string {
-  if (factorId >= 100 && factorId < 600) {
-    const statIdx = Math.floor(factorId / 100);
-    const lvl = factorId % 100;
-    const name = FACTOR_STAT_NAMES[statIdx] || '?';
-    return `${name} ${'★'.repeat(Math.max(1, lvl))}`;
+function classifyFactorId(factorId: number): 'stat' | 'aptitude' | 'race' | 'scenario' | 'uniqueSkill' | 'skill' {
+  const s = String(factorId);
+  if (s.length === 3) return 'stat';
+  if (s.length === 4) return 'aptitude';
+  if (s.length === 7 && s[0] === '1') return 'race';
+  if (s.length === 7 && s[0] === '3') return 'scenario';
+  if (s.length === 8) return 'uniqueSkill';
+  return 'skill';
+}
+
+export function getFactorLabel(factorId: number, _level: number, skillDb: Map<number, SkillEntry> | null | undefined): string {
+  const cls = classifyFactorId(factorId);
+  const lvl = Math.max(1, factorId % 100);
+  const baseId = Math.floor(factorId / 100);
+  if (cls === 'stat') {
+    const name = FACTOR_STAT_NAMES[baseId] || '?';
+    return `${name} ${'★'.repeat(lvl)}`;
   }
-  if (factorId >= 1000 && factorId < 10000) {
-    const type = Math.floor(factorId / 100);
-    const lvl = factorId % 100;
-    const name = FACTOR_APT_NAMES[type] || `Apt#${type}`;
-    return `${name} ${'★'.repeat(Math.max(1, lvl))}`;
+  if (cls === 'aptitude') {
+    const name = FACTOR_APT_NAMES[baseId] || `Apt#${baseId}`;
+    return `${name} ${'★'.repeat(lvl)}`;
   }
-  if (factorId >= 1000000) {
-    const skillId = Math.floor(factorId / 100);
-    const lvl = factorId % 100;
-    if (skillDb) {
-      const se = skillDb.get(skillId);
-      if (se) {
-        const sn = se.name_en || se.enname || getSkillName(skillId);
-        return `${sn} ${'★'.repeat(Math.max(1, lvl))}`;
-      }
-    }
-    const fallback = getSkillName(skillId);
-    if (fallback) return `${fallback} ${'★'.repeat(Math.max(1, lvl))}`;
-    return `★${Math.max(1, lvl)}`;
+  if (cls === 'race') {
+    return `Race #${baseId} ${'★'.repeat(lvl)}`;
   }
-  return `Factor #${factorId}${level > 0 ? ` ★${level}` : ''}`;
+  if (cls === 'scenario') {
+    return `Scenario #${baseId} ${'★'.repeat(lvl)}`;
+  }
+  if (cls === 'uniqueSkill') {
+    const se = skillDb?.get(baseId);
+    const sn = se?.name_en || se?.enname || getSkillName(baseId);
+    if (sn) return `${sn} ${'★'.repeat(lvl)}`;
+    return `Unique #${baseId} ${'★'.repeat(lvl)}`;
+  }
+  const se = skillDb?.get(baseId);
+  const sn = se?.name_en || se?.enname || getSkillName(baseId);
+  if (sn) return `${sn} ${'★'.repeat(lvl)}`;
+  return `Skill #${baseId} ${'★'.repeat(lvl)}`;
 }
 
 export function getFactorKey(factorId: number): string {
-  if (factorId >= 100 && factorId < 600) return `b${Math.floor(factorId / 100)}`;
-  if (factorId >= 1000 && factorId < 10000) return `a${Math.floor(factorId / 100)}`;
-  if (factorId >= 1000000) return `s${Math.floor(factorId / 100)}`;
-  return `f${factorId}`;
+  const cls = classifyFactorId(factorId);
+  const baseId = Math.floor(factorId / 100);
+  const prefix: Record<string, string> = { stat: 'b', aptitude: 'a', race: 'r', scenario: 'c', uniqueSkill: 'u', skill: 's' };
+  return `${prefix[cls] || 'f'}${baseId}`;
 }
 
 export function getFactorSortOrder(factorId: number): number {
-  if (factorId >= 100 && factorId < 600) return 0;
-  if (factorId >= 1000 && factorId < 10000) return 1;
-  return 2;
+  const order: Record<string, number> = { stat: 0, aptitude: 1, uniqueSkill: 2, race: 3, scenario: 4, skill: 5 };
+  return order[classifyFactorId(factorId)] ?? 9;
+}
+
+export function getFactorColor(factorId: number): string {
+  const cls = classifyFactorId(factorId);
+  if (cls === 'stat') {
+    const statMap: Record<number, string> = { 1: 'text-sky-400', 2: 'text-red-400', 3: 'text-orange-400', 4: 'text-pink-400', 5: 'text-green-400' };
+    return statMap[Math.floor(factorId / 100)] || 'text-slate-400';
+  }
+  if (cls === 'aptitude') return 'text-red-400';
+  if (cls === 'race' || cls === 'scenario') return 'text-purple-400';
+  if (cls === 'uniqueSkill') return 'text-emerald-400';
+  return 'text-slate-400';
 }
 
 export function aggregateFactors(factors: { factorId: number; level: number }[]): { factorId: number; level: number }[] {
@@ -239,14 +261,6 @@ export function aggregateFactors(factors: { factorId: number; level: number }[])
     }
   }
   return [...groups.values()].sort((a, b) => getFactorSortOrder(a.factorId) - getFactorSortOrder(b.factorId));
-}
-
-export function getFactorColor(factorId: number): string {
-  if (factorId >= 100 && factorId < 600) {
-    const statMap: Record<number, string> = { 1: 'text-sky-400', 2: 'text-red-400', 3: 'text-orange-400', 4: 'text-pink-400', 5: 'text-green-400' };
-    return statMap[Math.floor(factorId / 100)] || 'text-slate-400';
-  }
-  return 'text-slate-400';
 }
 
 export function chunkArray<T>(arr: T[], size: number): T[][] {

@@ -1,8 +1,10 @@
 import type { FrameData, EventData } from './raceSimDecoder';
+import type { SkillEntry } from './skillDatabase';
 import {
   MIN_EVENT_DURATION,
   BASE_SPEED_CONSTANT, BASE_SPEED_COURSE_OFFSET, BASE_SPEED_COURSE_SCALE,
   HP_CONSUMPTION_SCALE, HP_CONSUMPTION_SPEED_OFFSET, HP_CONSUMPTION_DIVISOR,
+  SLOPE_SCALE, SLOPE_PENALTY_COEFF,
   POSITION_KEEP_END_RATIO,
   COURSE_FACTOR_BASE_DIST, COURSE_FACTOR_MULTIPLIER,
   DOWNHILL_BONUS_BASE, DOWNHILL_BONUS_DIVISOR,
@@ -20,10 +22,21 @@ import {
   PACE_DOWN_EXIT_ACCEL, PACE_DOWN_EXIT_SPEED_RATIO,
   LEADER_PROXIMITY_EPSILON,
 } from './raceConstants';
-import { calculateTargetSpeed, computeReferenceHpConsumption } from './speedCalculations';
+import {
+  calculateTargetSpeed, computeReferenceHpConsumption,
+  computeGroundPowerBonus, adjustStat,
+  STRATEGY_PROFICIENCY_MODIFIER,
+} from './speedCalculations';
 
 export const DUEL_HP_THRESHOLD_RATIO = 0.05;
 export const DEATH_EPSILON = 0.1;
+
+const COMPETE_FIGHT = 2;
+const COMPETE_TOP = 1;
+const SKILL_EVENT = 3;
+
+const SKILL_TIME_SCALE = 10000;
+const DEFAULT_SKILL_DURATION = 2.0;
 
 export type HeuristicSummary = {
   downhillDuration: number;
@@ -51,6 +64,8 @@ export type HeuristicHorseInfo = {
   distanceProficiency: number;
   strategyProficiency: number;
   isOonige?: boolean;
+  trackSpeedMultiplier?: number;
+  frontRunnerProficiency?: number;
 };
 
 type PositionKeepRange = { min: number; max: number };
@@ -66,12 +81,314 @@ export function getCurrentSlope(dist: number, slopes: { start: number; length: n
   return seg?.slope ?? 0;
 }
 
+function resolveSkillDb(skillDb: Map<number, SkillEntry> | null | undefined, skillId: number): SkillEntry | undefined {
+  let entry = skillDb?.get(skillId);
+  if (!entry && skillId >= 900000 && skillId < 1000000) {
+    entry = skillDb?.get(skillId - 800000);
+  }
+  return entry;
+}
+
+function getSkillBaseTime(skillDb: Map<number, SkillEntry> | null | undefined, skillId: number, conditionGroupIndex?: number): number {
+  const entry = resolveSkillDb(skillDb, skillId);
+  if (!entry?.condition_groups?.length) return 0;
+  const idx = conditionGroupIndex != null && conditionGroupIndex >= 0 && conditionGroupIndex < entry.condition_groups.length
+    ? conditionGroupIndex : 0;
+  return entry.condition_groups[idx]?.base_time ?? 0;
+}
+
+function getSkillDurationSecs(skillDb: Map<number, SkillEntry> | null | undefined, skillId: number, courseDistance: number, frameTime: number, reportedDuration?: number, conditionGroupIndex?: number): number {
+  const isInitial = Math.abs(frameTime) < 1e-9;
+
+  if (!isInitial) {
+    if (reportedDuration != null && reportedDuration > 0) {
+      return reportedDuration / SKILL_TIME_SCALE;
+    }
+    return DEFAULT_SKILL_DURATION;
+  }
+
+  const baseTime = getSkillBaseTime(skillDb, skillId, conditionGroupIndex);
+  if (baseTime > 0) {
+    return (baseTime / SKILL_TIME_SCALE) * (courseDistance / 1000);
+  }
+  return DEFAULT_SKILL_DURATION;
+}
+
+function getActiveSpeedModifier(skillDb: Map<number, SkillEntry> | null | undefined, skillId: number, conditionGroupIndex?: number, skillLevel?: number): number {
+  const entry = resolveSkillDb(skillDb, skillId);
+  if (!entry?.condition_groups?.length) return 0;
+
+  const idx = conditionGroupIndex != null && conditionGroupIndex >= 0 && conditionGroupIndex < entry.condition_groups.length
+    ? conditionGroupIndex : 0;
+  const group = entry.condition_groups[idx];
+  if (!group?.effects?.length) return 0;
+
+  let speedInc = 0;
+  for (const eff of group.effects) {
+    if (eff.type === 22 || eff.type === 27) {
+      speedInc += eff.value / 10000;
+    }
+  }
+  if (skillId === 210061) return 0.3;
+  if (skillId === 210062) return 0.06;
+  if (skillId >= 200000 || speedInc <= 0) return speedInc;
+  const level = Math.max(1, Math.min(6, Math.floor(skillLevel ?? 1)));
+  const UNIQUE_SKILL_LEVEL_SPEED_MULTIPLIERS = [1, 1.01, 1.04, 1.07, 1.10, 1.13];
+  return speedInc * UNIQUE_SKILL_LEVEL_SPEED_MULTIPLIERS[level - 1]!;
+}
+
+export function computeSkillActivations(
+  events: EventData[],
+  horseCount: number,
+): Record<number, { time: number; name: string; param: number[] }[]> {
+  const result: Record<number, { time: number; name: string; param: number[] }[]> = {};
+  for (let i = 0; i < horseCount; i++) result[i] = [];
+  for (const evt of events) {
+    if (evt.type !== SKILL_EVENT) continue;
+    const horseIdx = evt.param[0]!;
+    if (horseIdx < 0 || horseIdx >= horseCount) continue;
+    if (!result[horseIdx]) result[horseIdx] = [];
+    result[horseIdx].push({ time: evt.frameTime, name: `Skill #${evt.param[1]!}`, param: [...evt.param] });
+  }
+  return result;
+}
+
+export function computePassiveStatModifiers(
+  skillActivations: Record<number, { param: number[] }[]>,
+  skillDb: Map<number, SkillEntry> | null | undefined,
+): Record<number, { speed: number; stamina: number; power: number; guts: number; wisdom: number }> {
+  const result: Record<number, { speed: number; stamina: number; power: number; guts: number; wisdom: number }> = {};
+  for (const horseIdx of Object.keys(skillActivations).map(Number)) {
+    const mods = { speed: 0, stamina: 0, power: 0, guts: 0, wisdom: 0 };
+    const activatedIds = new Set<number>();
+    for (const act of skillActivations[horseIdx] ?? []) {
+      activatedIds.add(act.param[1]!);
+    }
+    for (const skillId of activatedIds) {
+      const entry = skillDb?.get(skillId);
+      if (!entry?.condition_groups) continue;
+      for (const group of entry.condition_groups) {
+        for (const eff of group.effects ?? []) {
+          const val = eff.value / 10000;
+          switch (eff.type) {
+            case 1: mods.speed += val; break;
+            case 2: mods.stamina += val; break;
+            case 3: mods.power += val; break;
+            case 4: mods.guts += val; break;
+            case 5: mods.wisdom += val; break;
+          }
+        }
+      }
+    }
+    result[horseIdx] = mods;
+  }
+  return result;
+}
+
+const SPOT_STRUGGLE_DIST_RATIO = 9 / 24;
+const SPOT_STRUGGLE_GUTS_DURATION_BASE = 700;
+const SPOT_STRUGGLE_GUTS_DURATION_EXPONENT = 0.5;
+const SPOT_STRUGGLE_GUTS_DURATION_SCALE = 0.012;
+const DUEL_RECENT_UPHILL_EXIT_GRACE = 4.0;
+
+export function computeOtherEvents(
+  events: EventData[],
+  frames: FrameData[],
+  horseInfos: HeuristicHorseInfo[],
+  courseDistance: number,
+  slopes: { start: number; length: number; slope: number }[],
+  skillDb: Map<number, SkillEntry> | null | undefined,
+  skillActivations: Record<number, { time: number; param: number[] }[]>,
+  surface: number,
+  groundCondition: number,
+): Record<number, { time: number; duration: number; name: string }[]> {
+  const allOtherEvents: Record<number, { time: number; duration: number; name: string }[]> = {};
+  if (!frames.length) return allOtherEvents;
+
+  const groundPowerBonus = computeGroundPowerBonus(surface, groundCondition);
+  const horseMap = new Map<number, HeuristicHorseInfo>();
+  for (const h of horseInfos) horseMap.set(h.horseIndex, h);
+
+  for (const evt of events) {
+    const horseIdx = evt.param[0]!;
+    if (horseIdx < 0 || horseIdx >= horseInfos.length) continue;
+    const startTime = evt.frameTime;
+
+    if (evt.type === COMPETE_FIGHT) {
+      const startHp = frames[0]?.horseFrames[horseIdx]?.hp ?? 1000;
+      const hpThreshold = startHp * DUEL_HP_THRESHOLD_RATIO;
+      let endTime = frames[frames.length - 1]!.time;
+
+      let startIndex = 0;
+      for (let i = 0; i < frames.length; i++) {
+        if (frames[i]!.time >= startTime) { startIndex = i; break; }
+      }
+
+      let lastUphillAffectedTime = -Infinity;
+      for (let i = startIndex; i < frames.length; i++) {
+        const f = frames[i]!;
+        if ((f.horseFrames[horseIdx]?.hp ?? 0) < hpThreshold) {
+          endTime = f.time; break;
+        }
+        const h = f.horseFrames[horseIdx];
+        if (!h) continue;
+        const dist = h.distance ?? 0;
+        const currentSlopeObj = slopes.find(s => dist >= s.start && dist < s.start + s.length);
+        const currentSlope = currentSlopeObj?.slope ?? 0;
+        if (currentSlope > 0) {
+          lastUphillAffectedTime = f.time;
+        }
+        const recentlyExitedUphill = f.time - lastUphillAffectedTime <= DUEL_RECENT_UPHILL_EXIT_GRACE;
+        if (!recentlyExitedUphill && currentSlope <= 0) {
+          const currentSpeed = h.speed / 100;
+
+          let accel = 0;
+          if (i < frames.length - 1) {
+            const nextFrame = frames[i + 1]!;
+            const nextH = nextFrame.horseFrames[horseIdx];
+            if (nextH) {
+              const nextSpeed = nextH.speed / 100;
+              const dt = nextFrame.time - f.time;
+              if (dt > 0) accel = (nextSpeed - currentSpeed) / dt;
+            }
+          }
+
+          let activeSpeedBuff = 0;
+          if (skillActivations[horseIdx]) {
+            for (const act of skillActivations[horseIdx]!) {
+              const dur = getSkillDurationSecs(skillDb, act.param[1]!, courseDistance, act.time, act.param[2], act.param[3]!);
+              if (f.time >= act.time && f.time < act.time + dur) {
+                activeSpeedBuff += getActiveSpeedModifier(skillDb, act.param[1]!, act.param[3]!);
+              }
+            }
+          }
+          const info = horseMap.get(horseIdx);
+          if (!info) continue;
+          const speedParams = {
+            courseDistance, currentDistance: dist, speedStat: info.speed,
+            wisdomStat: info.wiz, powerStat: info.pow, gutsStat: info.guts, staminaStat: info.stamina,
+            strategy: info.strategy, distanceProficiency: info.distanceProficiency,
+            strategyProficiency: info.strategyProficiency, mood: info.mood,
+            inLastSpurt: false, slope: 0, activeSpeedBuff, isDueling: true, isSpotStruggle: false,
+            isRushed: false, rushedType: 0,
+          };
+          const targetRes = calculateTargetSpeed(speedParams);
+          let adjustedTarget = targetRes.base;
+          if (currentSlope > 0) {
+            const slopePer = currentSlope / SLOPE_SCALE;
+            const adjPower = adjustStat(info.pow, info.mood, groundPowerBonus);
+            adjustedTarget -= (slopePer * SLOPE_PENALTY_COEFF) / adjPower;
+          }
+
+          const DUEL_UPHILL_SPEED_SLACK = 0.2;
+          const DUEL_ENTRY_ACCEL_MAX = 0.1;
+          const DUEL_RESUME_SPEED_SLACK = 0.02;
+
+          if (adjustedTarget > currentSpeed + DUEL_UPHILL_SPEED_SLACK && accel < DUEL_ENTRY_ACCEL_MAX) {
+            let duelResumed = false;
+            for (let j = i + 1; j < frames.length; j++) {
+              const ff = frames[j]!;
+              const fh = ff.horseFrames[horseIdx];
+              if (!fh) continue;
+              const fs = fh.speed / 100;
+              const fd = fh.distance ?? 0;
+              let fBuff = 0;
+              if (skillActivations[horseIdx]) {
+                for (const act of skillActivations[horseIdx]!) {
+                  const dur = getSkillDurationSecs(skillDb, act.param[1]!, courseDistance, act.time, act.param[2], act.param[3]!);
+                  if (ff.time >= act.time && ff.time < act.time + dur) {
+                    fBuff += getActiveSpeedModifier(skillDb, act.param[1]!, act.param[3]!);
+                  }
+                }
+              }
+              const fParams = {
+                courseDistance, currentDistance: fd, speedStat: info.speed,
+                wisdomStat: info.wiz, powerStat: info.pow, gutsStat: info.guts, staminaStat: info.stamina,
+                strategy: info.strategy, distanceProficiency: info.distanceProficiency,
+                strategyProficiency: info.strategyProficiency, mood: info.mood,
+                inLastSpurt: false, slope: 0, activeSpeedBuff: fBuff, isDueling: false, isSpotStruggle: false,
+                isRushed: false, rushedType: 0,
+              };
+              const fRes = calculateTargetSpeed(fParams);
+              let fAdjusted = fRes.base;
+              const fSlopeObj = slopes.find(s => fd >= s.start && fd < s.start + s.length);
+              const fSlope = fSlopeObj?.slope ?? 0;
+              if (fSlope > 0) {
+                const slopePer = fSlope / SLOPE_SCALE;
+                const adjPower = adjustStat(info.pow, info.mood, groundPowerBonus);
+                fAdjusted -= (slopePer * SLOPE_PENALTY_COEFF) / adjPower;
+              }
+              let fDownhill = 0;
+              if (fSlope < 0 && j < frames.length - 1) {
+                const nf = frames[j + 1]!;
+                const nh = nf.horseFrames[horseIdx];
+                if (nh) {
+                  const dt = nf.time - ff.time;
+                  if (dt > 0) {
+                    const rate = ((fh.hp ?? 0) - (nh.hp ?? 0)) / dt;
+                    const expected = computeReferenceHpConsumption(fs, courseDistance);
+                    if (expected > 0 && rate > 0 && rate / expected < DOWNHILL_HP_RATIO_THRESHOLD) {
+                      fDownhill = DOWNHILL_BONUS_BASE + Math.abs(fSlope) / DOWNHILL_BONUS_DIVISOR;
+                    }
+                  }
+                }
+              }
+              if (fs > fAdjusted + fDownhill + DUEL_RESUME_SPEED_SLACK) {
+                duelResumed = true; break;
+              }
+            }
+            if (!duelResumed) {
+              endTime = f.time; break;
+            }
+          }
+        }
+      }
+
+      if (!allOtherEvents[horseIdx]) allOtherEvents[horseIdx] = [];
+      allOtherEvents[horseIdx]!.push({ time: startTime, duration: endTime - startTime, name: 'Dueling' });
+    }
+
+    if (evt.type === COMPETE_TOP) {
+      const info = horseMap.get(horseIdx);
+      if (!info) continue;
+      const frontRunnerAptitude = info.frontRunnerProficiency ?? info.strategyProficiency;
+      const gutsDuration = Math.pow(SPOT_STRUGGLE_GUTS_DURATION_BASE * info.guts, SPOT_STRUGGLE_GUTS_DURATION_EXPONENT) * SPOT_STRUGGLE_GUTS_DURATION_SCALE
+        * (STRATEGY_PROFICIENCY_MODIFIER[frontRunnerAptitude] ?? 1.0);
+      const distanceThreshold = SPOT_STRUGGLE_DIST_RATIO * courseDistance;
+      let thresholdTime = -1;
+      for (let i = 0; i < frames.length; i++) {
+        if ((frames[i]!.horseFrames[horseIdx]?.distance ?? 0) >= distanceThreshold) {
+          thresholdTime = frames[i]!.time; break;
+        }
+      }
+      if (thresholdTime < 0) thresholdTime = frames[frames.length - 1]!.time;
+      if (startTime < thresholdTime) {
+        const duration = Math.min(gutsDuration, thresholdTime - startTime);
+        if (!allOtherEvents[horseIdx]) allOtherEvents[horseIdx] = [];
+        allOtherEvents[horseIdx]!.push({ time: startTime, duration, name: 'Spot Struggle' });
+      }
+    }
+  }
+  return allOtherEvents;
+}
+
 export function computeHeuristicEvents(
   frames: FrameData[],
   courseDistance: number,
   slopes: { start: number; length: number; slope: number }[],
   horses: HeuristicHorseInfo[],
   lastSpurtStartDistances?: (number | undefined)[],
+  options?: {
+    skillDb?: Map<number, SkillEntry> | null;
+    events?: EventData[];
+    skillActivations?: Record<number, { time: number; name: string; param: number[] }[]>;
+    otherEvents?: Record<number, { time: number; duration: number; name: string }[]>;
+    trackSpeedMultiplier?: number;
+    groundPowerBonus?: number;
+    surface?: number;
+    groundCondition?: number;
+    racetrackFilterData?: { id: number; statThresholds?: string[] }[];
+  },
 ): Map<number, HeuristicSummary> {
   const result = new Map<number, HeuristicSummary>();
   if (!frames.length || courseDistance <= 0) return result;
@@ -80,6 +397,31 @@ export function computeHeuristicEvents(
   const courseFactor = 1 + (courseDistance - COURSE_FACTOR_BASE_DIST) * COURSE_FACTOR_MULTIPLIER;
 
   const hasFrontRunner = horses.some(h => h.strategy === 1 || h.isOonige);
+
+  const {
+    skillDb,
+    events,
+    skillActivations: externalSkillActivations,
+    otherEvents: externalOtherEvents,
+    trackSpeedMultiplier = 1.0,
+    surface = 0,
+    groundCondition = 0,
+  } = options ?? {};
+
+  const skillActivations = externalSkillActivations
+    ?? (events ? computeSkillActivations(events, horses.length) : undefined);
+
+  const otherEvents = externalOtherEvents
+    ?? (events && skillDb ? computeOtherEvents(
+      events, frames, horses, courseDistance, slopes, skillDb,
+      skillActivations ?? {}, surface, groundCondition,
+    ) : undefined);
+
+  const groundBonus = computeGroundPowerBonus(surface, groundCondition);
+
+  const greenStatsByHorse = skillActivations && skillDb
+    ? computePassiveStatModifiers(skillActivations, skillDb)
+    : undefined;
 
   let designatedPacemaker = -1;
   if (!hasFrontRunner && horses.length > 0) {
@@ -147,6 +489,7 @@ export function computeHeuristicEvents(
       const currentSpeed = h.speed / 100;
       const nextSpeed = hn.speed / 100;
       const accel = (nextSpeed - currentSpeed) / dt;
+
       const distanceFromLeader = leaderDistance - currentDistance;
       const isPastPK = currentDistance >= positionKeepEnd;
 
@@ -177,6 +520,28 @@ export function computeHeuristicEvents(
       const lastSpurtDist = lastSpurtStartDistances?.[hi] ?? -1;
       const inLastSpurt = lastSpurtDist > 0 && currentDistance >= lastSpurtDist;
 
+      let activeSpeedBuff = 0;
+      if (skillActivations?.[hi]) {
+        for (const act of skillActivations[hi]!) {
+          const dur = getSkillDurationSecs(skillDb as Map<number, SkillEntry> | null | undefined, act.param[1]!, courseDistance, act.time, act.param[2], act.param[3]!);
+          if (time >= act.time && time < act.time + dur) {
+            activeSpeedBuff += getActiveSpeedModifier(skillDb as Map<number, SkillEntry> | null | undefined, act.param[1]!, act.param[3]!);
+          }
+        }
+      }
+
+      let isSpotStruggle = false;
+      let isDueling = false;
+      if (otherEvents?.[hi]) {
+        for (const evt of otherEvents[hi]!) {
+          if (time >= evt.time && time < evt.time + evt.duration) {
+            if (evt.name.includes('Spot Struggle') || evt.name.includes('Competes (Pos)')) isSpotStruggle = true;
+            if (evt.name.includes('Dueling') || evt.name.includes('Competes (Speed)')) isDueling = true;
+          }
+        }
+      }
+
+      const greenStats = greenStatsByHorse?.[hi];
       const speedParams = {
         courseDistance,
         currentDistance,
@@ -184,16 +549,19 @@ export function computeHeuristicEvents(
         wisdomStat: horseInfo.wiz,
         powerStat: horseInfo.pow,
         gutsStat: horseInfo.guts,
+        staminaStat: horseInfo.stamina,
         strategy,
         distanceProficiency: horseInfo.distanceProficiency,
         strategyProficiency: horseInfo.strategyProficiency,
         mood: horseInfo.mood,
         inLastSpurt,
         slope: currentSlope,
+        trackSpeedMultiplier: horseInfo.trackSpeedMultiplier ?? trackSpeedMultiplier,
+        greenSkillBonuses: greenStats ? { ...greenStats, power: (greenStats.power ?? 0) + groundBonus } : { power: groundBonus },
         isOonige,
-        activeSpeedBuff: 0,
-        isSpotStruggle: false,
-        isDueling: false,
+        activeSpeedBuff,
+        isSpotStruggle,
+        isDueling,
         isRushed,
         rushedType,
       };
@@ -222,15 +590,15 @@ export function computeHeuristicEvents(
           if (hpConsumptionRatio < DOWNHILL_HP_RATIO_STRONG) {
             isDownhillMode = true;
           } else {
-            const baseSpeedNoBuffs = res.base;
+            const baseSpeedNoBuffs = res.base - activeSpeedBuff;
             const targetDownhill = res.base + downhillSpeedBonus;
-            const targetDownhillPaceUp = (baseSpeedNoBuffs * PACE_UP_MULTIPLIER) + downhillSpeedBonus;
-            const targetDownhillPaceDown = (baseSpeedNoBuffs * PACE_DOWN_MULTIPLIER) + downhillSpeedBonus;
+            const targetDownhillPaceUp = (baseSpeedNoBuffs * PACE_UP_MULTIPLIER) + activeSpeedBuff + downhillSpeedBonus;
+            const targetDownhillPaceDown = (baseSpeedNoBuffs * PACE_DOWN_MULTIPLIER) + activeSpeedBuff + downhillSpeedBonus;
             const candidates = [targetDownhill, targetDownhillPaceUp, targetDownhillPaceDown];
 
             const targetNormal = res.base;
-            const targetPaceUp = baseSpeedNoBuffs * PACE_UP_MULTIPLIER;
-            const targetPaceDown = baseSpeedNoBuffs * PACE_DOWN_MULTIPLIER;
+            const targetPaceUp = (baseSpeedNoBuffs * PACE_UP_MULTIPLIER) + activeSpeedBuff;
+            const targetPaceDown = (baseSpeedNoBuffs * PACE_DOWN_MULTIPLIER) + activeSpeedBuff;
             const nonDownhillCandidates = [targetNormal, targetPaceUp, targetPaceDown];
 
             let minDiff = Number.MAX_VALUE;
@@ -278,10 +646,10 @@ export function computeHeuristicEvents(
         if (currentSpeed > referenceMax * PACE_TRIGGER_RATIO || (currentSpeed > referenceMax && accel > PACE_TRIGGER_ACCEL)) {
           if (isFrontRunner) {
             if (isDownhillMode) {
-              const baseSpeedNoBuffs = res.base;
-              const downhillOnlyMax = baseSpeedNoBuffs + downhillSpeedBonus;
-              const speedUpDownhillMax = (baseSpeedNoBuffs * PACE_UP_MULTIPLIER) + downhillSpeedBonus;
-              const overtakeDownhillMax = (baseSpeedNoBuffs * OVERTAKE_MULTIPLIER) + downhillSpeedBonus;
+              const baseSpeedNoBuffs = res.base - activeSpeedBuff - downhillSpeedBonus;
+              const downhillOnlyMax = baseSpeedNoBuffs + activeSpeedBuff + downhillSpeedBonus;
+              const speedUpDownhillMax = (baseSpeedNoBuffs * PACE_UP_MULTIPLIER) + activeSpeedBuff + downhillSpeedBonus;
+              const overtakeDownhillMax = (baseSpeedNoBuffs * OVERTAKE_MULTIPLIER) + activeSpeedBuff + downhillSpeedBonus;
 
               if (currentSpeed > downhillOnlyMax * PACE_TRIGGER_RATIO ||
                   Math.abs(currentSpeed - speedUpDownhillMax) < SPEED_MATCH_TOLERANCE ||
@@ -294,8 +662,8 @@ export function computeHeuristicEvents(
           } else if (canPaceUp) {
             if (isDownhillMode) {
               const downhillOnlyMax = referenceMax + downhillSpeedBonus;
-              const baseSpeedNoBuffs = res.base;
-              const downhillPaceUpMax = (baseSpeedNoBuffs * PACE_UP_MULTIPLIER) + downhillSpeedBonus;
+              const baseSpeedNoBuffs = res.base - activeSpeedBuff;
+              const downhillPaceUpMax = (baseSpeedNoBuffs * PACE_UP_MULTIPLIER) + activeSpeedBuff + downhillSpeedBonus;
 
               if (currentSpeed > downhillOnlyMax * PACE_TRIGGER_RATIO ||
                   (Math.abs(currentSpeed - downhillPaceUpMax) < SPEED_MATCH_TOLERANCE && accel > PACE_TRIGGER_ACCEL)) {
@@ -311,13 +679,13 @@ export function computeHeuristicEvents(
           isTriggeredHigh = false;
         }
 
-        const theoreticalPaceDown = (res.base * PACE_DOWN_MULTIPLIER) + (isDownhillMode ? downhillSpeedBonus : 0);
+        const theoreticalPaceDown = (res.base * PACE_DOWN_MULTIPLIER) + activeSpeedBuff + (isDownhillMode ? downhillSpeedBonus : 0);
 
         if (isEarlyRacePaceDown) {
-          if (currentSpeed < theoreticalPaceDown * EARLY_PACE_DOWN_SPEED_RATIO) {
+          if (currentSpeed < theoreticalPaceDown * EARLY_PACE_DOWN_SPEED_RATIO && activeSpeedBuff <= 0) {
             isTriggeredLow = true;
           }
-        } else {
+        } else if (activeSpeedBuff <= 0) {
           let speedIndicatesPaceDown = false;
           let hpIndicatesPaceDown = false;
 
@@ -409,7 +777,7 @@ export function computeHeuristicEvents(
   }
 
   for (const h of horses) {
-    const events = horseEvents.get(h.horseIndex) ?? [];
+    const events2 = horseEvents.get(h.horseIndex) ?? [];
     const summary: HeuristicSummary = {
       downhillDuration: 0,
       paceUpDuration: 0,
@@ -417,7 +785,7 @@ export function computeHeuristicEvents(
       overtakeDuration: 0,
       speedUpDuration: 0,
     };
-    for (const e of events) {
+    for (const e of events2) {
       switch (e.name) {
         case 'Downhill Mode': summary.downhillDuration += e.duration; break;
         case 'Pace Up': summary.paceUpDuration += e.duration; break;
@@ -458,7 +826,6 @@ export function computeHpOutcome(horseIndex: number, frames: FrameData[], raceDi
 }
 
 export function computeDuelDurations(horseIndex: number, frames: FrameData[], events: EventData[]): number {
-  const COMPETE_FIGHT = 5;
   const duelEvents = events.filter(e => e.type === COMPETE_FIGHT && e.param[0] === horseIndex);
   if (!duelEvents.length) return 0;
   const startHp = frames[0]?.horseFrames[horseIndex]?.hp ?? 1000;

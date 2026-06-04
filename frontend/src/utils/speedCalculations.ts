@@ -15,17 +15,21 @@ export type SpeedCalcParams = {
   wisdomStat: number;
   powerStat: number;
   gutsStat: number;
+  staminaStat?: number;
   strategy: number;
   distanceProficiency: number;
   strategyProficiency: number;
   mood: number;
   inLastSpurt: boolean;
   slope: number;
-  activeSpeedBuff: number;
-  isSpotStruggle: boolean;
-  isDueling: boolean;
-  isRushed: boolean;
-  rushedType: number;
+  trackSpeedMultiplier?: number;
+  greenSkillBonuses?: { speed?: number; stamina?: number; power?: number; guts?: number; wisdom?: number };
+  activeSpeedBuff?: number;
+  activeSpeedDebuff?: number;
+  isSpotStruggle?: boolean;
+  isDueling?: boolean;
+  isRushed?: boolean;
+  rushedType?: number;
   isPaceUp?: boolean;
   isPaceDown?: boolean;
   isSpeedUp?: boolean;
@@ -72,6 +76,64 @@ const WISDOM_VARIANCE_DIVISOR = 5500;
 const WISDOM_LOG_SCALE = 0.1;
 const WISDOM_MIN_PCT_OFFSET = 0.65;
 
+const TRACK_STAT_THRESHOLD_HIGH = 900;
+const TRACK_STAT_MODIFIER_HIGH = 1.2;
+const TRACK_STAT_THRESHOLD_MID = 600;
+const TRACK_STAT_MODIFIER_MID = 1.15;
+const TRACK_STAT_THRESHOLD_LOW = 300;
+const TRACK_STAT_MODIFIER_LOW = 1.1;
+const TRACK_STAT_MODIFIER_BASE = 1.05;
+
+export function computeGroundPowerBonus(surface: number, condition: number): number {
+  if (surface === 2) {
+    return condition === 2 ? -50 : -100;
+  } else if (surface === 1) {
+    return condition === 1 ? 0 : -50;
+  }
+  return 0;
+}
+
+export function getTrackStatThresholdModifier(
+  courseId: number,
+  stats: { speed: number; stamina: number; power: number; guts: number; wisdom: number },
+  mood: number,
+  racetrackFilterData?: { id: number; statThresholds?: string[] }[],
+): number {
+  if (!courseId || !racetrackFilterData) return 1.0;
+  const trackInfo = racetrackFilterData.find(t => t.id === courseId);
+  if (!trackInfo || !trackInfo.statThresholds || trackInfo.statThresholds.length === 0) return 1.0;
+
+  const moodMod = MOOD_MODIFIER[mood] || 1.0;
+  let totalMod = 0;
+  let count = 0;
+
+  for (const statName of trackInfo.statThresholds) {
+    const statVal = (stats as Record<string, number>)[statName] ?? 0;
+    const adjusted = statVal * moodMod;
+
+    let mod = TRACK_STAT_MODIFIER_BASE;
+    if (adjusted > TRACK_STAT_THRESHOLD_HIGH) mod = TRACK_STAT_MODIFIER_HIGH;
+    else if (adjusted > TRACK_STAT_THRESHOLD_MID) mod = TRACK_STAT_MODIFIER_MID;
+    else if (adjusted > TRACK_STAT_THRESHOLD_LOW) mod = TRACK_STAT_MODIFIER_LOW;
+
+    totalMod += mod;
+    count++;
+  }
+
+  if (count === 0) return 1.0;
+  return totalMod / count;
+}
+
+export function computeGroundHpModifier(surface: number, condition: number): number {
+  if (surface === 1) {
+    if (condition === 3 || condition === 4) return 1.02;
+  } else if (surface === 2) {
+    if (condition === 3) return 1.01;
+    if (condition === 4) return 1.02;
+  }
+  return 1.0;
+}
+
 export function adjustStat(stat: number, mood: number, bonus: number = 0): number {
   let val = stat;
   if (val > STAT_CAP) val = STAT_CAP + (val - STAT_CAP) / 2;
@@ -92,19 +154,22 @@ export function computeReferenceHpConsumption(speed: number, courseDistance: num
 
 export function calculateTargetSpeed(params: SpeedCalcParams): TargetSpeedResult {
   const {
-    courseDistance, currentDistance, speedStat, wisdomStat, powerStat, gutsStat,
+    courseDistance, currentDistance, speedStat, wisdomStat, powerStat, gutsStat, staminaStat: _staminaStat = 0,
     strategy, distanceProficiency, strategyProficiency, mood,
-    inLastSpurt, slope, activeSpeedBuff,
-    isSpotStruggle, isDueling, isRushed, rushedType,
+    inLastSpurt, slope,
+    trackSpeedMultiplier = 1.0,
+    greenSkillBonuses,
+    activeSpeedBuff = 0, activeSpeedDebuff = 0,
+    isSpotStruggle = false, isDueling = false, isRushed = false, rushedType = 0,
     isPaceUp, isPaceDown, isSpeedUp, isOvertake, isDownhillMode, isOonige,
   } = params;
 
-  const adjustedSpeed = adjustStat(speedStat, mood);
+  const adjustedSpeed = adjustStat(speedStat, mood, greenSkillBonuses?.speed) * trackSpeedMultiplier;
   const adjWisdom = adjustStat(wisdomStat, mood);
   const strategyProfMod = STRATEGY_PROFICIENCY_MODIFIER[strategyProficiency] ?? 1.0;
-  const adjustedWisdom = adjWisdom * strategyProfMod;
-  const adjustedPower = adjustStat(powerStat, mood);
-  const adjustedGuts = adjustStat(gutsStat, mood);
+  const adjustedWisdom = adjWisdom * strategyProfMod + (greenSkillBonuses?.wisdom ?? 0);
+  const adjustedPower = adjustStat(powerStat, mood, greenSkillBonuses?.power);
+  const adjustedGuts = adjustStat(gutsStat, mood, greenSkillBonuses?.guts);
 
   const baseSpeed = BASE_SPEED_CONSTANT - (courseDistance - BASE_SPEED_COURSE_OFFSET) / BASE_SPEED_COURSE_SCALE;
 
@@ -145,6 +210,7 @@ export function calculateTargetSpeed(params: SpeedCalcParams): TargetSpeedResult
   if (isDownhillMode) baseTargetSpeed += DOWNHILL_BONUS_BASE + Math.abs(slope) / DOWNHILL_BONUS_DIVISOR;
 
   baseTargetSpeed += activeSpeedBuff;
+  baseTargetSpeed -= activeSpeedDebuff;
 
   if (isSpotStruggle) baseTargetSpeed += Math.pow(SPOT_STRUGGLE_GUTS_BASE * adjustedGuts, SPOT_STRUGGLE_GUTS_EXPONENT) * SPOT_STRUGGLE_GUTS_SCALE;
   if (isDueling) baseTargetSpeed += Math.pow(DUELING_GUTS_BASE * adjustedGuts, DUELING_GUTS_EXPONENT) * DUELING_GUTS_SCALE;

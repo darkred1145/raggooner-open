@@ -10,8 +10,11 @@ import {
   styleNames, styleColors, styleDisplayNames, effectColors, groundLabels,
   type ReplayData, type ReplayHorse,
 } from '../../utils/raceReplayUtils';
-import { computeHeuristicEvents, computeHpOutcome, computeDuelDurations } from '../../utils/raceHeuristicEvents';
+import { computeHeuristicEvents, computeHpOutcome, computeDuelDurations, computeSkillActivations } from '../../utils/raceHeuristicEvents';
 import type { HeuristicSummary, HeuristicHorseInfo } from '../../utils/raceHeuristicEvents';
+import { computeGroundPowerBonus, getTrackStatThresholdModifier } from '../../utils/speedCalculations';
+import { gameDataLoader } from '../../utils/gameDataLoader';
+import { loadUmdbCharacterNames } from '../../utils/umdbLoader';
 import { MOOD_INPUT_MAP } from '../../utils/raceReplayUtils';
 import { useRaceCanvas } from '../../composables/useRaceCanvas';
 import RaceReplayControls from './RaceReplayControls.vue';
@@ -44,6 +47,10 @@ const skillDb = ref<Map<number, SkillEntry> | null>(null);
 const skillDbLoaded = ref(false);
 const expandedRow = ref<number | null>(null);
 const courseDataReady = ref(false);
+const gameDataReady = ref(false);
+const umdbCharacterNames = ref<Map<number, string> | null>(null);
+
+const GROUND_CONDITION_MAP: Record<string, number> = { Firm: 1, Good: 2, Soft: 3, Heavy: 4 };
 
 const horseMap = computed(() => {
   const map = new Map<number, ReplayHorse>();
@@ -262,21 +269,48 @@ const horsesDetailed = computed<HorseDetail[]>(() => {
   const slopes = courseDataReady.value && props.replayData.RaceCourseSet.Id
     ? courseDataLoader.getSlopes(props.replayData.RaceCourseSet.Id)
     : [];
-  const horseInfoArr: HeuristicHorseInfo[] = horsesByFinish.value.map(h => ({
-    horseIndex: h.horseIndex,
-    strategy: h._responseHorseData?.running_style ?? 1,
-    speed: h._raceParam?.RawSpeed ?? 0,
-    stamina: h._raceParam?.RawStamina ?? 0,
-    pow: h._raceParam?.RawPow ?? 0,
-    guts: h._raceParam?.RawGuts ?? 0,
-    wiz: h._raceParam?.RawWiz ?? 0,
-    mood: moodToNumber(h._raceParam?.Motivation ?? 'normal'),
-    distanceProficiency: getDistanceProficiency(h, totalDist),
-    strategyProficiency: getStrategyProficiency(h),
-  }));
+  const courseId = props.replayData.RaceCourseSet.Id ?? 0;
+  const surface = props.replayData.RaceCourseSet.Ground ?? 0;
+  const groundConditionNum = GROUND_CONDITION_MAP[props.replayData.GroundCondition] ?? 0;
+  const racetrackFilterData = gameDataReady.value ? gameDataLoader.racetrackFilterData : undefined;
+
+  const skillActivations = events.length > 0
+    ? computeSkillActivations(events, horsesByFinish.value.length)
+    : undefined;
+
+  const horseInfoArr: HeuristicHorseInfo[] = horsesByFinish.value.map(h => {
+    const stats = { speed: h._raceParam?.RawSpeed ?? 0, stamina: h._raceParam?.RawStamina ?? 0, power: h._raceParam?.RawPow ?? 0, guts: h._raceParam?.RawGuts ?? 0, wisdom: h._raceParam?.RawWiz ?? 0 };
+    const mood = moodToNumber(h._raceParam?.Motivation ?? 'normal');
+    return {
+      horseIndex: h.horseIndex,
+      strategy: h._responseHorseData?.running_style ?? 1,
+      speed: stats.speed,
+      stamina: stats.stamina,
+      pow: stats.power,
+      guts: stats.guts,
+      wiz: stats.wisdom,
+      mood,
+      distanceProficiency: getDistanceProficiency(h, totalDist),
+      strategyProficiency: getStrategyProficiency(h),
+      trackSpeedMultiplier: getTrackStatThresholdModifier(courseId, stats, mood, racetrackFilterData),
+      frontRunnerProficiency: h._responseHorseData?.proper_running_style_nige ?? 7,
+    };
+  });
   const lastSpurtDists = sd?.horseResults?.map(r => r.lastSpurtStartDistance) ?? [];
+
+  const groundPowerBonus = computeGroundPowerBonus(surface, groundConditionNum);
+
   const heuristicEvents: Map<number, HeuristicSummary> = slopes.length > 0 && frames.length > 0
-    ? computeHeuristicEvents(frames, totalDist, slopes, horseInfoArr, lastSpurtDists)
+    ? computeHeuristicEvents(frames, totalDist, slopes, horseInfoArr, lastSpurtDists, {
+        skillDb: skillDb.value,
+        events,
+        skillActivations,
+        trackSpeedMultiplier: 1.0,
+        groundPowerBonus,
+        surface,
+        groundCondition: groundConditionNum,
+        racetrackFilterData,
+      })
     : new Map();
 
   if (frames.length) {
@@ -285,9 +319,13 @@ const horsesDetailed = computed<HorseDetail[]>(() => {
       duelDurations.set(j, computeDuelDurations(j, frames, events));
       const accel0 = frames.length > 1 ? ((frames[1]!.horseFrames[j]?.speed ?? 0) / 100 - (frames[0]!.horseFrames[j]?.speed ?? 0) / 100) / (frames[1]!.time - frames[0]!.time) : 0;
       lateStart.set(j, accel0 < 0.0001);
-      const horseSkillEvents = events.filter(e => e.type === 3 && e.param[0] === j).map(e => e.param[1]).filter((s): s is number => s != null);
       const counts = new Map<number, number>();
-      for (const sid of horseSkillEvents) counts.set(sid, (counts.get(sid) ?? 0) + 1);
+      if (skillActivations?.[j]) {
+        for (const act of skillActivations[j]!) {
+          const sid = act.param[1]!;
+          counts.set(sid, (counts.get(sid) ?? 0) + 1);
+        }
+      }
       usedSkills.set(j, counts);
     }
   }
@@ -335,8 +373,8 @@ const horsesDetailed = computed<HorseDetail[]>(() => {
       factors: (horse.TrainedCharaData?.FactorDataArray ?? []).filter(f => f != null).map(f => ({ factorId: f.FactorId, level: f.FactorLv })),
       supportCards: (horse.TrainedCharaData?.SupportCardArray ?? []).filter(sc => sc != null).map(sc => ({ id: sc.SupportCardId, lb: sc.LimitBreakCount })),
       parents: (horse.TrainedCharaData?.SuccessionCharaList?._items ?? []).filter(p => p != null).map(p => ({
-        cardId: p.CardId, rarity: p.Rarity, level: p.Level,
-        charaName: CHARACTER_ID_TO_NAME.get(p.CardId) || `#${p.CardId}`,
+        cardId: p.CardId, rarity: p.Rarity, level: p.Level, positionId: p._positionId,
+        charaName: umdbCharacterNames.value?.get(p.CardId) ?? CHARACTER_ID_TO_NAME.get(p.CardId) ?? `#${p.CardId}`,
         factors: (p.FactorDataArray ?? []).filter(f => f != null).map(f => ({ factorId: f.FactorId, level: f.FactorLv })),
       })),
       properTurf: horse._responseHorseData?.proper_ground_turf ?? 0,
@@ -367,6 +405,17 @@ onMounted(async () => {
     courseDataReady.value = true;
   } catch {
     console.warn('Course data not available, slope analysis disabled');
+  }
+  try {
+    await gameDataLoader.initialize();
+    gameDataReady.value = true;
+  } catch {
+    console.warn('Game data not available, track stat thresholds disabled');
+  }
+  try {
+    umdbCharacterNames.value = await loadUmdbCharacterNames();
+  } catch {
+    console.warn('UMDB character names not available, using fallback names');
   }
   if (hasSimData.value && props.simData) {
     nextTick(() => canvasRender(0, props.simData!));

@@ -3,7 +3,7 @@ import { getUmaImagePath } from '../../utils/umaData';
 import { getSupportCardNameByNumericId } from '../../utils/supportCardData';
 import {
   resolveSkillName, resolveSupportCardRarity,
-  getFactorLabel, getFactorColor, aggregateFactors, chunkArray,
+  getFactorLabel, getFactorColor, aggregateFactors,
   gradeLetter, gradeColor, moodLabel, moodClass,
 } from '../../utils/raceReplayUtils';
 import type { SkillEntry } from '../../utils/skillDatabase';
@@ -44,7 +44,7 @@ export type HorseDetail = {
   skills: { skill_id: number; level: number; usedCount: number }[];
   factors: { factorId: number; level: number }[];
   supportCards: { id: number; lb: number }[];
-  parents: { cardId: number; rarity: number; level: number; charaName: string; factors: { factorId: number; level: number }[] }[];
+  parents: { cardId: number; rarity: number; level: number; positionId: number; charaName: string; factors: { factorId: number; level: number }[] }[];
   properTurf: number;
   properDirt: number;
   properShort: number;
@@ -73,6 +73,12 @@ const emit = defineEmits<{
 
 function toggleRow(horseIndex: number) {
   emit('toggleExpand', horseIndex);
+}
+
+function getParentGroup(parents: HorseDetail['parents'], groupIndex: number) {
+  return groupIndex === 1
+    ? parents.filter(p => p.positionId < 20)
+    : parents.filter(p => p.positionId >= 20);
 }
 </script>
 
@@ -253,22 +259,24 @@ function toggleRow(horseIndex: number) {
 
                   <div v-if="h.parents.length" class="border-t border-slate-700/50 pt-2">
                     <span class="text-slate-400 font-bold text-[10px] tracking-wide">PARENTS</span>
-                    <template v-for="(group, gi) in chunkArray(h.parents, 3)" :key="gi">
-                      <div class="flex flex-wrap items-center gap-1 mt-1.5 mb-0.5">
-                        <span class="text-slate-500 text-[10px] mr-1">#{{ gi + 1 }}</span>
-                        <span v-for="(p, pi) in group" :key="pi" class="text-slate-400 text-[11px]">
-                          <span class="text-white">{{ p.charaName }}</span>
-                          <span class="text-amber-400 text-[10px]"> {{ ['', 'R', 'SR', 'SSR', 'SSR+'][p.rarity] || 'R' }}</span>
-                          <span class="text-slate-500">Lv{{ p.level }}</span>
-                          <span v-if="pi < group.length - 1" class="text-slate-600 mx-1">|</span>
-                        </span>
-                      </div>
-                      <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-0.5 mb-1">
-                        <span v-for="(f, fi) in aggregateFactors(group.flatMap(p => p.factors))" :key="gi + '-' + fi"
-                              :class="getFactorColor(f.factorId)" class="text-[11px]">
-                          {{ getFactorLabel(f.factorId, f.level, skillDb) }}
-                        </span>
-                      </div>
+                    <template v-for="gi in [1, 2]" :key="gi">
+                      <template v-if="getParentGroup(h.parents, gi).length">
+                        <div class="flex flex-wrap items-center gap-1 mt-1.5 mb-0.5">
+                          <span class="text-slate-500 text-[10px] mr-1">#{{ gi }}</span>
+                          <span v-for="(p, pi) in getParentGroup(h.parents, gi)" :key="pi" class="text-slate-400 text-[11px]">
+                            <span class="text-white">{{ p.charaName }}</span>
+                            <span class="text-amber-400 text-[10px]"> {{ ['', 'R', 'SR', 'SSR', 'SSR+'][p.rarity] || 'R' }}</span>
+                            <span class="text-slate-500">Lv{{ p.level }}</span>
+                            <span v-if="pi < getParentGroup(h.parents, gi).length - 1" class="text-slate-600 mx-1">|</span>
+                          </span>
+                        </div>
+                        <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-0.5 mb-1">
+                          <span v-for="(f, fi) in aggregateFactors(getParentGroup(h.parents, gi).flatMap(p => p.factors))" :key="gi + '-' + fi"
+                                :class="getFactorColor(f.factorId)" class="text-[11px]">
+                            {{ getFactorLabel(f.factorId, f.level, skillDb) }}
+                          </span>
+                        </div>
+                      </template>
                     </template>
                   </div>
                 </div>
