@@ -249,12 +249,21 @@ function getParentGroup(parents: HorseDetail['parents'], groupIndex: number) {
 
                   <div v-if="h.supportCards.length" class="border-t border-slate-700/50 pt-2">
                     <span class="text-slate-400 font-bold text-[10px] tracking-wide">SUPPORT DECK</span>
-                    <div class="flex flex-wrap gap-x-4 gap-y-0.5 mt-0.5">
-                      <span v-for="sc in h.supportCards" :key="sc.id" class="text-slate-400">
-                        <span class="text-amber-400 text-[10px]">{{ resolveSupportCardRarity(sc.id) }}</span>
-                        <span class="text-white">{{ getSupportCardNameByNumericId(sc.id) }}</span>
-                        <span class="text-amber-400">LB{{ sc.lb }}</span>
-                      </span>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                      <div v-for="sc in h.supportCards" :key="sc.id" class="flex flex-col items-center gap-0.5">
+                        <div class="relative w-[42px]">
+                          <img :src="`https://media.gametora.com/umamusume/supports/full/small/${sc.id}.png`"
+                               :alt="getSupportCardNameByNumericId(sc.id)"
+                               class="w-full aspect-[2/3] object-cover rounded bg-slate-800"
+                               loading="lazy"
+                               @error="($event.target as HTMLImageElement).style.display='none'" />
+                          <span class="absolute top-0 left-0 text-[7px] font-bold px-0.5 bg-black/70 rounded-br"
+                                :class="resolveSupportCardRarity(sc.id) === 'SSR' ? 'text-amber-400' : resolveSupportCardRarity(sc.id) === 'SR' ? 'text-purple-300' : 'text-slate-400'">
+                            {{ resolveSupportCardRarity(sc.id) }}
+                          </span>
+                        </div>
+                        <span class="text-[9px] text-amber-400/80">LB{{ sc.lb }}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -262,14 +271,26 @@ function getParentGroup(parents: HorseDetail['parents'], groupIndex: number) {
                     <span class="text-slate-400 font-bold text-[10px] tracking-wide">PARENTS</span>
                     <template v-for="gi in [1, 2]" :key="gi">
                       <template v-if="getParentGroup(h.parents, gi).length">
-                        <div class="flex flex-wrap items-center gap-1 mt-1.5 mb-0.5">
-                          <span class="text-slate-500 text-[10px] mr-1">#{{ gi }}</span>
-                          <span v-for="(p, pi) in getParentGroup(h.parents, gi)" :key="pi" class="text-slate-400 text-[11px]">
-                            <span class="text-white">{{ p.charaName }}</span>
-                            <span class="text-amber-400 text-[10px]"> {{ ['', 'R', 'SR', 'SSR', 'SSR+'][p.rarity] || 'R' }}</span>
-                            <span class="text-slate-500">Lv{{ p.level }}</span>
-                            <span v-if="pi < getParentGroup(h.parents, gi).length - 1" class="text-slate-600 mx-1">|</span>
-                          </span>
+                        <div class="flex items-center gap-1 mt-1.5 mb-1">
+                          <span class="text-slate-500 text-[10px] mr-0.5">#{{ gi }}</span>
+                          <div class="flex flex-wrap gap-2">
+                            <div v-for="(p, pi) in getParentGroup(h.parents, gi)" :key="pi" class="flex items-center gap-1.5">
+                              <div class="relative w-[30px] shrink-0">
+                                <img :src="getUmaImagePath(p.charaName)" :alt="p.charaName"
+                                     class="w-full aspect-[2/3] object-cover rounded bg-slate-800"
+                                     loading="lazy"
+                                     @error="($event.target as HTMLImageElement).style.display='none'" />
+                                <span class="absolute -top-0.5 -left-0.5 text-[7px] font-bold px-0.5 bg-black/80 rounded"
+                                      :class="['', 'text-slate-400', 'text-blue-300', 'text-amber-400', 'text-amber-400'][p.rarity] || ''">
+                                  {{ ['', 'R', 'SR', 'SSR', 'SSR+'][p.rarity] || '' }}
+                                </span>
+                              </div>
+                              <div class="leading-tight">
+                                <div class="text-white text-[11px] leading-tight">{{ p.charaName }}</div>
+                                <div class="text-slate-500 text-[10px]">Lv{{ p.level }}</div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         <div class="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-0.5 mb-1">
                           <span v-for="(f, fi) in aggregateFactors(getParentGroup(h.parents, gi).flatMap(p => p.factors))" :key="gi + '-' + fi"
