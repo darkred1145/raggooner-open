@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import RaceReplayVisualization, { type ReplayData } from '../components/race/RaceReplayVisualization.vue';
 import { normalizeReplayData, extractSimDataBase64 } from '../utils/replayUtils';
-import { decodeRaceSimData, parseRaceSimDataFromJson, type RaceSimulateData } from '../utils/raceSimDecoder';
+import { decodeRaceSimData, parseRaceSimDataFromJson, extendFramesToFinish, type RaceSimulateData } from '../utils/raceSimDecoder';
 
 const props = defineProps<{ standalone?: boolean }>();
 const loading = ref(false);
@@ -36,7 +36,12 @@ const loadFile = (file: File) => {
         if (simB64) {
           decoding.value = true;
           try {
-            simData.value = await decodeRaceSimData(simB64);
+            const sd = await decodeRaceSimData(simB64);
+            const td = normalized.RaceCourseSet?.Distance;
+            console.log('[ReplayViewer] totalDistance from JSON:', td, 'horses:', sd.horseNum, 'last frame time:', sd.frames[sd.frames.length-1]?.time);
+            if (td > 0) extendFramesToFinish(sd, td);
+            else console.warn('[ReplayViewer] no totalDistance, skip extend');
+            simData.value = sd;
           } catch (e) {
             console.warn('Failed to decode sim data', e);
           }

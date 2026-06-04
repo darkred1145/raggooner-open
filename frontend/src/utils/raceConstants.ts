@@ -1,3 +1,5 @@
+// fallow-ignore-file unused-export
+
 export const BASE_SPEED_CONSTANT = 20.0;
 export const BASE_SPEED_COURSE_OFFSET = 2000;
 export const BASE_SPEED_COURSE_SCALE = 1000;

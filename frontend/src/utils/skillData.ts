@@ -9,7 +9,7 @@ export interface SkillData {
     uniqueFor?: string;
 }
 
-export const SKILL_DICT: Record<number, SkillData> = {
+const SKILL_DICT: Record<number, SkillData> = {
     200011: { id: 200011, name: 'Right-Handed ◎', description: 'Increase performance on right-handed tracks.', isUnique: false, uniqueFor: '' },
     200012: { id: 200012, name: 'Right-Handed ○', description: 'Moderately increase performance on right-handed tracks.', isUnique: false, uniqueFor: '' },
     200021: { id: 200021, name: 'Left-Handed ◎', description: 'Increase performance on left-handed tracks.', isUnique: false, uniqueFor: '' },
@@ -435,12 +435,14 @@ export const SKILL_DICT: Record<number, SkillData> = {
     202081: { id: 202081, name: 'From the Brink', description: 'If positioned toward the back late-race, increase acceleration. (Medium)', isUnique: false, uniqueFor: '' },
     201901: { id: 201901, name: 'Neck and Neck', description: 'Increase acceleration when positioned toward the front late-race. (Pace Chaser)', isUnique: false, uniqueFor: '' },
     10271: { id: 10271, name: 'Feel the Burn!', description: 'Moderately increase acceleration in an attempt to move up on a corner late-race.', isUnique: true, uniqueFor: 'Mejiro Ryan (Original)' },
-    100041: { id: 100041, name: 'Red Shift/LP1211-M', description: 'Increase acceleration by shifting gears when positioned toward the front on the final corner or later.', isUnique: true, uniqueFor: 'Maruzensky (Original)' },
+     100041: { id: 100041, name: 'Red Shift/LP1211-M', description: 'Increase acceleration by shifting gears when positioned toward the front on the final corner or later.', isUnique: true, uniqueFor: 'Maruzensky (Original)' },
+     900041: { id: 900041, name: 'Red Shift/LP1211-M', description: 'Increase acceleration by shifting gears when positioned toward the front on the final corner or later.', isUnique: false, uniqueFor: '' },
     100101: { id: 100101, name: 'Shooting for Victory!', description: 'Increase acceleration with a pow, a wow, and a bang when well-positioned upon approaching the final straight.', isUnique: true, uniqueFor: 'Taiki Shuttle (Original)' },
     100271: { id: 100271, name: 'Let\'s Pump Some Iron!', description: 'Increase acceleration in an attempt to move up on a corner late-race.', isUnique: true, uniqueFor: 'Mejiro Ryan (Original)' },
     100201: { id: 100201, name: 'Angling and Scheming', description: 'Increase acceleration at an opportune moment when in the lead on a corner late-race.', isUnique: true, uniqueFor: 'Seiun Sky (Original)' },
     110141: { id: 110141, name: 'Condor\'s Fury', description: 'Increase acceleration with blazing passion when aiming for the front from midpack on the final corner.', isUnique: true, uniqueFor: 'El Condor Pasa (Fantasy)' },
-    100591: { id: 100591, name: 'Moving Past, and Beyond', description: 'Having run the race calmly, increase acceleration with hardened determination when making a move mid-race, or on a crucial corner late-race whilst in midpack.', isUnique: true, uniqueFor: 'Mejiro Dober (Original)' },
+     100591: { id: 100591, name: 'Moving Past, and Beyond', description: 'Having run the race calmly, increase acceleration with hardened determination when making a move mid-race, or on a crucial corner late-race whilst in midpack.', isUnique: true, uniqueFor: 'Mejiro Dober (Original)' },
+     900591: { id: 900591, name: 'Moving Past, and Beyond', description: 'Having run the race calmly, increase acceleration with hardened determination when making a move mid-race, or on a crucial corner late-race whilst in midpack.', isUnique: false, uniqueFor: '' },
     100511: { id: 100511, name: 'Budding Blossom', description: 'If the user engaged in a challenge on a mid-race corner, increase acceleration when well-positioned late-race at least halfway through the final corner.', isUnique: true, uniqueFor: 'Nishino Flower (Original)' },
     110611: { id: 110611, name: 'Louder! Tracen Cheer!', description: 'If the user stays toward the very back during the first half of the race without being rushed, unleash fighting spirit to increase acceleration on the final straight.', isUnique: true, uniqueFor: 'King Halo (Cheerleader)' },
     200343: { id: 200343, name: 'Corner Acceleration ×', description: 'Moderately decrease acceleration on a corner with awkward turning.', isUnique: false, uniqueFor: '' },
@@ -533,12 +535,3 @@ export function getSkillName(id: number): string {
     return SKILL_DICT[id]?.name || `Skill ${id}`;
 }
 
-export function getSkillDescription(id: number): string {
-    return SKILL_DICT[id]?.description || '';
-}
-
-export function getUniqueSkillForCharacter(charName: string): number[] {
-    return Object.values(SKILL_DICT)
-        .filter(s => s.isUnique && s.uniqueFor?.includes(charName))
-        .map(s => s.id);
-}

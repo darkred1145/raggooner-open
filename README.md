@@ -4,7 +4,7 @@ Tournament management web app for community Umamusume Pretty Derby tournaments.
 
 Handles the full tournament lifecycle — player registration, team drafts, race scoring, analytics, and Discord-ready result exports.
 
-> **Fork of [Raccoon Open](https://github.com/jacobfreise/raggooner-open)** — independently hosted with free-tier Discord OAuth (no Blaze plan required).
+> **Fork of [Raccoon Open](https://github.com/jacobfreise/raggooner-open)** — independently hosted with free-tier Discord OAuth (no Firebase Blaze plan required).
 >
 > 🌐 **Live Site:** https://raggooner-uma-2026.web.app/
 
@@ -23,7 +23,7 @@ Handles the full tournament lifecycle — player registration, team drafts, race
 
 | Layer | Technology |
 |---|---|
-| Frontend | Vue 3 (Composition API), TypeScript, Tailwind CSS v4, PrimeVue, Vite |
+| Frontend | Vue 3 (Composition API), TypeScript, Tailwind CSS v4, Vite |
 | Backend | Vercel Serverless Functions (free tier) |
 | Database | Firestore |
 | Auth | Firebase Auth with custom Discord OIDC |
@@ -37,13 +37,12 @@ Handles the full tournament lifecycle — player registration, team drafts, race
 
 - Node.js v20+
 - Firebase CLI — `npm install -g firebase-tools`
-- Java (required for Firebase Emulators)
 
 ### Setup
 
 1. Clone the repo and install dependencies:
    ```bash
-   git clone https://github.com/darkred1145/raggooner-open.git
+   git clone <repo-url>
    cd raggooner-open
    cd frontend && npm install
    cd ../vercel-backend && npm install
@@ -62,43 +61,37 @@ Handles the full tournament lifecycle — player registration, team drafts, race
    VITE_DISCORD_OAUTH_URL=https://your-vercel-url.vercel.app
    ```
 
-3. Start the emulators and dev server:
+3. Start the dev server:
+   ```bash
+   cd frontend && npm run dev
+   ```
+
+   The app runs at http://localhost:5173 and reads from the production Firestore database. To use local emulators instead:
+
    ```bash
    firebase emulators:start        # Firestore on :8080, Auth on :9099
    cd frontend && npm run dev      # App on :5173
    ```
 
-### Syncing Data
-
-The `scripts/` folder contains tools to sync tournament data with the upstream Raggooner API:
+### Commands
 
 ```bash
-# Install dependencies (first time)
-cd scripts && npm install
-
-# Set your API token
-export API_TOKEN="your-token-here"
-
-# Run sync (active tournaments only - saves quota)
-npm run sync-backend -- --token "$API_TOKEN"
-
-# Or deep sync (all tournaments including finished)
-npm run sync-backend -- --discover --token "$API_TOKEN"
+cd frontend
+npm run dev       # Start dev server
+npm run build     # Type-check + production build
+npm test          # Run all tests
+npm run preview   # Preview production build
 ```
 
-See [scripts/SYNC_BACKEND.md](scripts/SYNC_BACKEND.md) for full documentation.
+### Project Structure
 
-## Recent Changes
+| Directory | What it is |
+|---|---|
+| `frontend/` | Vue 3 + TypeScript SPA |
+| `vercel-backend/` | Vercel Serverless Functions (Discord OAuth) |
+| `scripts/` | Tournament data sync tools (see `scripts/SYNC_BACKEND.md`) |
 
-### Tournament Sync Restored
-
-The sync scripts are working again. Data can be synced from the upstream Raccoon API using the TypeScript sync tool in `scripts/`.
-
-### Code Cleanup
-
-Removed unnecessary UI theme changes and reverted to stable codebase. Sync functionality restored and documented.
-
----
+The frontend loads game data at runtime from `frontend/public/data/` — no external API calls needed for race replay rendering.
 
 ## Contributing
 

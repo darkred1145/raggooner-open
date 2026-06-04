@@ -2,9 +2,6 @@
 import { ref, watch, type Ref } from 'vue';
 import type { Tournament, EggConfig } from '../types';
 
-// --- REGISTRATION JOKES ---
-export const USE_JOKES = true;
-
 export interface PostToastConfig {
     message: string;
     delayMs?: number;   // default 10000

@@ -1713,16 +1713,20 @@ export const getUmaImagePath = (name: string): string => {
     return `https://gametora.com/images/umamusume/characters/chara_stand_${Math.floor(data.characterId / 100)}_${data.characterId}.png`;
 };
 
+export const CHARACTER_ID_TO_NAME: Map<number, string> = new Map();
+for (const entry of Object.values(UMA_DICT)) {
+    CHARACTER_ID_TO_NAME.set(entry.characterId, entry.name);
+}
+
 export function getUmaData(name: string | undefined): UmaData | null {
     if (!name) return null;
     return UMA_DICT[name] || null;
 }
 
-export const UMA_LIST = Object.values(UMA_DICT);
+const UMA_LIST = Object.values(UMA_DICT);
 
 export function getFilteredUmas(showUpcoming: boolean): UmaData[] {
     if (showUpcoming) return UMA_LIST;
     return UMA_LIST.filter(u => !u.upcoming);
 }
 
-export const RELEASED_UMAS = UMA_LIST.filter(u => !u.upcoming);

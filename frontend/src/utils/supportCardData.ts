@@ -89,9 +89,9 @@ function to5LevelArray(values: number[]): number[] {
     }
     return result;
 }
+const SUPPORT_CARD_DICT: Record<string, SupportCard> = {};
 
-export const SUPPORT_CARD_DICT: Record<string, SupportCard> = {};
-export const SUPPORT_CARD_BY_NUM_ID: Map<number, string> = new Map();
+const SUPPORT_CARD_BY_NUM_ID: Map<number, string> = new Map();
 
 for (const card of supportCardData as RawSupportCard[]) {
     const cardId = card.url_name;

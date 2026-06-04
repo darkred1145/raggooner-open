@@ -70,4 +70,11 @@ firestore-debug.log
 "frontend/.firebase/"
 
 # Utility scripts (not part of the app)
-scripts/  
+scripts/
+
+# AI agent config (local tools, not part of the app)
+.agents/
+skills-lock.json
+opencode_temp/
+
+

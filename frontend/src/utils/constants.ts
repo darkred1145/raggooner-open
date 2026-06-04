@@ -11,7 +11,7 @@ export type Permission =
     | 'view_superadmin_panel'        // can see the superadmin side panel
     | 'post_to_discord';             // can post announcements and results to Discord
 
-export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     superadmin: [
         'create_official_tournament',
         'bypass_tournament_password',
@@ -44,20 +44,6 @@ export const POINTS_SYSTEM: Record<number, number> = {
     10: 1, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0
 };
 
-export const TEAM_COLORS = [
-    '#ef4444', // Red
-    '#60a5fa', // Blue
-    '#4ade80', // Green
-    '#facc15', // Yellow
-    '#c084fc', // Purple
-    '#ff7fc1', // Pink
-    '#2dd4bf', // Teal
-    '#fb923c', // Orange
-    '#a3e635', // Lime
-    '#818cf8', // Indigo
-    '#22d3ee', // Cyan
-    '#f43f5e', // Rose
-];
 
 export const TOURNAMENT_FORMATS: Record<string, TournamentFormat> = {
     'uma-ban': {

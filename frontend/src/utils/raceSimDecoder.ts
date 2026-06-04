@@ -241,3 +241,66 @@ export function parseRaceSimDataFromJson(json: any): RaceSimulateData {
     events,
   };
 }
+
+export function extendFramesToFinish(simData: RaceSimulateData, totalDistance: number): void {
+  const frames = simData.frames;
+  if (frames.length < 2) {
+    console.log('[extendFramesToFinish] <2 frames, skip');
+    return;
+  }
+
+  const last = frames[frames.length - 1]!;
+  console.log('[extendFramesToFinish] totalDistance=', totalDistance, 'frameCount=', frames.length, 'lastTime=', last.time);
+  console.log('[extendFramesToFinish] last frame distances:', last.horseFrames.map((hf, i) => `h${i}=${hf.distance.toFixed(1)}`).join(' '));
+
+  const allFinished = last.horseFrames.every(hf => hf.distance >= totalDistance);
+  if (allFinished) {
+    console.log('[extendFramesToFinish] all horses finished, no extension needed');
+    return;
+  }
+
+  const LOOKBACK = Math.min(10, frames.length);
+  const speeds: number[] = new Array(simData.horseNum).fill(0);
+  for (let h = 0; h < simData.horseNum; h++) {
+    let dSum = 0, tSum = 0;
+    for (let j = 1; j < LOOKBACK; j++) {
+      const idx = frames.length - j;
+      const pIdx = idx - 1;
+      const dd = frames[idx]!.horseFrames[h]!.distance - frames[pIdx]!.horseFrames[h]!.distance;
+      const dt = frames[idx]!.time - frames[pIdx]!.time;
+      if (dt > 0 && dd >= 0) { dSum += dd; tSum += dt; }
+    }
+    speeds[h] = tSum > 0 ? dSum / tSum : 0;
+  }
+
+  let maxExtra = 0;
+  for (let h = 0; h < simData.horseNum; h++) {
+    const dist = last.horseFrames[h]!.distance;
+    if (dist >= totalDistance) continue;
+    if (speeds[h]! > 0) {
+      const need = (totalDistance - dist) / speeds[h]!;
+      console.log(`[extendFramesToFinish] h${h} dist=${dist.toFixed(1)} speed=${speeds[h]!.toFixed(2)} need=${need.toFixed(1)}s`);
+      maxExtra = Math.max(maxExtra, need);
+    } else {
+      console.log(`[extendFramesToFinish] h${h} dist=${dist.toFixed(1)} speed=0, cannot project`);
+    }
+  }
+  if (maxExtra <= 0) {
+    console.log('[extendFramesToFinish] maxExtra <=0, skip');
+    return;
+  }
+
+  const maxTime = last.time + maxExtra + 1;
+  console.log('[extendFramesToFinish] extending from', last.time, 'to', maxTime, '(+', maxExtra + 1, 's)');
+  const STEP = 0.1;
+  for (let t = last.time + STEP; t <= maxTime; t += STEP) {
+    const dt = t - last.time;
+    const hf = last.horseFrames.map((hf, h) => ({
+      ...hf,
+      distance: Math.min(hf.distance + speeds[h]! * dt, totalDistance),
+    }));
+    frames.push({ time: t, horseFrames: hf });
+  }
+  simData.frameCount = frames.length;
+  console.log('[extendFramesToFinish] done, frames now', frames.length);
+}

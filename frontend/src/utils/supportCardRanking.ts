@@ -16,7 +16,7 @@ import type { SupportCardType } from '../types';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export interface DeckBreakdown {
+interface DeckBreakdown {
     raceBonus: number;
     raceBonusScore: number;
     statBonusScore: number;
@@ -49,8 +49,7 @@ export interface PlayerDeckRanking {
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
-export const TB_RACE_BONUS_TARGET = 50;
-export const URA_RACE_BONUS_TARGET = 35;
+const TB_RACE_BONUS_TARGET = 50;
 const STAT_SOFT_CAP = 1200;
 
 // ─── Math Helpers ───────────────────────────────────────────────────────────
@@ -83,7 +82,7 @@ function applyDiminishingReturns(statValue: number): number {
 // ─── Uma Stat Bonus Parsing ─────────────────────────────────────────────────
 
 /** Parse uma's statBonus string (e.g. 'STA +14% / GUT +8%') into structured data */
-export function parseUmaStatBonus(umaName: string): { stat: string; pct: number }[] {
+function parseUmaStatBonus(umaName: string): { stat: string; pct: number }[] {
     const uma = getUmaData(umaName);
     if (!uma?.statBonus) return [];
 
@@ -106,18 +105,6 @@ export function parseUmaStatBonus(umaName: string): { stat: string; pct: number 
     }
 
     return result;
-}
-
-/** Get uma's primary bonus stat type */
-export function getUmaPrimaryStat(umaName: string): string | null {
-    const bonuses = parseUmaStatBonus(umaName);
-    return bonuses.length > 0 ? bonuses[0]!.stat : null;
-}
-
-/** Get uma's secondary bonus stat type */
-export function getUmaSecondaryStat(umaName: string): string | null {
-    const bonuses = parseUmaStatBonus(umaName);
-    return bonuses.length > 1 ? bonuses[1]!.stat : null;
 }
 
 // ─── Core Evaluation ────────────────────────────────────────────────────────
@@ -312,41 +299,7 @@ function assignTier(score: number): 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' {
     return 'F';
 }
 
-// ─── Player Ranking ─────────────────────────────────────────────────────────
-
-/**
- * Rank players by their deck quality.
- * Requires: playerId -> umaName mapping + cards with limitBreak
- */
-export function rankPlayers(
-    players: { id: string; name: string; uma: string; deck: { cardId: string; limitBreak: number }[] }[]
-): PlayerDeckRanking[] {
-    return players
-        .map(player => ({
-            playerId: player.id,
-            playerName: player.name,
-            umaName: player.uma,
-            deck: player.deck.map(c => c.cardId),
-            evaluation: evaluateDeck(player.uma, player.deck),
-        }))
-        .filter(r => r.evaluation !== null)
-        .sort((a, b) => (b.evaluation?.score ?? 0) - (a.evaluation?.score ?? 0));
-}
-
 // ─── Tier Styling Helpers ───────────────────────────────────────────────────
-
-export function getTierColor(tier: string): string {
-    switch (tier) {
-        case 'S': return 'text-yellow-400';
-        case 'A': return 'text-orange-400';
-        case 'B': return 'text-sky-400';
-        case 'C': return 'text-emerald-400';
-        case 'D': return 'text-gray-400';
-        case 'E': return 'text-gray-500';
-        case 'F': return 'text-gray-600';
-        default: return 'text-gray-400';
-    }
-}
 
 export function getTierBg(tier: string): string {
     switch (tier) {
