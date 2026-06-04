@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 import TrackRollerView from './tools/TrackRollerView.vue';
 import UmaRollerView from './tools/UmaRollerView.vue';
 import ReplayViewer from './ReplayViewer.vue';
@@ -7,7 +8,8 @@ import SiteHeader from '../components/shared/SiteHeader.vue';
 import SiteNav from '../components/shared/SiteNav.vue';
 
 type ToolTab = 'track-roller' | 'uma-roller' | 'replay-viewer';
-const activeTab = ref<ToolTab>('track-roller');
+const route = useRoute();
+const activeTab = ref<ToolTab>(route.query.id ? 'replay-viewer' : 'track-roller');
 </script>
 
 <template>

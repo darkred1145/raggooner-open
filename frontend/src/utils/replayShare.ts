@@ -31,10 +31,7 @@ export async function fetchReplayJson(id: string): Promise<string | null> {
 }
 
 export function buildShareUrl(id: string): string {
-  const url = new URL(window.location.href);
-  url.search = `?id=${id}`;
-  url.hash = '';
-  return url.toString();
+  return `${window.location.origin}/replay-viewer?id=${id}`;
 }
 
 export function getShareIdFromUrl(): string | null {
